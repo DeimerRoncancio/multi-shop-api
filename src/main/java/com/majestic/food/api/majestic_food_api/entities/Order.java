@@ -1,6 +1,7 @@
 package com.majestic.food.api.majestic_food_api.entities;
 
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -9,9 +10,14 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 
 @Entity
@@ -29,6 +35,14 @@ public class Order {
 
     @NotBlank
     private Date orderDate;
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinTable(
+        name = "products_to_orders",
+        joinColumns = @JoinColumn(name = "id_order"),
+        inverseJoinColumns = @JoinColumn(name = "id_product"),
+        uniqueConstraints = @UniqueConstraint(columnNames = "id_product"))
+    private List<Product> product;
     
     @ManyToOne
     @JsonIgnoreProperties({"roles", "handler", "hibernateLazy"})
@@ -76,5 +90,13 @@ public class Order {
     
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public List<Product> getProduct() {
+        return product;
+    }
+    
+    public void setProduct(List<Product> product) {
+        this.product = product;
     }
 }
