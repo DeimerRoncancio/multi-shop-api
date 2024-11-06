@@ -1,7 +1,6 @@
 package com.majestic.food.api.majestic_food_api.entities;
 
 import java.util.List;
-import java.util.UUID;
 
 import org.hibernate.annotations.UuidGenerator;
 
@@ -18,7 +17,7 @@ public class ProductType {
     @Id
     @UuidGenerator
     @Column(name = "id", nullable = false, updatable = false)
-    private UUID id;
+    private String id;
 
     @Column(unique = true)
     private String typeName;
@@ -33,11 +32,11 @@ public class ProductType {
         this.typeName = typeName;
     }
 
-    public UUID getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(String id) {
         this.id = id;
     }
 

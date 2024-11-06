@@ -1,13 +1,12 @@
 package com.majestic.food.api.majestic_food_api.entities;
 
-import java.util.List;
-import java.util.UUID;
-
 import org.hibernate.annotations.UuidGenerator;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
@@ -18,6 +17,10 @@ import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+import java.util.ArrayList;
+import java.util.List;
+import jakarta.persistence.Entity;
+
 @Entity
 @Table(name = "users")
 public class User {
@@ -25,7 +28,7 @@ public class User {
     @Id
     @UuidGenerator
     @Column(name = "id",updatable = false, nullable = false)
-    private UUID id;
+    private String id;
 
     @NotBlank
     private String name;
@@ -43,8 +46,10 @@ public class User {
 
     @NotBlank
     @Size(min = 8, max = 255)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
+    @JsonIgnoreProperties({"user"})
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Order> orders;
 
@@ -54,9 +59,11 @@ public class User {
         joinColumns = @JoinColumn(name = "id_user"),
         inverseJoinColumns = @JoinColumn(name = "id_role"),
         uniqueConstraints = @UniqueConstraint(columnNames = {"id_user", "id_role"}))
+    @JsonIgnoreProperties({"users", "handler", "hibernateLazy"})
     private List<Role> roles;
     
     public User() {
+        this.roles = new ArrayList<> ();
     }
 
     public User(String name, String profileImage, String secondName, String lastnames, Long phoneNumber,
@@ -71,11 +78,11 @@ public class User {
         this.password = password;
     }
 
-    public UUID getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(String id) {
         this.id = id;
     }
 

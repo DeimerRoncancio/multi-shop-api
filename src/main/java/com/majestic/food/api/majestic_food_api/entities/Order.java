@@ -1,12 +1,6 @@
 package com.majestic.food.api.majestic_food_api.entities;
 
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
-
 import org.hibernate.annotations.UuidGenerator;
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -18,6 +12,9 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.persistence.Column;
 
+import java.util.Date;
+import java.util.List;
+
 @Entity
 @Table(name = "orders")
 public class Order {
@@ -25,7 +22,7 @@ public class Order {
     @Id
     @UuidGenerator
     @Column(name = "id", nullable = false, updatable = false)
-    private UUID id;
+    private String id;
 
     @NotBlank
     private String orderName;
@@ -43,18 +40,20 @@ public class Order {
 
     @ManyToOne
     @JoinColumn(name = "id_user")
-    @JsonIgnoreProperties({"roles", "handler", "hibernateLazy"})
     private User user;
-    
+
+    public Order() {
+    }
+
     public Order(String orderName) {
         this.orderName = orderName;
     }
     
-    public UUID getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(String id) {
         this.id = id;
     }
     
