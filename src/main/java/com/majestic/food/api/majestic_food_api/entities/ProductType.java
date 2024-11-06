@@ -23,7 +23,7 @@ public class ProductType {
     @Column(unique = true)
     private String typeName;
 
-    @ManyToMany(mappedBy = "prod_types")
+    @ManyToMany(mappedBy = "productTypes")
     private List<Product> products;
 
     public ProductType() {

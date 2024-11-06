@@ -12,12 +12,11 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 
 @Entity
@@ -36,14 +35,13 @@ public class Order {
     @NotBlank
     private Date orderDate;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @ManyToMany
     @JoinTable(
         name = "products_to_orders",
         joinColumns = @JoinColumn(name = "id_order"),
-        inverseJoinColumns = @JoinColumn(name = "id_product"),
-        uniqueConstraints = @UniqueConstraint(columnNames = "id_product"))
+        inverseJoinColumns = @JoinColumn(name = "id_product"))
     private List<Product> product;
-    
+
     @ManyToOne
     @JsonIgnoreProperties({"roles", "handler", "hibernateLazy"})
     private User user;
