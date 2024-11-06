@@ -1,7 +1,7 @@
 package com.majestic.food.api.majestic_food_api.controllers;
 
 import com.majestic.food.api.majestic_food_api.entities.User;
-import com.majestic.food.api.majestic_food_api.repositories.UserRepository;
+import com.majestic.food.api.majestic_food_api.services.UserService;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,16 +18,16 @@ import java.util.Optional;
 public class UserController {
 
     @Autowired
-    private UserRepository userRepository;
-
+    private UserService service;
+    
     @GetMapping
     public List<User> viewAll() {
-        return userRepository.findAll();
+        return service.findAll();
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<User> view(@PathVariable String id) {
-        Optional<User> product = userRepository.findById(id);
+        Optional<User> product = service.findOne(id);
 
         if (product.isPresent())
             return ResponseEntity.ok().body(product.get());

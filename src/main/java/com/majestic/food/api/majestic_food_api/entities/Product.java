@@ -31,19 +31,20 @@ public class Product {
 
     @ManyToMany
     @JoinTable(
-        name = "types_to_products",
+        name = "categories_to_products",
         joinColumns = @JoinColumn(name = "id_product"),
-        inverseJoinColumns = @JoinColumn(name = "id_type"),
-        uniqueConstraints = @UniqueConstraint(columnNames = {"id_product", "id_type"}))
-    private List<ProductType> productTypes;
+        inverseJoinColumns = @JoinColumn(name = "id_category"),
+        uniqueConstraints = @UniqueConstraint(columnNames = {"id_product", "id_category"}))
+    private List<ProductCategory> categories;
 
     public Product() {
     }
 
-    public Product(String productName, String description, BigDecimal price) {
+    public Product(String productName, String description, BigDecimal price, List<ProductCategory> categories) {
         this.productName = productName;
         this.description = description;
         this.price = price;
+        this.categories = categories;
     }
 
     public String getId() {
@@ -76,5 +77,13 @@ public class Product {
 
     public void setPrice(BigDecimal price) {
         this.price = price;
+    }
+
+    public List<ProductCategory> getCategories() {
+        return categories;
+    }
+
+    public void setCategories(List<ProductCategory> productCategory) {
+        this.categories = productCategory;
     }
 }

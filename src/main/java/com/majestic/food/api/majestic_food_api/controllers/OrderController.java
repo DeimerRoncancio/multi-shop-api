@@ -1,7 +1,7 @@
 package com.majestic.food.api.majestic_food_api.controllers;
 
 import com.majestic.food.api.majestic_food_api.entities.Order;
-import com.majestic.food.api.majestic_food_api.repositories.OrderRepository;
+import com.majestic.food.api.majestic_food_api.services.OrderService;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -15,10 +15,10 @@ import java.util.List;
 public class OrderController {
 
     @Autowired
-    private OrderRepository orderRepository;
+    private OrderService service;
 
     @GetMapping
     public List<Order> viewAll() {
-        return orderRepository.findAll();
+        return service.findAll();
     }
 }

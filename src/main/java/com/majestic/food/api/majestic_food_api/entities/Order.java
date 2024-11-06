@@ -2,6 +2,8 @@ package com.majestic.food.api.majestic_food_api.entities;
 
 import org.hibernate.annotations.UuidGenerator;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -40,6 +42,7 @@ public class Order {
 
     @ManyToOne
     @JoinColumn(name = "id_user")
+    @JsonIgnoreProperties({"orders", "roles"})
     private User user;
 
     public Order() {

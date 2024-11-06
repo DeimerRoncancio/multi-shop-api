@@ -11,8 +11,8 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Column;
 
 @Entity
-@Table(name = "prod_types")
-public class ProductType {
+@Table(name = "prod_categories")
+public class ProductCategory {
 
     @Id
     @UuidGenerator
@@ -20,16 +20,16 @@ public class ProductType {
     private String id;
 
     @Column(unique = true)
-    private String typeName;
+    private String categoryName;
 
-    @ManyToMany(mappedBy = "productTypes")
+    @ManyToMany(mappedBy = "categories")
     private List<Product> products;
 
-    public ProductType() {
+    public ProductCategory() {
     }
 
-    public ProductType(String typeName) {
-        this.typeName = typeName;
+    public ProductCategory(String categoryName) {
+        this.categoryName = categoryName;
     }
 
     public String getId() {
@@ -40,11 +40,19 @@ public class ProductType {
         this.id = id;
     }
 
-    public String getTypeName() {
-        return typeName;
+    public String getCategoryName() {
+        return categoryName;
     }
 
-    public void setTypeName(String typeName) {
-        this.typeName = typeName;
+    public void setCategoryName(String categoryName) {
+        this.categoryName = categoryName;
+    }
+
+    public List<Product> getProducts() {
+        return products;
+    }
+
+    public void setProducts(List<Product> products) {
+        this.products = products;
     }
 }
