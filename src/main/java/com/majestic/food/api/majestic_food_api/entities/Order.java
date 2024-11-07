@@ -12,6 +12,7 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.persistence.Column;
 
 import java.util.Date;
@@ -30,7 +31,7 @@ public class Order {
     private String orderName;
     private String notes;
 
-    @NotBlank
+    @NotNull
     private Date orderDate;
 
     @ManyToMany
@@ -47,15 +48,17 @@ public class Order {
 
     public Order() {
     }
-
-    public Order(String orderName) {
+    
+    public Order(String orderName, String notes, Date orderDate) {
         this.orderName = orderName;
+        this.notes = notes;
+        this.orderDate = orderDate;
     }
     
     public String getId() {
         return id;
     }
-
+    
     public void setId(String id) {
         this.id = id;
     }
@@ -79,7 +82,7 @@ public class Order {
     public Date getOrderDate() {
         return orderDate;
     }
-    
+
     public void setOrderDate(Date orderDate) {
         this.orderDate = orderDate;
     }

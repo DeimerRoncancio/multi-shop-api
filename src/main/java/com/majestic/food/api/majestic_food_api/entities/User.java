@@ -3,7 +3,7 @@ package com.majestic.food.api.majestic_food_api.entities;
 import org.hibernate.annotations.UuidGenerator;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
+// import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -64,6 +64,7 @@ public class User {
     
     public User() {
         this.roles = new ArrayList<> ();
+        this.orders = new ArrayList<> ();
     }
 
     public User(String name, String profileImage, String secondName, String lastnames, Long phoneNumber,
@@ -156,6 +157,13 @@ public class User {
 
     public void setOrders(List<Order> orders) {
         this.orders = orders;
+    }
+
+    public void addOrder(List<Order> order) {
+        order.stream().forEach(ord -> {
+            ord.setUser(this);
+            orders.add(ord);
+        });
     }
 
     public List<Role> getRoles() {
