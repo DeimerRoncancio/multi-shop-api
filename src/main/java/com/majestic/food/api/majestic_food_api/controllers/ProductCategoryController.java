@@ -26,12 +26,12 @@ public class ProductCategoryController {
     private ProductCategoryService service;
 
     @GetMapping
-    public List<ProductCategory> findAll() {
+    public List<ProductCategory> viewdAll() {
         return service.findAll();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProductCategory> findOne(@PathVariable String id) {
+    public ResponseEntity<ProductCategory> view(@PathVariable String id) {
         Optional<ProductCategory> optionalCategory = service.findOne(id);
 
         if (optionalCategory.isPresent())

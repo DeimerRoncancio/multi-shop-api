@@ -31,7 +31,7 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Product> findOne(@PathVariable String id) {
+    public ResponseEntity<Product> view(@PathVariable String id) {
         Optional<Product> productDb = service.findOne(id);
 
         if (productDb.isPresent())
