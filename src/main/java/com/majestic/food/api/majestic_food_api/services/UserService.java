@@ -10,4 +10,10 @@ public interface UserService {
     List<User> findAll();
 
     Optional<User> findOne(String id);
+
+    User save(User user);
+
+    Optional<User> update(String id, User user);
+
+    Optional<User> delete(String id);
 }

@@ -27,4 +27,44 @@ public class UserServiceImpl implements UserService {
     public Optional<User> findOne(String id){ 
         return repository.findById(id);
     }
+
+    @Override
+    @Transactional
+    public User save(User user) {
+        return repository.save(user);
+    }
+
+    @Override
+    @Transactional
+    public Optional<User> update(String id, User user) {
+        Optional<User> optionalUser = repository.findById(id);
+        
+        optionalUser.ifPresent(userDb -> {
+
+            userDb.setName(user.getName());
+            userDb.setProfileImage(user.getProfileImage());
+            userDb.setSecondName(user.getSecondName());
+            userDb.setLastnames(user.getLastnames());
+            userDb.setPhoneNumber(user.getPhoneNumber());
+            userDb.setGender(user.getGender());
+            userDb.setEmail(user.getEmail());
+            userDb.setPassword(user.getPassword());
+
+            repository.save(userDb);
+        });
+
+        return optionalUser;
+    }
+
+    @Override
+    @Transactional
+    public Optional<User> delete(String id) {
+        Optional<User> optionalUser = repository.findById(id);
+        
+        optionalUser.ifPresent(user -> {
+            repository.delete(user);
+        });
+
+        return optionalUser;
+    }
 }
