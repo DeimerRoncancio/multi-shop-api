@@ -10,4 +10,10 @@ public interface ProductService {
     List<Product> findAll();
 
     Optional<Product> findOne(String id);
+
+    Product save(Product product);
+
+    Optional<Product> update(String id, Product product);
+
+    Optional<Product> delete(String id);
 }
