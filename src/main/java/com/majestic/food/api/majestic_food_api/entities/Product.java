@@ -2,9 +2,14 @@ package com.majestic.food.api.majestic_food_api.entities;
 
 import org.hibernate.annotations.UuidGenerator;
 
+import com.majestic.food.api.majestic_food_api.validation.IfExists;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
@@ -24,9 +29,15 @@ public class Product {
     private String id;
 
     @Column(unique = true)
+    @NotBlank(message = "{NotBlank.validation.text}")
+    @IfExists(entity = Product.class, field = "productName", message = "{IfExists.product.name}")
     private String productName;
 
+    @NotBlank(message = "{NotBlank.validation.text}")
+    @Size(max = 140, message = "{Size.product.description}")
     private String description;
+    
+    @NotNull(message = "{NotBlank.validation.text}")
     private BigDecimal price;
 
     @ManyToMany

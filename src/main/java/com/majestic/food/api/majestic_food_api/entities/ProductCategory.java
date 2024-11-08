@@ -4,10 +4,13 @@ import java.util.List;
 
 import org.hibernate.annotations.UuidGenerator;
 
+import com.majestic.food.api.majestic_food_api.validation.IfExists;
+
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.persistence.Column;
 
 @Entity
@@ -20,6 +23,8 @@ public class ProductCategory {
     private String id;
 
     @Column(unique = true)
+    @IfExists(entity = ProductCategory.class, field = "categoryName", message = "{IfExists.category.name}")
+    @NotBlank(message = "{NotBlank.validation.text}")
     private String categoryName;
 
     @ManyToMany(mappedBy = "categories")

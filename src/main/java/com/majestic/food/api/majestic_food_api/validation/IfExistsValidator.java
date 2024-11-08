@@ -17,13 +17,16 @@ public class IfExistsValidator implements ConstraintValidator<IfExists, Object> 
     private String querySql = "SELECT COUNT(e) FROM %s e WHERE e.%s = :value";
 
     @Override
-    public void initialize(IfExists constraintAnnotation) {
-        this.entity = constraintAnnotation.entity();
-        this.field = constraintAnnotation.field();
+    public void initialize(IfExists annotation) {
+        this.entity = annotation.entity();
+        this.field = annotation.field();
     }
 
     @Override
     public boolean isValid(Object value, ConstraintValidatorContext context) {
+        if (entityManager == null)
+           return true;
+        
         String query = String.format(querySql, entity.getSimpleName(), field);
 
         Long ifExists = entityManager.createQuery(query, Long.class)
