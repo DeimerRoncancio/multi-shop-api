@@ -3,8 +3,7 @@ package com.majestic.food.api.majestic_food_api.entities;
 import org.hibernate.annotations.UuidGenerator;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.majestic.food.api.majestic_food_api.validation.ExistsByEmail;
-import com.majestic.food.api.majestic_food_api.validation.ExistsByPhoneNumber;
+import com.majestic.food.api.majestic_food_api.validation.IfExists;
 // import com.fasterxml.jackson.annotation.JsonProperty;
 import com.majestic.food.api.majestic_food_api.validation.SizeConstraint;
 
@@ -39,13 +38,13 @@ public class User {
     private String secondName;
     private String lastnames;
 
-    @ExistsByPhoneNumber
     @Column(unique = true)
+    @IfExists(entity = User.class, field = "phoneNumber", message = "{IfExists.user.phone}")
     private Long phoneNumber;
     private String gender;
 
     @Email
-    @ExistsByEmail
+    @IfExists(entity = User.class, field = "email")
     @Column(unique = true)
     @NotBlank(message = "{NotBlank.validation.text}")
     private String email;

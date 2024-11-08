@@ -1,21 +1,24 @@
 package com.majestic.food.api.majestic_food_api.validation;
 
+import jakarta.validation.Constraint;
+import jakarta.validation.Payload;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import jakarta.validation.Constraint;
-import jakarta.validation.Payload;
-
-@Constraint(validatedBy = ExistsByOrderNameValidation.class)
+@Constraint(validatedBy = IfExistsValidator.class)
+@Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD, ElementType.FIELD})
-public @interface ExistsByOrderName {
+public @interface IfExists {
 
-    String message() default "tiene el valor de un pedido existente";
-
+    String message() default "tiene el valor de un {field} existente";
+    
     Class<?>[] groups() default {};
-
+    
     Class<? extends Payload>[] payload() default {};
+    
+    Class<?> entity();
+    
+    String field();
 }

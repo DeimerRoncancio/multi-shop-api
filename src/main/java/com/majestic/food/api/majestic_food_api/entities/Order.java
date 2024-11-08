@@ -3,7 +3,7 @@ package com.majestic.food.api.majestic_food_api.entities;
 import org.hibernate.annotations.UuidGenerator;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.majestic.food.api.majestic_food_api.validation.ExistsByOrderName;
+import com.majestic.food.api.majestic_food_api.validation.IfExists;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -29,7 +29,7 @@ public class Order {
     private String id;
 
     @NotBlank(message = "{NotBlank.validation.text}")
-    @ExistsByOrderName
+    @IfExists(entity = Order.class, field = "orderName", message = "{IfExists.order.name}")
     private String orderName;
     private String notes;
 
