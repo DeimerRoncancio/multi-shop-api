@@ -72,4 +72,9 @@ public class OrderServiceImpl implements OrderService {
         
         return orderOptional;
     }
+
+    @Override
+    public boolean existsByOrderName(String name) {
+        return repository.existsByOrderName(name);
+    }
 }

@@ -18,7 +18,7 @@ public class SizeConstraintValidation implements ConstraintValidator<SizeConstra
     }
     
     @Override
-    public boolean isValid(String password, ConstraintValidatorContext context) {
-        return !password.isBlank() ? (password.length() >= min && password.length() <= max) : true;
+    public boolean isValid(String target, ConstraintValidatorContext context) {
+        return !(target == null || target.isBlank()) ? (target.length() >= min && target.length() <= max) : true;
     }
 }

@@ -16,4 +16,6 @@ public interface OrderService {
     Optional<Order> update(String id, Order order);
 
     Optional<Order> delete(String id);
+
+    boolean existsByOrderName(String name);
 }

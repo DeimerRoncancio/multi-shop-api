@@ -33,7 +33,7 @@ public class User {
     @Column(name = "id", updatable = false, nullable = false)
     private String id;
 
-    @NotBlank(message = "{NotBlank.user.text}")
+    @NotBlank(message = "{NotBlank.validation.text}")
     private String name;
     private String profileImage;
     private String secondName;
@@ -47,10 +47,10 @@ public class User {
     @Email
     @ExistsByEmail
     @Column(unique = true)
-    @NotBlank(message = "{NotBlank.user.text}")
+    @NotBlank(message = "{NotBlank.validation.text}")
     private String email;
 
-    @NotBlank(message = "{NotBlank.user.text}")
+    @NotBlank(message = "{NotBlank.validation.text}")
     @SizeConstraint(min = 8, max = 255)
     // @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;

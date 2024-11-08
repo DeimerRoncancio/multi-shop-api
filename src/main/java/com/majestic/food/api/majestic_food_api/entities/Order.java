@@ -3,6 +3,7 @@ package com.majestic.food.api.majestic_food_api.entities;
 import org.hibernate.annotations.UuidGenerator;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.majestic.food.api.majestic_food_api.validation.ExistsByOrderName;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -27,11 +28,12 @@ public class Order {
     @Column(name = "id", nullable = false, updatable = false)
     private String id;
 
-    @NotBlank
+    @NotBlank(message = "{NotBlank.validation.text}")
+    @ExistsByOrderName
     private String orderName;
     private String notes;
 
-    @NotNull
+    @NotNull(message = "{NotBlank.validation.text}")
     private Date orderDate;
 
     @ManyToMany
