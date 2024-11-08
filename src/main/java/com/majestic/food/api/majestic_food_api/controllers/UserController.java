@@ -3,6 +3,8 @@ package com.majestic.food.api.majestic_food_api.controllers;
 import com.majestic.food.api.majestic_food_api.entities.User;
 import com.majestic.food.api.majestic_food_api.services.UserService;
 
+import jakarta.validation.Valid;
+
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,8 +16,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -41,12 +46,18 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<User> create(@RequestBody User user) {
+    public ResponseEntity<?> create(@Valid @RequestBody User user, BindingResult result) {
+        if (result.hasFieldErrors())
+            return validate(result);
+
         return ResponseEntity.status(HttpStatus.CREATED).body(service.save(user));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@RequestBody User user,@PathVariable String id) {
+    public ResponseEntity<?> update(@Valid @RequestBody User user, BindingResult result, @PathVariable String id) {
+        if (result.hasFieldErrors())
+            return validate(result);
+        
         Optional<User> userOptional = service.update(id, user);
         
         if (userOptional.isPresent())
@@ -63,5 +74,15 @@ public class UserController {
             return ResponseEntity.ok().body("Eliminado correctamente");
         
         return ResponseEntity.notFound().build();
+    }
+
+    public ResponseEntity<?> validate(BindingResult result) {
+        Map<String, String> errors = new HashMap<> ();
+
+        result.getFieldErrors().forEach(err -> {
+            errors.put(err.getField(), "El campo " + err.getField() + " " + err.getDefaultMessage());
+        });
+
+        return ResponseEntity.badRequest().body(errors);
     }
 }

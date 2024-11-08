@@ -3,7 +3,10 @@ package com.majestic.food.api.majestic_food_api.entities;
 import org.hibernate.annotations.UuidGenerator;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.majestic.food.api.majestic_food_api.validation.ExistsByEmail;
+import com.majestic.food.api.majestic_food_api.validation.ExistsByPhoneNumber;
 // import com.fasterxml.jackson.annotation.JsonProperty;
+import com.majestic.food.api.majestic_food_api.validation.SizeConstraint;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -14,8 +17,8 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,25 +30,28 @@ public class User {
 
     @Id
     @UuidGenerator
-    @Column(name = "id",updatable = false, nullable = false)
+    @Column(name = "id", updatable = false, nullable = false)
     private String id;
 
-    @NotBlank
+    @NotBlank(message = "{NotBlank.user.text}")
     private String name;
     private String profileImage;
     private String secondName;
     private String lastnames;
 
+    @ExistsByPhoneNumber
     @Column(unique = true)
     private Long phoneNumber;
     private String gender;
 
-    @NotBlank
+    @Email
+    @ExistsByEmail
     @Column(unique = true)
+    @NotBlank(message = "{NotBlank.user.text}")
     private String email;
 
-    @NotBlank
-    @Size(min = 8, max = 255)
+    @NotBlank(message = "{NotBlank.user.text}")
+    @SizeConstraint(min = 8, max = 255)
     // @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
