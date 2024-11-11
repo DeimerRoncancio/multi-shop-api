@@ -47,7 +47,7 @@ public class UserController {
         return ResponseEntity.notFound().build();
     }
 
-    @PostMapping("/{id}")
+    @PostMapping
     public ResponseEntity<?> create(@Valid @RequestBody UserCreateDTO user, BindingResult result) {
         if (result.hasFieldErrors())
             return validate(result);

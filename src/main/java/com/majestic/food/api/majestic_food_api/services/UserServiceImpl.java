@@ -38,19 +38,18 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public User save(UserCreateDTO user) {
+    public User save(UserCreateDTO userDTO) {
         List<Role> roles = new ArrayList<>();
 
         roleRepository.findByRole("ROLE_USER").ifPresent(roles::add);
 
-        if (user.isAdmin())
+        if (userDTO.isAdmin())
             roleRepository.findByRole("ROLE_ADMIN").ifPresent(roles::add);
         
-        user.setRoles(roles);
-
-        User newUser = createUserFromDto(user);
+        userDTO.setRoles(roles);
+        User user = createUserFromDto(userDTO);
         
-        return repository.save(newUser);
+        return repository.save(user);
     }
 
     @Override
@@ -89,7 +88,6 @@ public class UserServiceImpl implements UserService {
         user.setGender(dto.getGender());
         user.setEmail(dto.getEmail());
         user.setPassword(dto.getPassword());
-        user.setAdmin(dto.isAdmin());
     }
 
     private User createUserFromDto(UserCreateDTO dto) {

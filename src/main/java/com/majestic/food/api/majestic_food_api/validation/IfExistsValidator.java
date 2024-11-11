@@ -1,11 +1,14 @@
 package com.majestic.food.api.majestic_food_api.validation;
 
+import com.majestic.food.api.majestic_food_api.helpers.CustomService;
+
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Component
 public class IfExistsValidator implements ConstraintValidator<IfExists, Object> {
@@ -15,7 +18,9 @@ public class IfExistsValidator implements ConstraintValidator<IfExists, Object> 
 
     private Class<?> entity;
     private String field;
-    private String JPQL = "SELECT COUNT(e) FROM %s e WHERE e.%s = :value";
+
+    @Autowired
+    private CustomService service;
 
     @Override
     public void initialize(IfExists annotation) {
@@ -28,12 +33,6 @@ public class IfExistsValidator implements ConstraintValidator<IfExists, Object> 
         if (entityManager == null)
            return false;
 
-        String EXISTS_JPQL = String.format(JPQL, entity.getSimpleName(), field);
-
-        Long ifExists = entityManager.createQuery(EXISTS_JPQL, Long.class)
-                                    .setParameter("value", value)
-                                    .getSingleResult();
-
-        return (ifExists == 0);
+        return (service.ifExistsCustomField(entity.getSimpleName(), field, value) == 0);
     }
 }

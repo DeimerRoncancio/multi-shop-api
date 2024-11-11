@@ -21,7 +21,8 @@ public class SpringSecurityConfig {
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http.authorizeHttpRequests(authz -> authz
             .requestMatchers(HttpMethod.GET, "/app/users").permitAll()
-            .requestMatchers(HttpMethod.POST, "/app/users/{id}").permitAll()
+            .requestMatchers(HttpMethod.POST, "/app/users").permitAll()
+            .requestMatchers(HttpMethod.GET, "/app/users/{id}").permitAll()
             .requestMatchers(HttpMethod.PUT, "/app/users/{id}").permitAll()
             .requestMatchers(HttpMethod.DELETE, "/app/users/{id}").permitAll()
             .requestMatchers(HttpMethod.GET, "/app/orders").permitAll()

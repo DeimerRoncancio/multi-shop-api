@@ -4,17 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.majestic.food.api.majestic_food_api.entities.Order;
 import com.majestic.food.api.majestic_food_api.entities.Role;
 import com.majestic.food.api.majestic_food_api.entities.User;
 import com.majestic.food.api.majestic_food_api.validation.IfExists;
 import com.majestic.food.api.majestic_food_api.validation.SizeConstraint;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Transient;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.Email;
@@ -42,10 +39,6 @@ public class UserCreateDTO {
     // @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
-    @JsonIgnoreProperties({"user"})
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Order> orders;
-
     @ManyToMany
     @JoinTable(
         name = "roles_to_users",
@@ -60,7 +53,6 @@ public class UserCreateDTO {
     
     public UserCreateDTO() {
         this.roles = new ArrayList<> ();
-        this.orders = new ArrayList<> ();
     }
 
     public String getName() {
@@ -125,14 +117,6 @@ public class UserCreateDTO {
 
     public void setPassword(String password) {
         this.password = password;
-    }
-    
-    public List<Order> getOrders() {
-        return orders;
-    }
-
-    public void setOrders(List<Order> orders) {
-        this.orders = orders;
     }
 
     public List<Role> getRoles() {
