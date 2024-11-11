@@ -1,6 +1,8 @@
 package com.majestic.food.api.majestic_food_api.controllers;
 
 import com.majestic.food.api.majestic_food_api.entities.User;
+import com.majestic.food.api.majestic_food_api.entities.dtos.UserCreateDTO;
+import com.majestic.food.api.majestic_food_api.entities.dtos.UserUpdateDTO;
 import com.majestic.food.api.majestic_food_api.services.UserService;
 
 import jakarta.validation.Valid;
@@ -45,8 +47,8 @@ public class UserController {
         return ResponseEntity.notFound().build();
     }
 
-    @PostMapping
-    public ResponseEntity<?> create(@Valid @RequestBody User user, BindingResult result) {
+    @PostMapping("/{id}")
+    public ResponseEntity<?> create(@Valid @RequestBody UserCreateDTO user, BindingResult result) {
         if (result.hasFieldErrors())
             return validate(result);
 
@@ -54,14 +56,14 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@Valid @RequestBody User user, BindingResult result, @PathVariable String id) {
+    public ResponseEntity<?> update(@Valid @RequestBody UserUpdateDTO user, BindingResult result, @PathVariable String id) {
         if (result.hasFieldErrors())
             return validate(result);
         
         Optional<User> userOptional = service.update(id, user);
         
         if (userOptional.isPresent())
-            return ResponseEntity.status(HttpStatus.CREATED).body(userOptional.get());
+            return ResponseEntity.status(HttpStatus.CREATED).body(user);
         
         return ResponseEntity.notFound().build();
     }

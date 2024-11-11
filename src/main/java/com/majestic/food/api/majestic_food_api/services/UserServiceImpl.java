@@ -1,12 +1,17 @@
 package com.majestic.food.api.majestic_food_api.services;
 
+import com.majestic.food.api.majestic_food_api.entities.Role;
 import com.majestic.food.api.majestic_food_api.entities.User;
+import com.majestic.food.api.majestic_food_api.entities.dtos.UserCreateDTO;
+import com.majestic.food.api.majestic_food_api.entities.dtos.UserUpdateDTO;
+import com.majestic.food.api.majestic_food_api.repositories.RoleRepository;
 import com.majestic.food.api.majestic_food_api.repositories.UserRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,6 +20,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserRepository repository;
+
+    @Autowired
+    private RoleRepository roleRepository;
     
     @Override
     @Transactional(readOnly = true)
@@ -30,25 +38,29 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public User save(User user) {
-        return repository.save(user);
+    public User save(UserCreateDTO user) {
+        List<Role> roles = new ArrayList<>();
+
+        roleRepository.findByRole("ROLE_USER").ifPresent(roles::add);
+
+        if (user.isAdmin())
+            roleRepository.findByRole("ROLE_ADMIN").ifPresent(roles::add);
+        
+        user.setRoles(roles);
+
+        User newUser = createUserFromDto(user);
+        
+        return repository.save(newUser);
     }
 
     @Override
     @Transactional
-    public Optional<User> update(String id, User user) {
+    public Optional<User> update(String id, UserUpdateDTO userDTO) {
         Optional<User> optionalUser = repository.findById(id);
         
         optionalUser.ifPresent(userDb -> {
 
-            userDb.setName(user.getName());
-            userDb.setProfileImage(user.getProfileImage());
-            userDb.setSecondName(user.getSecondName());
-            userDb.setLastnames(user.getLastnames());
-            userDb.setPhoneNumber(user.getPhoneNumber());
-            userDb.setGender(user.getGender());
-            userDb.setEmail(user.getEmail());
-            userDb.setPassword(user.getPassword());
+            updateUserFromDto(userDTO, userDb);
 
             repository.save(userDb);
         });
@@ -66,5 +78,33 @@ public class UserServiceImpl implements UserService {
         });
 
         return optionalUser;
+    }
+
+    private void updateUserFromDto(UserUpdateDTO dto, User user) {
+        user.setName(dto.getName());
+        user.setProfileImage(dto.getProfileImage());
+        user.setSecondName(dto.getSecondName());
+        user.setLastnames(dto.getLastnames());
+        user.setPhoneNumber(dto.getPhoneNumber());
+        user.setGender(dto.getGender());
+        user.setEmail(dto.getEmail());
+        user.setPassword(dto.getPassword());
+        user.setAdmin(dto.isAdmin());
+    }
+
+    private User createUserFromDto(UserCreateDTO dto) {
+        User user = new User();
+        
+        user.setName(dto.getName());
+        user.setProfileImage(dto.getProfileImage());
+        user.setSecondName(dto.getSecondName());
+        user.setLastnames(dto.getLastnames());
+        user.setPhoneNumber(dto.getPhoneNumber());
+        user.setGender(dto.getGender());
+        user.setEmail(dto.getEmail());
+        user.setPassword(dto.getPassword());
+        user.setAdmin(dto.isAdmin());
+
+        return user;
     }
 }

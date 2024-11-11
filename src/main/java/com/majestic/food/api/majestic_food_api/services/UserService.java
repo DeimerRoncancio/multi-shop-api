@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 
 import com.majestic.food.api.majestic_food_api.entities.User;
+import com.majestic.food.api.majestic_food_api.entities.dtos.UserCreateDTO;
+import com.majestic.food.api.majestic_food_api.entities.dtos.UserUpdateDTO;
 
 public interface UserService {
 
@@ -11,9 +13,9 @@ public interface UserService {
 
     Optional<User> findOne(String id);
 
-    User save(User user);
+    User save(UserCreateDTO user);
 
-    Optional<User> update(String id, User user);
+    Optional<User> update(String id, UserUpdateDTO user);
 
     Optional<User> delete(String id);
 }

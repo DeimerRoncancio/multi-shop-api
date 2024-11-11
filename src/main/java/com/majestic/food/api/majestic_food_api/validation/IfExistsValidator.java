@@ -4,6 +4,7 @@ import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+
 import org.springframework.stereotype.Component;
 
 @Component
@@ -14,7 +15,7 @@ public class IfExistsValidator implements ConstraintValidator<IfExists, Object> 
 
     private Class<?> entity;
     private String field;
-    private String querySql = "SELECT COUNT(e) FROM %s e WHERE e.%s = :value";
+    private String JPQL = "SELECT COUNT(e) FROM %s e WHERE e.%s = :value";
 
     @Override
     public void initialize(IfExists annotation) {
@@ -25,14 +26,14 @@ public class IfExistsValidator implements ConstraintValidator<IfExists, Object> 
     @Override
     public boolean isValid(Object value, ConstraintValidatorContext context) {
         if (entityManager == null)
-           return true;
-        
-        String query = String.format(querySql, entity.getSimpleName(), field);
+           return false;
 
-        Long ifExists = entityManager.createQuery(query, Long.class)
-                                     .setParameter("value", value)
-                                     .getSingleResult();
-        
+        String EXISTS_JPQL = String.format(JPQL, entity.getSimpleName(), field);
+
+        Long ifExists = entityManager.createQuery(EXISTS_JPQL, Long.class)
+                                    .setParameter("value", value)
+                                    .getSingleResult();
+
         return (ifExists == 0);
     }
 }
