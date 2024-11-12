@@ -1,6 +1,8 @@
 package com.majestic.food.api.majestic_food_api.services;
 
 import com.majestic.food.api.majestic_food_api.entities.Product;
+import com.majestic.food.api.majestic_food_api.entities.dtos.ProductCreateDTO;
+import com.majestic.food.api.majestic_food_api.entities.dtos.ProductUpdateDTO;
 import com.majestic.food.api.majestic_food_api.repositories.ProductRepository;
 
 import org.springframework.transaction.annotation.Transactional;
@@ -30,19 +32,19 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    public Product save(Product product) {
+    public Product save(ProductCreateDTO dto) {
+        Product product = createProductFromDto(dto);
+
         return repository.save(product);
     }
 
     @Override
     @Transactional
-    public Optional<Product> update(String id, Product product) {
+    public Optional<Product> update(String id, ProductUpdateDTO dto) {
         Optional<Product> productOptional = repository.findById(id);
 
         productOptional.ifPresent(productDb -> {
-            productDb.setProductName(product.getProductName());
-            productDb.setDescription(product.getDescription());
-            productDb.setPrice(product.getPrice());
+            updateProductFromDto(dto, productDb);
 
             repository.save(productDb);
         });
@@ -59,5 +61,21 @@ public class ProductServiceImpl implements ProductService {
             repository.delete(productOptional.get());
         
         return productOptional;
+    }
+
+    private void updateProductFromDto(ProductUpdateDTO dto, Product product) {
+        product.setProductName(dto.getProductName());
+        product.setDescription(dto.getDescription());
+        product.setPrice(dto.getPrice());
+    }
+
+    private Product createProductFromDto(ProductCreateDTO dto) {
+        Product product = new Product();
+        
+        product.setProductName(dto.getProductName());
+        product.setDescription(dto.getDescription());
+        product.setPrice(dto.getPrice());
+
+        return product;
     }
 }
