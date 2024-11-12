@@ -1,6 +1,8 @@
 package com.majestic.food.api.majestic_food_api.controllers;
 
 import com.majestic.food.api.majestic_food_api.entities.ProductCategory;
+import com.majestic.food.api.majestic_food_api.entities.dtos.ProductCategoryCreateDTO;
+import com.majestic.food.api.majestic_food_api.entities.dtos.ProductCategoryUpdateDTO;
 import com.majestic.food.api.majestic_food_api.services.ProductCategoryService;
 
 import jakarta.validation.Valid;
@@ -46,7 +48,7 @@ public class ProductCategoryController {
     }
 
     @PostMapping
-    public ResponseEntity<?> create(@Valid @RequestBody ProductCategory category, BindingResult result) {
+    public ResponseEntity<?> create(@Valid @RequestBody ProductCategoryCreateDTO category, BindingResult result) {
         if (result.hasFieldErrors())
             return validate(result);
         
@@ -54,7 +56,7 @@ public class ProductCategoryController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@Valid @RequestBody ProductCategory category, BindingResult result, @PathVariable String id) {
+    public ResponseEntity<?> update(@Valid @RequestBody ProductCategoryUpdateDTO category, BindingResult result, @PathVariable String id) {
         if (result.hasFieldErrors())
             return validate(result);
         
