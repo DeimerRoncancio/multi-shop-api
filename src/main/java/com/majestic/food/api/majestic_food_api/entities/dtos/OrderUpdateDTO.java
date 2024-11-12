@@ -1,33 +1,29 @@
-package com.majestic.food.api.majestic_food_api.entities;
-
-import org.hibernate.annotations.UuidGenerator;
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import jakarta.persistence.Column;
+package com.majestic.food.api.majestic_food_api.entities.dtos;
 
 import java.util.Date;
 import java.util.List;
 
-@Entity
-@Table(name = "orders")
-public class Order {
-    
-    @Id
-    @UuidGenerator
-    @Column(name = "id", nullable = false, updatable = false)
-    private String id;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.majestic.food.api.majestic_food_api.entities.Order;
+import com.majestic.food.api.majestic_food_api.entities.Product;
+import com.majestic.food.api.majestic_food_api.entities.User;
+import com.majestic.food.api.majestic_food_api.validation.IfExistsUpdate;
 
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
+public class OrderUpdateDTO {
+
+    @NotBlank(message = "{NotBlank.validation.text}")
+    @IfExistsUpdate(entity = Order.class, field = "orderName", message = "{IfExists.order.name}")
     private String orderName;
     private String notes;
 
+    @NotNull(message = "{NotBlank.validation.text}")
     private Date orderDate;
 
     @ManyToMany
@@ -41,23 +37,6 @@ public class Order {
     @JoinColumn(name = "id_user")
     @JsonIgnoreProperties({"orders", "roles"})
     private User user;
-
-    public Order() {
-    }
-    
-    public Order(String orderName, String notes, Date orderDate) {
-        this.orderName = orderName;
-        this.notes = notes;
-        this.orderDate = orderDate;
-    }
-    
-    public String getId() {
-        return id;
-    }
-    
-    public void setId(String id) {
-        this.id = id;
-    }
     
     public String getOrderName() {
         return orderName;

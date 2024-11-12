@@ -1,6 +1,8 @@
 package com.majestic.food.api.majestic_food_api.services;
 
 import com.majestic.food.api.majestic_food_api.entities.Order;
+import com.majestic.food.api.majestic_food_api.entities.dtos.OrderCreateDTO;
+import com.majestic.food.api.majestic_food_api.entities.dtos.OrderUpdateDTO;
 import com.majestic.food.api.majestic_food_api.repositories.OrderRepository;
 import com.majestic.food.api.majestic_food_api.repositories.UserRepository;
 
@@ -34,29 +36,21 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public Order save(Order order) {
-        userRepository.findById("de983a69-9f2b-42c3-bf43-565c8db09464").ifPresent(user -> {
-            order.setUser(user);
-        });
+    public Order save(OrderCreateDTO dto) {
+        Order order = createOrderFromDto(dto);
         
         return repository.save(order);
     }
 
     @Override
     @Transactional
-    public Optional<Order> update(String id, Order order) {
+    public Optional<Order> update(String id, OrderUpdateDTO dto) {
         Optional<Order> orderDb = repository.findById(id);
 
-        orderDb.ifPresent(ord -> {
-            ord.setOrderName(order.getOrderName());
-            ord.setNotes(order.getNotes());
-            ord.setOrderDate(order.getOrderDate());
+        orderDb.ifPresent(order -> {
+            updateOrderFromDto(dto, order);
 
-            userRepository.findById("de983a69-9f2b-42c3-bf43-565c8db09464").ifPresent(user -> {
-                ord.setUser(user);
-            });
-
-            repository.save(ord);
+            repository.save(order);
         });
 
         return orderDb;
@@ -71,5 +65,27 @@ public class OrderServiceImpl implements OrderService {
             repository.delete(orderOptional.get());
         
         return orderOptional;
+    }
+
+    private void updateOrderFromDto(OrderUpdateDTO dto, Order order) {
+        order.setOrderName(dto.getOrderName());
+        order.setNotes(dto.getNotes());
+        order.setOrderDate(dto.getOrderDate());
+        userRepository.findById("a8869b5e-1e7f-40dd-8d2c-836a09a33cea").ifPresent(user -> {
+            order.setUser(user);
+        });
+    }
+
+    private Order createOrderFromDto(OrderCreateDTO dto) {
+        Order order = new Order();
+        
+        order.setOrderName(dto.getOrderName());
+        order.setNotes(dto.getNotes());
+        order.setOrderDate(dto.getOrderDate());
+        userRepository.findById("a8869b5e-1e7f-40dd-8d2c-836a09a33cea").ifPresent(user -> {
+            order.setUser(user);
+        });
+
+        return order;
     }
 }

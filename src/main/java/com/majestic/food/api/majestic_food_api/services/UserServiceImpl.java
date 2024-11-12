@@ -58,7 +58,6 @@ public class UserServiceImpl implements UserService {
         Optional<User> optionalUser = repository.findById(id);
         
         optionalUser.ifPresent(userDb -> {
-
             updateUserFromDto(userDTO, userDb);
 
             repository.save(userDb);
