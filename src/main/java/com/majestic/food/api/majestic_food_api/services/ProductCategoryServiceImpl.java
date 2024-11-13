@@ -3,6 +3,7 @@ package com.majestic.food.api.majestic_food_api.services;
 import com.majestic.food.api.majestic_food_api.entities.ProductCategory;
 import com.majestic.food.api.majestic_food_api.entities.dtos.ProductCategoryCreateDTO;
 import com.majestic.food.api.majestic_food_api.entities.dtos.ProductCategoryUpdateDTO;
+import com.majestic.food.api.majestic_food_api.mappers.ProductCategoryMapper;
 import com.majestic.food.api.majestic_food_api.repositories.ProductCategoryRepository;
 
 import org.springframework.transaction.annotation.Transactional;
@@ -33,7 +34,7 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
     @Override
     @Transactional
     public ProductCategory save(ProductCategoryCreateDTO dto) {
-        ProductCategory category = createProductCategoryFromDto(dto);
+        ProductCategory category = ProductCategoryMapper.mapper.categoryCreateDTOtoCategory(dto);
         
         return repository.save(category);
     }
@@ -44,7 +45,7 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
         Optional<ProductCategory> optionalCategory = repository.findById(id);
         
         optionalCategory.ifPresent(categoryDb -> {
-            updateProductCategoryFromDto(dto, categoryDb);
+            ProductCategoryMapper.mapper.toUpdateCategory(dto, categoryDb);
 
             repository.save(categoryDb);
         });
@@ -61,17 +62,5 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
             repository.delete(optionalCategory.get());
         
         return optionalCategory;
-    }
-
-    private void updateProductCategoryFromDto(ProductCategoryUpdateDTO dto, ProductCategory category) {
-        category.setCategoryName(dto.getCategoryName());
-    }
-
-    private ProductCategory createProductCategoryFromDto(ProductCategoryCreateDTO dto) {
-        ProductCategory category = new ProductCategory();
-        
-        category.setCategoryName(dto.getCategoryName());
-
-        return category;
     }
 }

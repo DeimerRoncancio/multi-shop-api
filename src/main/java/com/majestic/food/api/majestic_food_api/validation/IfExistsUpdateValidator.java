@@ -14,10 +14,10 @@ import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import com.majestic.food.api.majestic_food_api.services.CustomService;
+
 import java.lang.reflect.Field;
 import java.util.Optional;
-
-import com.majestic.food.api.majestic_food_api.helpers.CustomService;
 
 @Component
 public class IfExistsUpdateValidator implements ConstraintValidator<IfExistsUpdate, Object> {
@@ -63,7 +63,7 @@ public class IfExistsUpdateValidator implements ConstraintValidator<IfExistsUpda
             logger.error("Exception to try acces to id: " + e);
         }
 
-        return false;
+        return true;
     }
 
     public String getIdByURI() {

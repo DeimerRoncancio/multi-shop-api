@@ -1,4 +1,4 @@
-package com.majestic.food.api.majestic_food_api.helpers;
+package com.majestic.food.api.majestic_food_api.repositories;
 
 import org.springframework.stereotype.Component;
 

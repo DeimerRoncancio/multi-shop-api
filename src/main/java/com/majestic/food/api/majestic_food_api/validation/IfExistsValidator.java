@@ -1,13 +1,14 @@
 package com.majestic.food.api.majestic_food_api.validation;
 
-import com.majestic.food.api.majestic_food_api.helpers.CustomService;
-
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
 import org.springframework.stereotype.Component;
+
+import com.majestic.food.api.majestic_food_api.services.CustomService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 
 @Component

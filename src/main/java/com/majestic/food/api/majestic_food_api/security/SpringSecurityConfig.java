@@ -28,7 +28,7 @@ public class SpringSecurityConfig {
             .requestMatchers(HttpMethod.GET, "/app/categories").permitAll()
             .requestMatchers(HttpMethod.POST, "/app/categories").permitAll()
             .requestMatchers(HttpMethod.PUT, "/app/categories/{id}").permitAll()
-            .requestMatchers(HttpMethod.DELETE, "/app/orders/{id}").permitAll()
+            .requestMatchers(HttpMethod.DELETE, "/app/categories/{id}").permitAll()
             .anyRequest().authenticated())
             .csrf(config -> config.disable())
             .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

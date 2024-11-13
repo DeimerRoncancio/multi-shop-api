@@ -4,6 +4,7 @@ import com.majestic.food.api.majestic_food_api.entities.Role;
 import com.majestic.food.api.majestic_food_api.entities.User;
 import com.majestic.food.api.majestic_food_api.entities.dtos.UserCreateDTO;
 import com.majestic.food.api.majestic_food_api.entities.dtos.UserUpdateDTO;
+import com.majestic.food.api.majestic_food_api.mappers.UserMapper;
 import com.majestic.food.api.majestic_food_api.repositories.RoleRepository;
 import com.majestic.food.api.majestic_food_api.repositories.UserRepository;
 
@@ -47,7 +48,7 @@ public class UserServiceImpl implements UserService {
             roleRepository.findByRole("ROLE_ADMIN").ifPresent(roles::add);
         
         userDTO.setRoles(roles);
-        User user = createUserFromDto(userDTO);
+        User user = UserMapper.mapper.userCreateDTOtoUser(userDTO);
         
         return repository.save(user);
     }
@@ -58,7 +59,7 @@ public class UserServiceImpl implements UserService {
         Optional<User> optionalUser = repository.findById(id);
         
         optionalUser.ifPresent(userDb -> {
-            updateUserFromDto(userDTO, userDb);
+            UserMapper.mapper.toUpdateUser(userDTO, userDb);
 
             repository.save(userDb);
         });
@@ -76,32 +77,5 @@ public class UserServiceImpl implements UserService {
         });
 
         return optionalUser;
-    }
-
-    private void updateUserFromDto(UserUpdateDTO dto, User user) {
-        user.setName(dto.getName());
-        user.setProfileImage(dto.getProfileImage());
-        user.setSecondName(dto.getSecondName());
-        user.setLastnames(dto.getLastnames());
-        user.setPhoneNumber(dto.getPhoneNumber());
-        user.setGender(dto.getGender());
-        user.setEmail(dto.getEmail());
-        user.setPassword(dto.getPassword());
-    }
-
-    private User createUserFromDto(UserCreateDTO dto) {
-        User user = new User();
-        
-        user.setName(dto.getName());
-        user.setProfileImage(dto.getProfileImage());
-        user.setSecondName(dto.getSecondName());
-        user.setLastnames(dto.getLastnames());
-        user.setPhoneNumber(dto.getPhoneNumber());
-        user.setGender(dto.getGender());
-        user.setEmail(dto.getEmail());
-        user.setPassword(dto.getPassword());
-        user.setAdmin(dto.isAdmin());
-
-        return user;
     }
 }

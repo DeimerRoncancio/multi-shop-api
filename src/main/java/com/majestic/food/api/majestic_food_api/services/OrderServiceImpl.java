@@ -3,6 +3,7 @@ package com.majestic.food.api.majestic_food_api.services;
 import com.majestic.food.api.majestic_food_api.entities.Order;
 import com.majestic.food.api.majestic_food_api.entities.dtos.OrderCreateDTO;
 import com.majestic.food.api.majestic_food_api.entities.dtos.OrderUpdateDTO;
+import com.majestic.food.api.majestic_food_api.mappers.OrderMapper;
 import com.majestic.food.api.majestic_food_api.repositories.OrderRepository;
 import com.majestic.food.api.majestic_food_api.repositories.UserRepository;
 
@@ -37,7 +38,11 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public Order save(OrderCreateDTO dto) {
-        Order order = createOrderFromDto(dto);
+        Order order = OrderMapper.mapper.orderCreateDTOtoOrder(dto);
+
+        userRepository.findById("a8869b5e-1e7f-40dd-8d2c-836a09a33cea").ifPresent(user -> {
+            order.setUser(user);
+        });
         
         return repository.save(order);
     }
@@ -48,7 +53,11 @@ public class OrderServiceImpl implements OrderService {
         Optional<Order> orderDb = repository.findById(id);
 
         orderDb.ifPresent(order -> {
-            updateOrderFromDto(dto, order);
+            OrderMapper.mapper.toUpdateOrder(dto, order);
+
+            userRepository.findById("a8869b5e-1e7f-40dd-8d2c-836a09a33cea").ifPresent(user -> {
+                order.setUser(user);
+            });
 
             repository.save(order);
         });
@@ -65,27 +74,5 @@ public class OrderServiceImpl implements OrderService {
             repository.delete(orderOptional.get());
         
         return orderOptional;
-    }
-
-    private void updateOrderFromDto(OrderUpdateDTO dto, Order order) {
-        order.setOrderName(dto.getOrderName());
-        order.setNotes(dto.getNotes());
-        order.setOrderDate(dto.getOrderDate());
-        userRepository.findById("a8869b5e-1e7f-40dd-8d2c-836a09a33cea").ifPresent(user -> {
-            order.setUser(user);
-        });
-    }
-
-    private Order createOrderFromDto(OrderCreateDTO dto) {
-        Order order = new Order();
-        
-        order.setOrderName(dto.getOrderName());
-        order.setNotes(dto.getNotes());
-        order.setOrderDate(dto.getOrderDate());
-        userRepository.findById("a8869b5e-1e7f-40dd-8d2c-836a09a33cea").ifPresent(user -> {
-            order.setUser(user);
-        });
-
-        return order;
     }
 }
