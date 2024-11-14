@@ -9,6 +9,7 @@ import com.majestic.food.api.majestic_food_api.repositories.RoleRepository;
 import com.majestic.food.api.majestic_food_api.repositories.UserRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +25,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private RoleRepository roleRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
     
     @Override
     @Transactional(readOnly = true)
@@ -49,6 +53,7 @@ public class UserServiceImpl implements UserService {
         
         userDTO.setRoles(roles);
         User user = UserMapper.mapper.userCreateDTOtoUser(userDTO);
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         
         return repository.save(user);
     }
