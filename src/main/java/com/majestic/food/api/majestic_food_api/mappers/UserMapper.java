@@ -16,11 +16,13 @@ public interface UserMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "orders", ignore = true)
+    @Mapping(target = "enabled", ignore = true)
     User userCreateDTOtoUser(UserCreateDTO dto);
     
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "admin", ignore = true)
     @Mapping(target = "orders", ignore = true)
     @Mapping(target = "roles", ignore = true)
+    @Mapping(target = "enabled", ignore = true)
     void toUpdateUser(UserUpdateDTO dto, @MappingTarget User user);
 }

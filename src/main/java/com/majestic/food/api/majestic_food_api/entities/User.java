@@ -11,6 +11,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import jakarta.persistence.UniqueConstraint;
@@ -57,59 +58,54 @@ public class User {
     @Transient
     private boolean isAdmin;
     
+    private boolean enabled;
+    
+    @PrePersist
+    public void prePersist() {
+        enabled = true;
+    }
+    
     public User() {
         this.roles = new ArrayList<> ();
         this.orders = new ArrayList<> ();
     }
-
-    public User(String name, String profileImage, String secondName, String lastnames, Long phoneNumber,
-    String gender, String email, String password) {
-        this.name = name;
-        this.profileImage = profileImage;
-        this.secondName = secondName;
-        this.lastnames = lastnames;
-        this.phoneNumber = phoneNumber;
-        this.gender = gender;
-        this.email = email;
-        this.password = password;
-    }
-
+    
     public String getId() {
         return id;
     }
-
+    
     public void setId(String id) {
         this.id = id;
     }
-
+    
     public String getName() {
         return name;
     }
-
+    
     public void setName(String name) {
         this.name = name;
     }
-
+    
     public String getProfileImage() {
         return profileImage;
     }
-
+    
     public void setProfileImage(String profile_image) {
         this.profileImage = profile_image;
     }
-
+    
     public String getSecondName() {
         return secondName;
     }
-
+    
     public void setSecondName(String second_name) {
         this.secondName = second_name;
     }
-
+    
     public String getLastnames() {
         return lastnames;
     }
-
+    
     public void setLastnames(String lastnames) {
         this.lastnames = lastnames;
     }
@@ -117,31 +113,31 @@ public class User {
     public Long getPhoneNumber() {
         return phoneNumber;
     }
-
+    
     public void setPhoneNumber(Long phone_number) {
         this.phoneNumber = phone_number;
     }
-
+    
     public String getGender() {
         return gender;
     }
-
+    
     public void setGender(String gender) {
         this.gender = gender;
     }
-
+    
     public String getEmail() {
         return email;
     }
-
+    
     public void setEmail(String email) {
         this.email = email;
     }
-
+    
     public String getPassword() {
         return password;
     }
-
+    
     public void setPassword(String password) {
         this.password = password;
     }
@@ -149,32 +145,40 @@ public class User {
     public List<Order> getOrders() {
         return orders;
     }
-
+    
     public void setOrders(List<Order> orders) {
         this.orders = orders;
     }
-
+    
     public void addOrder(List<Order> order) {
         order.stream().forEach(ord -> {
             ord.setUser(this);
             orders.add(ord);
         });
     }
-
+    
     public List<Role> getRoles() {
         return roles;
     }
-
+    
     public void setRoles(List<Role> roles) {
         this.roles = roles;
     }
-
+    
     public boolean isAdmin() {
         return isAdmin;
     }
-
+    
     public void setAdmin(boolean isAdmin) {
         this.isAdmin = isAdmin;
+    }
+    
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 
     @Override
@@ -186,16 +190,16 @@ public class User {
         result = prime * result + ((email == null) ? 0 : email.hashCode());
         return result;
     }
-
+    
     @Override
     public boolean equals(Object obj) {
         if (this == obj)
-            return true;
+        return true;
         if (obj == null)
             return false;
-        if (getClass() != obj.getClass())
+            if (getClass() != obj.getClass())
             return false;
-        User other = (User) obj;
+            User other = (User) obj;
         if (id == null) {
             if (other.id != null)
                 return false;
