@@ -17,7 +17,6 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-// import com.majestic.food.api.majestic_food_api.entities.User;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -25,6 +24,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
+import static com.majestic.food.api.majestic_food_api.security.JwtConfig.*;
 
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
@@ -80,7 +81,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             .signWith(Jwts.SIG.HS256.key().build())
             .compact();
         
-        response.addHeader("Authorization", "Bearer" + token);
+        response.addHeader(HEADER_AUTHORIZATION, PREFIX_TOKEN + token);
 
         Map<String, Object> body = new HashMap<> ();
         body.put("username", username);
@@ -88,7 +89,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         body.put("message", String.format("¡Bienvenido %s! Ha iniciado sesión exitosamente", username));
 
         response.getWriter().write(new ObjectMapper().writeValueAsString(body));
-        response.setContentType("application/json");
+        response.setContentType(CONTENT_TYPE);
         response.setStatus(200);
     }
 
@@ -101,7 +102,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         body.put("error", failed.getMessage());
 
         response.getWriter().write(new ObjectMapper().writeValueAsString(body));
-        response.setContentType("application/json");
+        response.setContentType(CONTENT_TYPE);
         response.setStatus(401);
     }
 }
