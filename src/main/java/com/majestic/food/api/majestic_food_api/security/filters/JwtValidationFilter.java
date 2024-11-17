@@ -34,12 +34,12 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
     }
 
     @Override
-    public void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
     throws IOException, ServletException {
         
-        String header = response.getHeader("application/json");
+        String header = request.getHeader(HEADER_AUTHORIZATION);
 
-        if (header == null || !header.startsWith("Bearer")) {
+        if (header == null || !header.startsWith(PREFIX_TOKEN)) {
             chain.doFilter(request, response);
             return;
         }
@@ -56,10 +56,10 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
                     .addMixIn(SimpleGrantedAuthority.class, SimpleGrantedAuthorityCreator.class)
                     .readValue(
                         claimAuthorities.toString(),
-                        GrantedAuthority.class  
+                        SimpleGrantedAuthority[].class  
                     )
             );
-
+            
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                 username, null, authorities
             );
@@ -69,7 +69,7 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
             chain.doFilter(request, response);
             
         } catch(JwtException e){
-            Map<String, Object> body = new HashMap<> ();
+            Map<String, String> body = new HashMap<> ();
             body.put("error", e.getMessage());
             body.put("message", "El token es invalido");
 

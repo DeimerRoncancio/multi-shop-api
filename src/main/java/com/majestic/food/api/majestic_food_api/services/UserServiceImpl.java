@@ -64,6 +64,15 @@ public class UserServiceImpl implements UserService {
         Optional<User> optionalUser = repository.findById(id);
         
         optionalUser.ifPresent(userDb -> {
+            List<Role> roles = userDb.getRoles();
+            
+            if (userDTO.isAdmin() && !userDb.isAdmin())
+                roleRepository.findByRole("ROLE_ADMIN").ifPresent(roles::add);
+            
+            if (!userDTO.isAdmin() && userDb.isAdmin())
+                roleRepository.findByRole("ROLE_ADMIN").ifPresent(roles::remove);
+
+            userDTO.setRoles(roles);
             UserMapper.mapper.toUpdateUser(userDTO, userDb);
 
             repository.save(userDb);

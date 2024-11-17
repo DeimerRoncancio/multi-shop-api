@@ -78,7 +78,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             .claims(rolesClaims)
             .expiration(new Date(System.currentTimeMillis() + 3600000))
             .issuedAt(new Date())
-            .signWith(Jwts.SIG.HS256.key().build())
+            .signWith(SECRET_KEY)
             .compact();
         
         response.addHeader(HEADER_AUTHORIZATION, PREFIX_TOKEN + token);

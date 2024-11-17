@@ -12,7 +12,6 @@ import com.majestic.food.api.majestic_food_api.validation.SizeConstraint;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
-import jakarta.persistence.Transient;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -48,9 +47,8 @@ public class UserCreateDTO {
     @JsonIgnoreProperties("users")
     private List<Role> roles;
 
-    @Transient
     private boolean isAdmin;
-    
+
     public UserCreateDTO() {
         this.roles = new ArrayList<> ();
     }

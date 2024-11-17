@@ -6,6 +6,8 @@ import org.springframework.core.Ordered;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+// import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -25,11 +27,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 
 @Configuration
+@EnableMethodSecurity(prePostEnabled = true)
 public class SpringSecurityConfig {
 
     @Autowired
     private AuthenticationConfiguration authenticationConfiguration;
 
+    @Bean
     AuthenticationManager authenticationManager() throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
@@ -42,11 +46,9 @@ public class SpringSecurityConfig {
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http.authorizeHttpRequests(authz -> authz
-            .requestMatchers(HttpMethod.GET, "/app/users").permitAll()
-            .requestMatchers(HttpMethod.POST, "/app/users").permitAll()
-            .requestMatchers(HttpMethod.GET, "/app/users/{id}").permitAll()
-            .requestMatchers(HttpMethod.PUT, "/app/users/{id}").permitAll()
-            .requestMatchers(HttpMethod.DELETE, "/app/users/{id}").permitAll()
+            .requestMatchers(HttpMethod.GET, "/app/products").permitAll()
+            .requestMatchers(HttpMethod.GET, "/app/categories").permitAll()
+            .requestMatchers(HttpMethod.POST, "/app/users/register").permitAll()
             .anyRequest().authenticated())
             .addFilter(new JwtAuthenticationFilter(authenticationManager()))
             .addFilter(new JwtValidationFilter(authenticationManager()))

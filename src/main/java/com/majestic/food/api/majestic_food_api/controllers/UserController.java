@@ -12,12 +12,14 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 
 import java.util.HashMap;
@@ -27,17 +29,20 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/app/users")
+@CrossOrigin(originPatterns = "*")
 public class UserController {
 
     @Autowired
     private UserService service;
     
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public List<User> viewAll() {
         return service.findAll();
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<User> view(@PathVariable String id) {
         Optional<User> product = service.findOne(id);
 
@@ -48,6 +53,7 @@ public class UserController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> create(@Valid @RequestBody UserCreateDTO user, BindingResult result) {
         if (result.hasFieldErrors())
             return validate(result);
@@ -55,7 +61,15 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.save(user));
     }
 
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@Valid @RequestBody UserCreateDTO user, BindingResult result) {
+        user.setAdmin(false);
+
+        return create(user, result);
+    }
+
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> update(@Valid @RequestBody UserUpdateDTO user, BindingResult result, @PathVariable String id) {
         if (result.hasFieldErrors())
             return validate(result);
@@ -68,7 +82,16 @@ public class UserController {
         return ResponseEntity.notFound().build();
     }
 
+    @PutMapping("/update/{id}")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ResponseEntity<?> updateUser(@Valid @RequestBody UserUpdateDTO user, BindingResult result, @PathVariable String id) {
+        user.setAdmin(false);
+
+        return update(user, result, id);
+    }
+
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<?> delete(@PathVariable String id) {
         Optional<User> optionalUser = service.delete(id);
 
