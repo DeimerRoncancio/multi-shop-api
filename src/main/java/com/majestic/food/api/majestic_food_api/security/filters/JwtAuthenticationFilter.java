@@ -16,6 +16,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.jsonwebtoken.Claims;
@@ -40,23 +41,20 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) 
     throws AuthenticationException {
 
-        com.majestic.food.api.majestic_food_api.entities.User user = null;
-        String username = null;
+        String emailOrPhone = null;
         String password = null;
 
         try {
-            user = new ObjectMapper().readValue(
-                request.getInputStream(),
-                com.majestic.food.api.majestic_food_api.entities.User.class
-            );
-            username = user.getName();
-            password = user.getPassword();
+            Map<String, String> credentials = new ObjectMapper().readValue(request.getInputStream(), new TypeReference<Map<String, String>>() {});
+
+            emailOrPhone = credentials.get("emailOrPhone");
+            password = credentials.get("password");
         } catch(IOException e) {
             logger.error("Exception by bringing user: " + e);
         }
 
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-            username,
+            emailOrPhone,
             password
         );
         
