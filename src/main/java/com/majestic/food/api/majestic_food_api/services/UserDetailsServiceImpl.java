@@ -27,7 +27,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-        Optional<User> optionalUser = repository.findByName(username);
+        Optional<User> optionalUser = repository.findByEmail(username);
 
         if (optionalUser.isEmpty())
             throw new UsernameNotFoundException(String.format("El usuario %s no existe", username));
@@ -39,7 +39,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             .collect(Collectors.toList());
         
         return new org.springframework.security.core.userdetails.User(
-            user.getName(), user.getPassword(),
+            user.getEmail(), user.getPassword(),
             user.isEnabled(),
             true,
             true,

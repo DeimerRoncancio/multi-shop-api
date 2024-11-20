@@ -13,6 +13,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.majestic.food.api.majestic_food_api.security.SimpleGrantedAuthorityCreator;
@@ -37,14 +38,12 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
     throws IOException, ServletException {
         
-        String header = request.getHeader(HEADER_AUTHORIZATION);
+        String token = getTokenByRequest(request);
 
-        if (header == null || !header.startsWith(PREFIX_TOKEN)) {
+        if (token == null) {
             chain.doFilter(request, response);
             return;
         }
-
-        String token = header.replace(PREFIX_TOKEN, "").trim();
 
         try {
             Claims claims = Jwts.parser().verifyWith(SECRET_KEY).build().parseSignedClaims(token).getPayload();
@@ -77,5 +76,14 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
             response.setContentType(CONTENT_TYPE);
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
         }
+    }
+
+    public String getTokenByRequest(HttpServletRequest request) {
+        String header = request.getHeader(HEADER_AUTHORIZATION);
+
+        if (!StringUtils.hasText(header) || !header.startsWith(PREFIX_TOKEN))
+            return null;
+
+        return header.replace(PREFIX_TOKEN, "").trim();
     }
 }

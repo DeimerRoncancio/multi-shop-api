@@ -7,5 +7,5 @@ import com.majestic.food.api.majestic_food_api.entities.User;
 
 public interface UserRepository extends JpaRepository<User, String> {
 
-    Optional<User> findByName(String name);
+    Optional<User> findByEmail(String email);
 }

@@ -9,6 +9,8 @@ import com.majestic.food.api.majestic_food_api.repositories.UserRepository;
 
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -40,10 +42,13 @@ public class OrderServiceImpl implements OrderService {
     public Order save(OrderCreateDTO dto) {
         Order order = OrderMapper.mapper.orderCreateDTOtoOrder(dto);
 
-        userRepository.findById("a8869b5e-1e7f-40dd-8d2c-836a09a33cea").ifPresent(user -> {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String principal = (String) authentication.getPrincipal();
+        
+        userRepository.findByEmail(principal).ifPresent(user -> {
             order.setUser(user);
         });
-        
+
         return repository.save(order);
     }
 
@@ -54,10 +59,6 @@ public class OrderServiceImpl implements OrderService {
 
         orderDb.ifPresent(order -> {
             OrderMapper.mapper.toUpdateOrder(dto, order);
-
-            userRepository.findById("a8869b5e-1e7f-40dd-8d2c-836a09a33cea").ifPresent(user -> {
-                order.setUser(user);
-            });
 
             repository.save(order);
         });

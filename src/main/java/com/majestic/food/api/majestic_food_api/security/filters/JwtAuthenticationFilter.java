@@ -67,27 +67,18 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     public void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, 
     FilterChain filter, Authentication authResult) throws IOException {
 
-        Collection<? extends GrantedAuthority> roles = authResult.getAuthorities();
-
-        Claims rolesClaims = Jwts.claims().add("authorities", new ObjectMapper().writeValueAsString(roles)).build();
-
+        Claims rolesClaims = getRoles(authResult);
         User user = (User) authResult.getPrincipal();
         String username = user.getUsername();
-        String token = Jwts.builder()
-            .subject(username)
-            .claims(rolesClaims)
-            .expiration(new Date(System.currentTimeMillis() + 3600000))
-            .issuedAt(new Date())
-            .signWith(SECRET_KEY)
-            .compact();
         
-        response.addHeader(HEADER_AUTHORIZATION, PREFIX_TOKEN + token);
-
+        String token = getToken(username, rolesClaims);
+        
         Map<String, Object> body = new HashMap<> ();
         body.put("username", username);
         body.put("token", token);
         body.put("message", String.format("¡Bienvenido %s! Ha iniciado sesión exitosamente", username));
-
+        
+        response.addHeader(HEADER_AUTHORIZATION, PREFIX_TOKEN + token);
         response.getWriter().write(new ObjectMapper().writeValueAsString(body));
         response.setContentType(CONTENT_TYPE);
         response.setStatus(200);
@@ -104,5 +95,21 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         response.getWriter().write(new ObjectMapper().writeValueAsString(body));
         response.setContentType(CONTENT_TYPE);
         response.setStatus(401);
+    }
+
+    public String getToken(String username, Claims rolesClaims) {
+        return Jwts.builder()
+            .subject(username)
+            .claims(rolesClaims)
+            .expiration(new Date(System.currentTimeMillis() + 3600000))
+            .issuedAt(new Date())
+            .signWith(SECRET_KEY)
+            .compact();
+    }
+
+    public Claims getRoles(Authentication authResult) throws IOException {
+        Collection<? extends GrantedAuthority> roles = authResult.getAuthorities();
+
+        return Jwts.claims().add("authorities", new ObjectMapper().writeValueAsString(roles)).build();
     }
 }
