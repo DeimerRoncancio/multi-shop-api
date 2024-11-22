@@ -18,6 +18,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.majestic.food.api.majestic_food_api.auth.LoginRequest;
+import com.majestic.food.api.majestic_food_api.entities.dtos.auth.CustomUserDetails;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -66,7 +67,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     FilterChain filter, Authentication authResult) throws IOException {
 
         Claims rolesClaims = getRoles(authResult);
-        User user = (User) authResult.getPrincipal();
+        CustomUserDetails user = (CustomUserDetails) authResult.getPrincipal();
         String username = user.getUsername();
 
         String token = getToken(username, rolesClaims);
@@ -74,7 +75,6 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         Map<String, Object> body = new HashMap<> ();
         body.put("username", username);
         body.put("token", token);
-        body.put("message", String.format("¡Bienvenido %s! Ha iniciado sesión exitosamente", username));
         
         response.addHeader(HEADER_AUTHORIZATION, PREFIX_TOKEN + token);
         response.getWriter().write(new ObjectMapper().writeValueAsString(body));

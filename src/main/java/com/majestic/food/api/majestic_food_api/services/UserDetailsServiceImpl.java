@@ -4,6 +4,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.majestic.food.api.majestic_food_api.entities.User;
+import com.majestic.food.api.majestic_food_api.entities.dtos.auth.CustomUserDetails;
+import com.majestic.food.api.majestic_food_api.entities.dtos.auth.UserInfo;
 import com.majestic.food.api.majestic_food_api.repositories.UserRepository;
 
 import java.util.List;
@@ -26,33 +28,12 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String identifier) throws UsernameNotFoundException {
+        UserInfo userInfo = getUserInfo(identifier);
 
-        Optional<User> optionalUser = repository.findByEmail(identifier);
-        String auxIdentifier = null;
-
-        if (optionalUser.isEmpty()) {
-            optionalUser = repository.findByPhoneNumber(Long.parseLong(identifier));
-            
-            if (optionalUser.isEmpty())
-                throw new UsernameNotFoundException(String.format("El usuario %s no existe", auxIdentifier));
-            
-            auxIdentifier = optionalUser.get().getPhoneNumber().toString();
-        } else {
-            auxIdentifier = optionalUser.get().getEmail();
-        }
-
-        if (optionalUser.isEmpty())
-            throw new UsernameNotFoundException(String.format("El usuario %s no existe", auxIdentifier));
-        
-        User user = optionalUser.orElseThrow();
-
-        return new org.springframework.security.core.userdetails.User(
-            auxIdentifier, user.getPassword(),
-            user.isEnabled(),
-            true,
-            true,
-            true,
-            getAuthorities(user)
+        return new CustomUserDetails(
+            userInfo.getIdentifier(), userInfo.getUser().getPassword(),
+            userInfo.getUser().isEnabled(),
+            getAuthorities(userInfo.getUser())
         );
     }
 
@@ -60,5 +41,28 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         return user.getRoles().stream()
         .map(role -> new SimpleGrantedAuthority(role.getRole()))
         .collect(Collectors.toList());
+    }
+
+    public UserInfo getUserInfo(String identifier) {
+        Optional<User> optionalUser;
+        
+        if (isNumeric(identifier)) {
+            optionalUser = repository.findByPhoneNumber(Long.parseLong(identifier));
+        } else {
+            optionalUser = repository.findByEmail(identifier);
+        }
+        
+        if (optionalUser.isEmpty())
+            throw new UsernameNotFoundException(" ");
+        
+        identifier = isNumeric(identifier) ? 
+            optionalUser.get().getPhoneNumber().toString() : 
+            optionalUser.get().getEmail();
+        
+        return new UserInfo(identifier, optionalUser.get());
+    }
+
+    public boolean isNumeric(String str) {
+        return str != null && str.matches("\\d+");
     }
 }
