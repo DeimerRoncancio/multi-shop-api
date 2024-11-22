@@ -1,6 +1,7 @@
 package com.majestic.food.api.majestic_food_api.services;
 
 import com.majestic.food.api.majestic_food_api.entities.Order;
+import com.majestic.food.api.majestic_food_api.entities.User;
 import com.majestic.food.api.majestic_food_api.entities.dtos.OrderCreateDTO;
 import com.majestic.food.api.majestic_food_api.entities.dtos.OrderUpdateDTO;
 import com.majestic.food.api.majestic_food_api.mappers.OrderMapper;
@@ -44,10 +45,14 @@ public class OrderServiceImpl implements OrderService {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String principal = (String) authentication.getPrincipal();
+        System.out.println(principal);
         
-        userRepository.findByEmail(principal).ifPresent(user -> {
-            order.setUser(user);
-        });
+        Optional<User> userOptional = userRepository.findByEmail(principal);
+
+        if (userOptional.isEmpty())
+            userOptional = userRepository.findByPhoneNumber(Long.parseLong(principal));
+        
+        order.setUser(userOptional.orElseThrow());
 
         return repository.save(order);
     }

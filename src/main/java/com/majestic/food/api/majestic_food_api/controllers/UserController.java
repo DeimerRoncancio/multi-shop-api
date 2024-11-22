@@ -1,7 +1,6 @@
 package com.majestic.food.api.majestic_food_api.controllers;
 
 import com.majestic.food.api.majestic_food_api.entities.User;
-import com.majestic.food.api.majestic_food_api.entities.dtos.UserCreateDTO;
 import com.majestic.food.api.majestic_food_api.entities.dtos.UserUpdateDTO;
 import com.majestic.food.api.majestic_food_api.services.UserService;
 
@@ -10,7 +9,6 @@ import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -50,22 +48,6 @@ public class UserController {
             return ResponseEntity.ok().body(product.get());
         
         return ResponseEntity.notFound().build();
-    }
-
-    @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> create(@Valid @RequestBody UserCreateDTO user, BindingResult result) {
-        if (result.hasFieldErrors())
-            return validate(result);
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.save(user));
-    }
-
-    @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody UserCreateDTO user, BindingResult result) {
-        user.setAdmin(false);
-
-        return create(user, result);
     }
 
     @PutMapping("/{id}")

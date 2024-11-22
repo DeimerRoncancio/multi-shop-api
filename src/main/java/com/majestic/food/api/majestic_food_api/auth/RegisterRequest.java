@@ -1,4 +1,4 @@
-package com.majestic.food.api.majestic_food_api.entities.dtos;
+package com.majestic.food.api.majestic_food_api.auth;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +16,7 @@ import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
-public class UserCreateDTO {
+public class RegisterRequest {
 
     @NotBlank(message = "{NotBlank.validation.text}")
     private String name;
@@ -49,7 +49,7 @@ public class UserCreateDTO {
 
     private boolean isAdmin;
 
-    public UserCreateDTO() {
+    public RegisterRequest() {
         this.roles = new ArrayList<> ();
     }
 

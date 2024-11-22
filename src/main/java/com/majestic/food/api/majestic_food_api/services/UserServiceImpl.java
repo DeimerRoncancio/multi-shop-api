@@ -1,8 +1,8 @@
 package com.majestic.food.api.majestic_food_api.services;
 
+import com.majestic.food.api.majestic_food_api.auth.RegisterRequest;
 import com.majestic.food.api.majestic_food_api.entities.Role;
 import com.majestic.food.api.majestic_food_api.entities.User;
-import com.majestic.food.api.majestic_food_api.entities.dtos.UserCreateDTO;
 import com.majestic.food.api.majestic_food_api.entities.dtos.UserUpdateDTO;
 import com.majestic.food.api.majestic_food_api.mappers.UserMapper;
 import com.majestic.food.api.majestic_food_api.repositories.RoleRepository;
@@ -43,7 +43,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public User save(UserCreateDTO userDTO) {
+    public User save(RegisterRequest userDTO) {
         List<Role> roles = new ArrayList<>();
 
         roleRepository.findByRole("ROLE_USER").ifPresent(roles::add);

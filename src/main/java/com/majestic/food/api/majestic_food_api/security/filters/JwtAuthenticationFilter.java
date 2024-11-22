@@ -16,8 +16,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.majestic.food.api.majestic_food_api.auth.LoginRequest;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -45,14 +45,14 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         String password = null;
 
         try {
-            Map<String, String> credentials = new ObjectMapper().readValue(request.getInputStream(), new TypeReference<Map<String, String>>() {});
+            LoginRequest credentials = new ObjectMapper().readValue(request.getInputStream(), LoginRequest.class);
 
-            emailOrPhone = credentials.get("emailOrPhone");
-            password = credentials.get("password");
+            emailOrPhone = credentials.getEmailOrPhone();
+            password = credentials.getPassword();
         } catch(IOException e) {
             logger.error("Exception by bringing user: " + e);
         }
-
+        
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
             emailOrPhone,
             password
@@ -68,7 +68,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         Claims rolesClaims = getRoles(authResult);
         User user = (User) authResult.getPrincipal();
         String username = user.getUsername();
-        
+
         String token = getToken(username, rolesClaims);
         
         Map<String, Object> body = new HashMap<> ();

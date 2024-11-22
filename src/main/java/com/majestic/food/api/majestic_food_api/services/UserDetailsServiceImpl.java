@@ -28,13 +28,18 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     public UserDetails loadUserByUsername(String emailOrPhone) throws UsernameNotFoundException {
 
         Optional<User> optionalUser = repository.findByEmail(emailOrPhone);
+        String identifier = null;
 
-        if (optionalUser.isEmpty())
+        if (optionalUser.isEmpty()) {
             optionalUser = repository.findByPhoneNumber(Long.parseLong(emailOrPhone));
-
+            identifier = optionalUser.get().getPhoneNumber().toString();
+        } else {
+            identifier = optionalUser.get().getEmail();
+        }
+        
         if (optionalUser.isEmpty())
             throw new UsernameNotFoundException(String.format("El usuario %s no existe", emailOrPhone));
-
+        
         User user = optionalUser.orElseThrow();
 
         List<GrantedAuthority> authorities = user.getRoles().stream()
@@ -42,7 +47,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             .collect(Collectors.toList());
         
         return new org.springframework.security.core.userdetails.User(
-            user.getName(), user.getPassword(),
+            identifier, user.getPassword(),
             user.isEnabled(),
             true,
             true,
