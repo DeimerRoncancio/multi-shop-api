@@ -22,37 +22,43 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Autowired
     private UserRepository repository;
-    
+
     @Override
     @Transactional(readOnly = true)
-    public UserDetails loadUserByUsername(String emailOrPhone) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(String identifier) throws UsernameNotFoundException {
 
-        Optional<User> optionalUser = repository.findByEmail(emailOrPhone);
-        String identifier = null;
+        Optional<User> optionalUser = repository.findByEmail(identifier);
+        String auxIdentifier = null;
 
         if (optionalUser.isEmpty()) {
-            optionalUser = repository.findByPhoneNumber(Long.parseLong(emailOrPhone));
-            identifier = optionalUser.get().getPhoneNumber().toString();
+            optionalUser = repository.findByPhoneNumber(Long.parseLong(identifier));
+            
+            if (optionalUser.isEmpty())
+                throw new UsernameNotFoundException(String.format("El usuario %s no existe", auxIdentifier));
+            
+            auxIdentifier = optionalUser.get().getPhoneNumber().toString();
         } else {
-            identifier = optionalUser.get().getEmail();
+            auxIdentifier = optionalUser.get().getEmail();
         }
-        
+
         if (optionalUser.isEmpty())
-            throw new UsernameNotFoundException(String.format("El usuario %s no existe", emailOrPhone));
+            throw new UsernameNotFoundException(String.format("El usuario %s no existe", auxIdentifier));
         
         User user = optionalUser.orElseThrow();
 
-        List<GrantedAuthority> authorities = user.getRoles().stream()
-            .map(role -> new SimpleGrantedAuthority(role.getRole()))
-            .collect(Collectors.toList());
-        
         return new org.springframework.security.core.userdetails.User(
-            identifier, user.getPassword(),
+            auxIdentifier, user.getPassword(),
             user.isEnabled(),
             true,
             true,
             true,
-            authorities
+            getAuthorities(user)
         );
+    }
+
+    public List<GrantedAuthority> getAuthorities(User user) {
+        return user.getRoles().stream()
+        .map(role -> new SimpleGrantedAuthority(role.getRole()))
+        .collect(Collectors.toList());
     }
 }

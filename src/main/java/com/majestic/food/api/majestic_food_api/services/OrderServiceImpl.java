@@ -2,8 +2,8 @@ package com.majestic.food.api.majestic_food_api.services;
 
 import com.majestic.food.api.majestic_food_api.entities.Order;
 import com.majestic.food.api.majestic_food_api.entities.User;
-import com.majestic.food.api.majestic_food_api.entities.dtos.OrderCreateDTO;
-import com.majestic.food.api.majestic_food_api.entities.dtos.OrderUpdateDTO;
+import com.majestic.food.api.majestic_food_api.entities.dtos.NewOrderDTO;
+import com.majestic.food.api.majestic_food_api.entities.dtos.UpdateOrderDTO;
 import com.majestic.food.api.majestic_food_api.mappers.OrderMapper;
 import com.majestic.food.api.majestic_food_api.repositories.OrderRepository;
 import com.majestic.food.api.majestic_food_api.repositories.UserRepository;
@@ -40,7 +40,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public Order save(OrderCreateDTO dto) {
+    public Order save(NewOrderDTO dto) {
         Order order = OrderMapper.mapper.orderCreateDTOtoOrder(dto);
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -59,7 +59,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public Optional<Order> update(String id, OrderUpdateDTO dto) {
+    public Optional<Order> update(String id, UpdateOrderDTO dto) {
         Optional<Order> orderDb = repository.findById(id);
 
         orderDb.ifPresent(order -> {

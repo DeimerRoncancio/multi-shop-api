@@ -6,8 +6,8 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.factory.Mappers;
 
 import com.majestic.food.api.majestic_food_api.entities.Product;
-import com.majestic.food.api.majestic_food_api.entities.dtos.ProductCreateDTO;
-import com.majestic.food.api.majestic_food_api.entities.dtos.ProductUpdateDTO;
+import com.majestic.food.api.majestic_food_api.entities.dtos.NewProductDTO;
+import com.majestic.food.api.majestic_food_api.entities.dtos.UpdateProductDTO;
 
 @Mapper
 public interface ProductMapper {
@@ -15,8 +15,8 @@ public interface ProductMapper {
     ProductMapper mapper = Mappers.getMapper(ProductMapper.class);
 
     @Mapping(target = "id", ignore = true)
-    Product productCreateDTOtoProduct(ProductCreateDTO dto);
+    Product productCreateDTOtoProduct(NewProductDTO dto);
 
     @Mapping(target = "id", ignore = true)
-    void toUpdateProduct(ProductUpdateDTO dto, @MappingTarget Product product);
+    void toUpdateProduct(UpdateProductDTO dto, @MappingTarget Product product);
 }

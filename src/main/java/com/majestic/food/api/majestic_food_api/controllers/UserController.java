@@ -1,7 +1,7 @@
 package com.majestic.food.api.majestic_food_api.controllers;
 
 import com.majestic.food.api.majestic_food_api.entities.User;
-import com.majestic.food.api.majestic_food_api.entities.dtos.UserUpdateDTO;
+import com.majestic.food.api.majestic_food_api.entities.dtos.UserUpdateRequest;
 import com.majestic.food.api.majestic_food_api.services.UserService;
 
 import jakarta.validation.Valid;
@@ -52,7 +52,7 @@ public class UserController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> update(@Valid @RequestBody UserUpdateDTO user, BindingResult result, @PathVariable String id) {
+    public ResponseEntity<?> update(@Valid @RequestBody UserUpdateRequest user, BindingResult result, @PathVariable String id) {
         if (result.hasFieldErrors())
             return validate(result);
         
@@ -66,7 +66,7 @@ public class UserController {
 
     @PutMapping("/update/{id}")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<?> updateUser(@Valid @RequestBody UserUpdateDTO user, BindingResult result, @PathVariable String id) {
+    public ResponseEntity<?> updateUser(@Valid @RequestBody UserUpdateRequest user, BindingResult result, @PathVariable String id) {
         user.setAdmin(false);
 
         return update(user, result, id);

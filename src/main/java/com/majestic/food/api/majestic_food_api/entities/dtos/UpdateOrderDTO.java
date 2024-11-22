@@ -1,26 +1,37 @@
 package com.majestic.food.api.majestic_food_api.entities.dtos;
 
 import java.util.Date;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.majestic.food.api.majestic_food_api.entities.Order;
+import com.majestic.food.api.majestic_food_api.entities.Product;
 import com.majestic.food.api.majestic_food_api.entities.User;
-import com.majestic.food.api.majestic_food_api.validation.IfExists;
+import com.majestic.food.api.majestic_food_api.validation.IfExistsUpdate;
 
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-public class OrderCreateDTO {
+public class UpdateOrderDTO {
 
     @NotBlank(message = "{NotBlank.validation.text}")
-    @IfExists(entity = Order.class, field = "orderName", message = "{IfExists.order.name}")
+    @IfExistsUpdate(entity = Order.class, field = "orderName", message = "{IfExists.order.name}")
     private String orderName;
     private String notes;
 
     @NotNull(message = "{NotBlank.validation.text}")
     private Date orderDate;
+
+    @ManyToMany
+    @JoinTable(
+        name = "products_to_orders",
+        joinColumns = @JoinColumn(name = "id_order"),
+        inverseJoinColumns = @JoinColumn(name = "id_product"))
+    private List<Product> product;
 
     @ManyToOne
     @JoinColumn(name = "id_user")
@@ -57,5 +68,13 @@ public class OrderCreateDTO {
     
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public List<Product> getProduct() {
+        return product;
+    }
+    
+    public void setProduct(List<Product> product) {
+        this.product = product;
     }
 }

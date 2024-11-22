@@ -15,7 +15,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-public class ProductCreateDTO {
+public class NewProductDTO {
 
     @NotBlank(message = "{NotBlank.validation.text}")
     @IfExists(entity = Product.class, field = "productName", message = "{IfExists.product.name}")
@@ -36,10 +36,10 @@ public class ProductCreateDTO {
         uniqueConstraints = @UniqueConstraint(columnNames = {"id_product", "id_category"}))
     private List<ProductCategory> categories;
 
-    public ProductCreateDTO() {
+    public NewProductDTO() {
     }
 
-    public ProductCreateDTO(String productName, String description, BigDecimal price, List<ProductCategory> categories) {
+    public NewProductDTO(String productName, String description, BigDecimal price, List<ProductCategory> categories) {
         this.productName = productName;
         this.description = description;
         this.price = price;

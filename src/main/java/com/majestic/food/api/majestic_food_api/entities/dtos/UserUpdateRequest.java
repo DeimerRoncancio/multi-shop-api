@@ -15,7 +15,7 @@ import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
-public class UserUpdateDTO {
+public class UserUpdateRequest {
 
     @NotBlank(message = "{NotBlank.validation.text}")
     private String name;

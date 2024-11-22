@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.Optional;
 
 import com.majestic.food.api.majestic_food_api.entities.Product;
-import com.majestic.food.api.majestic_food_api.entities.dtos.ProductCreateDTO;
-import com.majestic.food.api.majestic_food_api.entities.dtos.ProductUpdateDTO;
+import com.majestic.food.api.majestic_food_api.entities.dtos.NewProductDTO;
+import com.majestic.food.api.majestic_food_api.entities.dtos.UpdateProductDTO;
 
 public interface ProductService {
 
@@ -13,9 +13,9 @@ public interface ProductService {
 
     Optional<Product> findOne(String id);
 
-    Product save(ProductCreateDTO product);
+    Product save(NewProductDTO product);
 
-    Optional<Product> update(String id, ProductUpdateDTO product);
+    Optional<Product> update(String id, UpdateProductDTO product);
 
     Optional<Product> delete(String id);
 }

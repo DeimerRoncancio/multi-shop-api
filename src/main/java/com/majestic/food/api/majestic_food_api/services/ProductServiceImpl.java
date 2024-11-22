@@ -1,8 +1,8 @@
 package com.majestic.food.api.majestic_food_api.services;
 
 import com.majestic.food.api.majestic_food_api.entities.Product;
-import com.majestic.food.api.majestic_food_api.entities.dtos.ProductCreateDTO;
-import com.majestic.food.api.majestic_food_api.entities.dtos.ProductUpdateDTO;
+import com.majestic.food.api.majestic_food_api.entities.dtos.NewProductDTO;
+import com.majestic.food.api.majestic_food_api.entities.dtos.UpdateProductDTO;
 import com.majestic.food.api.majestic_food_api.mappers.ProductMapper;
 import com.majestic.food.api.majestic_food_api.repositories.ProductRepository;
 
@@ -33,7 +33,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    public Product save(ProductCreateDTO dto) {
+    public Product save(NewProductDTO dto) {
         Product product = ProductMapper.mapper.productCreateDTOtoProduct(dto);
 
         return repository.save(product);
@@ -41,7 +41,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    public Optional<Product> update(String id, ProductUpdateDTO dto) {
+    public Optional<Product> update(String id, UpdateProductDTO dto) {
         Optional<Product> productOptional = repository.findById(id);
 
         productOptional.ifPresent(productDb -> {

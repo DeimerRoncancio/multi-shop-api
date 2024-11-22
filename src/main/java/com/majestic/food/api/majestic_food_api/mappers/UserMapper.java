@@ -7,7 +7,7 @@ import org.mapstruct.factory.Mappers;
 
 import com.majestic.food.api.majestic_food_api.auth.RegisterRequest;
 import com.majestic.food.api.majestic_food_api.entities.User;
-import com.majestic.food.api.majestic_food_api.entities.dtos.UserUpdateDTO;
+import com.majestic.food.api.majestic_food_api.entities.dtos.UserUpdateRequest;
 
 @Mapper
 public interface UserMapper {
@@ -23,5 +23,5 @@ public interface UserMapper {
     @Mapping(target = "orders", ignore = true)
     @Mapping(target = "roles", ignore = true)
     @Mapping(target = "enabled", ignore = true)
-    void toUpdateUser(UserUpdateDTO dto, @MappingTarget User user);
+    void toUpdateUser(UserUpdateRequest dto, @MappingTarget User user);
 }

@@ -2,15 +2,15 @@ package com.majestic.food.api.majestic_food_api.auth;
 
 public class LoginRequest {
 
-    private String emailOrPhone;
+    private String identifier;
     private String password;
 
-    public String getEmailOrPhone() {
-        return emailOrPhone;
+    public String getIdentifier() {
+        return identifier;
     }
 
-    public void setEmailOrPhone(String emailOrPhone) {
-        this.emailOrPhone = emailOrPhone;
+    public void setIdentifier(String identifier) {
+        this.identifier = identifier;
     }
 
     public String getPassword() {

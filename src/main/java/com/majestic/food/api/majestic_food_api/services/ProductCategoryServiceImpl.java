@@ -1,8 +1,8 @@
 package com.majestic.food.api.majestic_food_api.services;
 
 import com.majestic.food.api.majestic_food_api.entities.ProductCategory;
-import com.majestic.food.api.majestic_food_api.entities.dtos.ProductCategoryCreateDTO;
-import com.majestic.food.api.majestic_food_api.entities.dtos.ProductCategoryUpdateDTO;
+import com.majestic.food.api.majestic_food_api.entities.dtos.NewProductCategoryDTO;
+import com.majestic.food.api.majestic_food_api.entities.dtos.UpdateProductCategoryDTO;
 import com.majestic.food.api.majestic_food_api.mappers.ProductCategoryMapper;
 import com.majestic.food.api.majestic_food_api.repositories.ProductCategoryRepository;
 
@@ -33,7 +33,7 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
 
     @Override
     @Transactional
-    public ProductCategory save(ProductCategoryCreateDTO dto) {
+    public ProductCategory save(NewProductCategoryDTO dto) {
         ProductCategory category = ProductCategoryMapper.mapper.categoryCreateDTOtoCategory(dto);
         
         return repository.save(category);
@@ -41,7 +41,7 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
 
     @Override
     @Transactional
-    public Optional<ProductCategory> update(String id, ProductCategoryUpdateDTO dto) {
+    public Optional<ProductCategory> update(String id, UpdateProductCategoryDTO dto) {
         Optional<ProductCategory> optionalCategory = repository.findById(id);
         
         optionalCategory.ifPresent(categoryDb -> {

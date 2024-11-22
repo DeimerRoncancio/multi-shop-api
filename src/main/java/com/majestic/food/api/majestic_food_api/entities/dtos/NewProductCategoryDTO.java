@@ -1,13 +1,13 @@
 package com.majestic.food.api.majestic_food_api.entities.dtos;
 
 import com.majestic.food.api.majestic_food_api.entities.ProductCategory;
-import com.majestic.food.api.majestic_food_api.validation.IfExistsUpdate;
+import com.majestic.food.api.majestic_food_api.validation.IfExists;
 
 import jakarta.validation.constraints.NotBlank;
 
-public class ProductCategoryUpdateDTO {
+public class NewProductCategoryDTO {
 
-    @IfExistsUpdate(entity = ProductCategory.class, field = "categoryName", message = "{IfExists.category.name}")
+    @IfExists(entity = ProductCategory.class, field = "categoryName", message = "{IfExists.category.name}")
     @NotBlank(message = "{NotBlank.validation.text}")
     private String categoryName;
 

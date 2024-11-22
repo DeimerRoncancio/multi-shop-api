@@ -3,7 +3,7 @@ package com.majestic.food.api.majestic_food_api.services;
 import com.majestic.food.api.majestic_food_api.auth.RegisterRequest;
 import com.majestic.food.api.majestic_food_api.entities.Role;
 import com.majestic.food.api.majestic_food_api.entities.User;
-import com.majestic.food.api.majestic_food_api.entities.dtos.UserUpdateDTO;
+import com.majestic.food.api.majestic_food_api.entities.dtos.UserUpdateRequest;
 import com.majestic.food.api.majestic_food_api.mappers.UserMapper;
 import com.majestic.food.api.majestic_food_api.repositories.RoleRepository;
 import com.majestic.food.api.majestic_food_api.repositories.UserRepository;
@@ -60,7 +60,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public Optional<User> update(String id, UserUpdateDTO userDTO) {
+    public Optional<User> update(String id, UserUpdateRequest userDTO) {
         Optional<User> optionalUser = repository.findById(id);
         
         optionalUser.ifPresent(userDb -> {

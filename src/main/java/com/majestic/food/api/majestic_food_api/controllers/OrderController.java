@@ -1,8 +1,8 @@
 package com.majestic.food.api.majestic_food_api.controllers;
 
 import com.majestic.food.api.majestic_food_api.entities.Order;
-import com.majestic.food.api.majestic_food_api.entities.dtos.OrderCreateDTO;
-import com.majestic.food.api.majestic_food_api.entities.dtos.OrderUpdateDTO;
+import com.majestic.food.api.majestic_food_api.entities.dtos.NewOrderDTO;
+import com.majestic.food.api.majestic_food_api.entities.dtos.UpdateOrderDTO;
 import com.majestic.food.api.majestic_food_api.services.OrderService;
 
 import jakarta.validation.Valid;
@@ -48,7 +48,7 @@ public class OrderController {
     }
 
     @PostMapping
-    public ResponseEntity<?> create(@Valid @RequestBody OrderCreateDTO order, BindingResult result) {
+    public ResponseEntity<?> create(@Valid @RequestBody NewOrderDTO order, BindingResult result) {
         if (result.hasFieldErrors())
             return validate(result);
         
@@ -56,7 +56,7 @@ public class OrderController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@Valid @RequestBody OrderUpdateDTO order, BindingResult result, @PathVariable String id) {
+    public ResponseEntity<?> update(@Valid @RequestBody UpdateOrderDTO order, BindingResult result, @PathVariable String id) {
         if (result.hasFieldErrors())
             return validate(result);
         
