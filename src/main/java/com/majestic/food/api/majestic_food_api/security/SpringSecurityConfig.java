@@ -48,10 +48,7 @@ public class SpringSecurityConfig {
         return http.authorizeHttpRequests(authz -> authz
             .requestMatchers(HttpMethod.GET, "/app/categories", "/app/categories/{id}").permitAll()
             .requestMatchers(HttpMethod.POST, "/app/users/register").permitAll()
-            .requestMatchers(HttpMethod.GET, "/app/products").permitAll()
-            .requestMatchers(HttpMethod.POST, "/app/products").permitAll()
-            .requestMatchers(HttpMethod.PUT, "/app/products/{id}").permitAll()
-            .requestMatchers(HttpMethod.DELETE, "/app/products/{id}").permitAll()
+            .requestMatchers(HttpMethod.GET, "/app/products", "/app/products/{id}").permitAll()
             .anyRequest().authenticated())
             .addFilter(new JwtAuthenticationFilter(authenticationManager()))
             .addFilter(new JwtValidationFilter(authenticationManager()))
