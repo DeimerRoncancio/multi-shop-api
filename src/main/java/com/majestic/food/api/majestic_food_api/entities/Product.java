@@ -2,6 +2,8 @@ package com.majestic.food.api.majestic_food_api.entities;
 
 import org.hibernate.annotations.UuidGenerator;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
@@ -36,6 +38,7 @@ public class Product {
         joinColumns = @JoinColumn(name = "id_product"),
         inverseJoinColumns = @JoinColumn(name = "id_category"),
         uniqueConstraints = @UniqueConstraint(columnNames = {"id_product", "id_category"}))
+    @JsonIgnoreProperties("products")
     private List<ProductCategory> categories;
 
     public Product() {

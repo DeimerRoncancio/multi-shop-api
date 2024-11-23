@@ -3,6 +3,8 @@ package com.majestic.food.api.majestic_food_api.entities.dtos;
 import java.math.BigDecimal;
 import java.util.List;
 
+import org.springframework.data.annotation.Transient;
+
 import com.majestic.food.api.majestic_food_api.entities.Product;
 import com.majestic.food.api.majestic_food_api.entities.ProductCategory;
 import com.majestic.food.api.majestic_food_api.validation.IfExists;
@@ -12,6 +14,7 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
@@ -35,6 +38,10 @@ public class NewProductDTO {
         inverseJoinColumns = @JoinColumn(name = "id_category"),
         uniqueConstraints = @UniqueConstraint(columnNames = {"id_product", "id_category"}))
     private List<ProductCategory> categories;
+
+    @NotEmpty
+    @Transient
+    private List<String> categoriesList;
 
     public NewProductDTO() {
     }
@@ -76,5 +83,13 @@ public class NewProductDTO {
 
     public void setCategories(List<ProductCategory> productCategory) {
         this.categories = productCategory;
+    }
+
+    public List<String> getCategoriesList() {
+        return categoriesList;
+    }
+
+    public void setCategoriesList(List<String> categoriesList) {
+        this.categoriesList = categoriesList;
     }
 }

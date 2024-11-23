@@ -1,9 +1,11 @@
 package com.majestic.food.api.majestic_food_api.services;
 
 import com.majestic.food.api.majestic_food_api.entities.Product;
+import com.majestic.food.api.majestic_food_api.entities.ProductCategory;
 import com.majestic.food.api.majestic_food_api.entities.dtos.NewProductDTO;
 import com.majestic.food.api.majestic_food_api.entities.dtos.UpdateProductDTO;
 import com.majestic.food.api.majestic_food_api.mappers.ProductMapper;
+import com.majestic.food.api.majestic_food_api.repositories.ProductCategoryRepository;
 import com.majestic.food.api.majestic_food_api.repositories.ProductRepository;
 
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +20,9 @@ public class ProductServiceImpl implements ProductService {
 
     @Autowired
     private ProductRepository repository;
+    
+    @Autowired
+    private ProductCategoryRepository categoryRepository;
     
     @Override
     @Transactional(readOnly = true)
@@ -34,6 +39,9 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public Product save(NewProductDTO dto) {
+        List<ProductCategory> categoryList =  categoryRepository.findByCategoryNameIn(dto.getCategoriesList());
+        dto.setCategories(categoryList);
+        
         Product product = ProductMapper.mapper.productCreateDTOtoProduct(dto);
 
         return repository.save(product);

@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.hibernate.annotations.UuidGenerator;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Entity;
@@ -23,6 +25,7 @@ public class ProductCategory {
     private String categoryName;
 
     @ManyToMany(mappedBy = "categories")
+    @JsonIgnoreProperties("categories")
     private List<Product> products;
 
     public ProductCategory() {
