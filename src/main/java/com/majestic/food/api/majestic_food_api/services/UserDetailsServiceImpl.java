@@ -33,8 +33,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         return new CustomUserDetails(
             identifier, userInfo.getUser().getPassword(),
             userInfo.getUser().isEnabled(),
-            getAuthorities(userInfo.getUser())
-        );
+            getAuthorities(userInfo.getUser()));
     }
     
     public UserInfo getUserInfo(String identifier) {
