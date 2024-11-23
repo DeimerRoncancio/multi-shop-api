@@ -7,8 +7,7 @@ public class UserInfo {
     private String identifier;
     private User user;
 
-    public UserInfo(String identifier, User user) {
-        this.identifier = identifier;
+    public UserInfo(User user) {
         this.user = user;
     }
 

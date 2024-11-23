@@ -15,6 +15,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.majestic.food.api.majestic_food_api.security.SimpleGrantedAuthorityCreator;
 
@@ -37,7 +39,7 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
     throws IOException, ServletException {
-        
+
         String token = getTokenByRequest(request);
 
         if (token == null) {
@@ -47,23 +49,14 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
 
         try {
             Claims claims = Jwts.parser().verifyWith(SECRET_KEY).build().parseSignedClaims(token).getPayload();
-            String username = claims.getSubject();
             Object claimAuthorities = claims.get("authorities");
+            String username = claims.getSubject();
 
-            Collection<? extends GrantedAuthority> authorities = Arrays.asList(
-                new ObjectMapper()
-                    .addMixIn(SimpleGrantedAuthority.class, SimpleGrantedAuthorityCreator.class)
-                    .readValue(
-                        claimAuthorities.toString(),
-                        SimpleGrantedAuthority[].class  
-                    )
-            );
-            
-            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+            Collection<? extends GrantedAuthority> authorities = getAuthorities(claimAuthorities);
+
+            SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
                 username, null, authorities
-            );
-
-            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+            ));
 
             chain.doFilter(request, response);
             
@@ -85,5 +78,12 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
             return null;
 
         return header.replace(PREFIX_TOKEN, "").trim();
+    }
+
+    public Collection<? extends GrantedAuthority> getAuthorities(Object claimAuthorities) 
+    throws JsonMappingException, JsonProcessingException {
+        return Arrays.asList(new ObjectMapper()
+            .addMixIn(SimpleGrantedAuthority.class, SimpleGrantedAuthorityCreator.class)
+            .readValue(claimAuthorities.toString(),SimpleGrantedAuthority[].class));
     }
 }

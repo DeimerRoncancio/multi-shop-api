@@ -31,18 +31,12 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         UserInfo userInfo = getUserInfo(identifier);
 
         return new CustomUserDetails(
-            userInfo.getIdentifier(), userInfo.getUser().getPassword(),
+            identifier, userInfo.getUser().getPassword(),
             userInfo.getUser().isEnabled(),
             getAuthorities(userInfo.getUser())
         );
     }
-
-    public List<GrantedAuthority> getAuthorities(User user) {
-        return user.getRoles().stream()
-        .map(role -> new SimpleGrantedAuthority(role.getRole()))
-        .collect(Collectors.toList());
-    }
-
+    
     public UserInfo getUserInfo(String identifier) {
         Optional<User> optionalUser;
         
@@ -55,11 +49,13 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         if (optionalUser.isEmpty())
             throw new UsernameNotFoundException(" ");
         
-        identifier = isNumeric(identifier) ? 
-            optionalUser.get().getPhoneNumber().toString() : 
-            optionalUser.get().getEmail();
-        
-        return new UserInfo(identifier, optionalUser.get());
+        return new UserInfo(optionalUser.get());
+    }
+    
+    public List<GrantedAuthority> getAuthorities(User user) {
+        return user.getRoles().stream()
+        .map(role -> new SimpleGrantedAuthority(role.getRole()))
+        .collect(Collectors.toList());
     }
 
     public boolean isNumeric(String str) {

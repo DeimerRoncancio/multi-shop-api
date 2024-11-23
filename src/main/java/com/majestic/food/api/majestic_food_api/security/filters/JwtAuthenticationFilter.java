@@ -13,7 +13,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,8 +30,8 @@ import static com.majestic.food.api.majestic_food_api.security.JwtConfig.*;
 
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
-    private AuthenticationManager authenticationManager;
     private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+    private AuthenticationManager authenticationManager;
 
     public JwtAuthenticationFilter(AuthenticationManager authManager) {
         this.authenticationManager = authManager;
@@ -47,33 +46,30 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
         try {
             LoginRequest credentials = new ObjectMapper().readValue(request.getInputStream(), LoginRequest.class);
-
             emailOrPhone = credentials.getIdentifier();
             password = credentials.getPassword();
         } catch(IOException e) {
             logger.error("Exception by bringing user: " + e);
         }
         
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+        return authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
             emailOrPhone,
             password
-        );
-        
-        return authenticationManager.authenticate(authenticationToken);
+        ));
     }
 
     @Override
     public void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, 
     FilterChain filter, Authentication authResult) throws IOException {
 
-        Claims rolesClaims = getRoles(authResult);
         CustomUserDetails user = (CustomUserDetails) authResult.getPrincipal();
-        String username = user.getUsername();
-
-        String token = getToken(username, rolesClaims);
+        
+        Claims rolesClaims = getRoles(authResult);
+        String identifier = user.getUsername();
+        String token = getToken(identifier, rolesClaims);
         
         Map<String, Object> body = new HashMap<> ();
-        body.put("username", username);
+        body.put("username", identifier);
         body.put("token", token);
         
         response.addHeader(HEADER_AUTHORIZATION, PREFIX_TOKEN + token);
@@ -95,9 +91,9 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         response.setStatus(401);
     }
 
-    public String getToken(String username, Claims rolesClaims) {
+    public String getToken(String identifier, Claims rolesClaims) {
         return Jwts.builder()
-            .subject(username)
+            .subject(identifier)
             .claims(rolesClaims)
             .expiration(new Date(System.currentTimeMillis() + 3600000))
             .issuedAt(new Date())
@@ -107,7 +103,6 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
     public Claims getRoles(Authentication authResult) throws IOException {
         Collection<? extends GrantedAuthority> roles = authResult.getAuthorities();
-
         return Jwts.claims().add("authorities", new ObjectMapper().writeValueAsString(roles)).build();
     }
 }
