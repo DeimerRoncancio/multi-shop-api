@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 
 import java.util.HashMap;
@@ -48,6 +49,7 @@ public class ProductCategoryController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> create(@Valid @RequestBody NewProductCategoryDTO category, BindingResult result) {
         if (result.hasFieldErrors())
             return validate(result);
@@ -56,6 +58,7 @@ public class ProductCategoryController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> update(@Valid @RequestBody UpdateProductCategoryDTO category, BindingResult result, @PathVariable String id) {
         if (result.hasFieldErrors())
             return validate(result);
@@ -69,6 +72,7 @@ public class ProductCategoryController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> delete(@PathVariable String id) {
         Optional<ProductCategory> categoryDb = service.delete(id);
 
