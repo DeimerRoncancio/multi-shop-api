@@ -3,6 +3,7 @@ package com.majestic.food.api.majestic_food_api.entities.dtos;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.majestic.food.api.majestic_food_api.entities.Image;
 import com.majestic.food.api.majestic_food_api.entities.Role;
 import com.majestic.food.api.majestic_food_api.entities.User;
 import com.majestic.food.api.majestic_food_api.validation.IfExistsUpdate;
@@ -19,7 +20,7 @@ public class UserUpdateRequest {
 
     @NotBlank(message = "{NotBlank.validation.text}")
     private String name;
-    private String profileImage;
+    private Image profileImage;
     private String secondName;
     private String lastnames;
 
@@ -56,11 +57,11 @@ public class UserUpdateRequest {
         this.name = name;
     }
     
-    public String getProfileImage() {
+    public Image getProfileImage() {
         return profileImage;
     }
     
-    public void setProfileImage(String profile_image) {
+    public void setProfileImage(Image profile_image) {
         this.profileImage = profile_image;
     }
     

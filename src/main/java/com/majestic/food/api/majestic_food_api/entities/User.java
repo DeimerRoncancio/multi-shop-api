@@ -11,6 +11,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
@@ -27,9 +28,10 @@ public class User {
     @UuidGenerator
     @Column(name = "id", updatable = false, nullable = false)
     private String id;
-
     private String name;
-    private String profileImage;
+
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    private Image profileImage;
     private String secondName;
     private String lastnames;
 
@@ -39,7 +41,6 @@ public class User {
 
     @Column(unique = true)
     private String email;
-
     private String password;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -84,11 +85,11 @@ public class User {
         this.name = name;
     }
 
-    public String getProfileImage() {
+    public Image getProfileImage() {
         return profileImage;
     }
 
-    public void setProfileImage(String profile_image) {
+    public void setProfileImage(Image profile_image) {
         this.profileImage = profile_image;
     }
 

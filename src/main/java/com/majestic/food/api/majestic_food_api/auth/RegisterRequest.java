@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.majestic.food.api.majestic_food_api.entities.Image;
 import com.majestic.food.api.majestic_food_api.entities.Role;
 import com.majestic.food.api.majestic_food_api.entities.User;
 import com.majestic.food.api.majestic_food_api.validation.IfExists;
@@ -20,7 +21,7 @@ public class RegisterRequest {
 
     @NotBlank(message = "{NotBlank.validation.text}")
     private String name;
-    private String profileImage;
+    private Image profileImage;
     private String secondName;
     private String lastnames;
 
@@ -61,11 +62,11 @@ public class RegisterRequest {
         this.name = name;
     }
 
-    public String getProfileImage() {
+    public Image getProfileImage() {
         return profileImage;
     }
 
-    public void setProfileImage(String profile_image) {
+    public void setProfileImage(Image profile_image) {
         this.profileImage = profile_image;
     }
 
