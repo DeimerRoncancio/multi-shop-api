@@ -19,5 +19,7 @@ public interface UserService {
 
     Optional<User> update(String id, UserUpdateRequest user);
 
+    User updateProfileImage(User user, MultipartFile file);
+
     Optional<User> delete(String id);
 }

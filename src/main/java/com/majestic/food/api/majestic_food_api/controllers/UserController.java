@@ -7,7 +7,9 @@ import com.majestic.food.api.majestic_food_api.services.UserService;
 import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -64,12 +66,25 @@ public class UserController {
         return ResponseEntity.notFound().build();
     }
 
-    @PutMapping("/update/{id}")
+    @PutMapping("/update/user/{id}")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<?> updateUser(@Valid @RequestBody UserUpdateRequest user, BindingResult result, @PathVariable String id) {
         user.setAdmin(false);
 
         return update(user, result, id);
+    }
+
+    @PutMapping("/update/profile-image/{id}")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ResponseEntity<?> updateProfileImage(@PathVariable String id, @RequestPart("file") MultipartFile file) {
+        Optional<User> optionalUser = service.findOne(id);
+
+        if (optionalUser.isPresent()) {
+            User user = service.updateProfileImage(optionalUser.get(), file);
+            return ResponseEntity.status(HttpStatus.CREATED).body(user);
+        }
+        
+        return ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")

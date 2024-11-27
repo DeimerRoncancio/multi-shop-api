@@ -61,7 +61,7 @@ public class UserServiceImpl implements UserService {
         if (userDTO.isAdmin())
             roleRepository.findByRole("ROLE_ADMIN").ifPresent(roles::add);
 
-        Image image = upload(file);
+        Image image = uploadProfileImage(file);
         userDTO.setProfileImage(image);
         
         userDTO.setRoles(roles);
@@ -96,6 +96,18 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    public User updateProfileImage(User user, MultipartFile file) {
+        if (user.getProfileImage() != null)
+            deleteProfileImage(user);
+        
+        Image image = uploadProfileImage(file);        
+        user.setProfileImage(image);
+
+        return repository.save(user);
+    }
+
+    @Override
+    @Transactional
     public Optional<User> delete(String id) {
         Optional<User> optionalUser = repository.findById(id);
         
@@ -106,7 +118,7 @@ public class UserServiceImpl implements UserService {
         return optionalUser;
     }
 
-    public Image upload(MultipartFile file) {
+    public Image uploadProfileImage(MultipartFile file) {
         Image image = null;
         
         if (file != null && !file.isEmpty()) {
@@ -118,5 +130,13 @@ public class UserServiceImpl implements UserService {
         }
 
         return image;
+    }
+
+    public void deleteProfileImage(User user) {
+        try {
+            imageService.deleteImage(user.getProfileImage());
+        } catch(IOException e) {
+            logger.error("Exception to try delete the image: " + e);
+        }
     }
 }

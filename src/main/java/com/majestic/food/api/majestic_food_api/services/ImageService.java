@@ -10,5 +10,5 @@ public interface ImageService {
 
     Image uploadImage(MultipartFile multipartFile) throws IOException;
 
-    void deleteImage(Image id) throws IOException;
+    void deleteImage(Image image) throws IOException;
 }
