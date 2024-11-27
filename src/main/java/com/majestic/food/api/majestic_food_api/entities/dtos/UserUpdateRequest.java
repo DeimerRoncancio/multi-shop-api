@@ -3,17 +3,14 @@ package com.majestic.food.api.majestic_food_api.entities.dtos;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.majestic.food.api.majestic_food_api.entities.Image;
 import com.majestic.food.api.majestic_food_api.entities.Role;
 import com.majestic.food.api.majestic_food_api.entities.User;
 import com.majestic.food.api.majestic_food_api.validation.IfExistsUpdate;
 import com.majestic.food.api.majestic_food_api.validation.SizeConstraint;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -22,8 +19,6 @@ public class UserUpdateRequest {
 
     @NotBlank(message = "{NotBlank.validation.text}")
     private String name;
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-    private Image profileImage;
     private String secondName;
     private String lastnames;
 
@@ -58,14 +53,6 @@ public class UserUpdateRequest {
     
     public void setName(String name) {
         this.name = name;
-    }
-    
-    public Image getProfileImage() {
-        return profileImage;
-    }
-    
-    public void setProfileImage(Image profile_image) {
-        this.profileImage = profile_image;
     }
     
     public String getSecondName() {

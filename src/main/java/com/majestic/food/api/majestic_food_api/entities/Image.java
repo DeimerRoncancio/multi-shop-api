@@ -27,6 +27,9 @@ public class Image {
     @NotBlank
     private String imageId;
 
+    public Image() {
+    }
+
     public Image(String name, String imageUrl, String imageId) {
         this.name = name;
         this.imageUrl = imageUrl;
