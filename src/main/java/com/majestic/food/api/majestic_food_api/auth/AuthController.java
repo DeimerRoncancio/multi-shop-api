@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -30,8 +29,8 @@ public class AuthController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> create(
-    @Valid @ModelAttribute RegisterRequest user, BindingResult result, @RequestPart("image") MultipartFile image) {
+    public ResponseEntity<?> create(@Valid @ModelAttribute RegisterRequest user, BindingResult result, 
+    @RequestPart("image") MultipartFile image) {
         if (result.hasFieldErrors())
             return validate(result);
         

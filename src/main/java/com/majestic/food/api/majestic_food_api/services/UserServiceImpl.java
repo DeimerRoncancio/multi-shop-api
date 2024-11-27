@@ -9,6 +9,8 @@ import com.majestic.food.api.majestic_food_api.mappers.UserMapper;
 import com.majestic.food.api.majestic_food_api.repositories.RoleRepository;
 import com.majestic.food.api.majestic_food_api.repositories.UserRepository;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +36,8 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    private final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
     
     @Override
     @Transactional(readOnly = true)
@@ -56,16 +60,9 @@ public class UserServiceImpl implements UserService {
 
         if (userDTO.isAdmin())
             roleRepository.findByRole("ROLE_ADMIN").ifPresent(roles::add);
-        
-        if (file != null && !file.isEmpty()) {
-            Image image;
-            try {
-                image = imageService.uploadImage(file);
-                userDTO.setProfileImage(image);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+
+        Image image = upload(file);
+        userDTO.setProfileImage(image);
         
         userDTO.setRoles(roles);
         User user = UserMapper.mapper.userCreateDTOtoUser(userDTO);
@@ -107,5 +104,19 @@ public class UserServiceImpl implements UserService {
         });
 
         return optionalUser;
+    }
+
+    public Image upload(MultipartFile file) {
+        Image image = null;
+        
+        if (file != null && !file.isEmpty()) {
+            try {
+                image = imageService.uploadImage(file);
+            } catch (IOException e) {
+                logger.error("Exception to try upload image: " + e);
+            }
+        }
+
+        return image;
     }
 }
