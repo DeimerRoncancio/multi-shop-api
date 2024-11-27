@@ -9,9 +9,11 @@ import com.majestic.food.api.majestic_food_api.entities.User;
 import com.majestic.food.api.majestic_food_api.validation.IfExistsUpdate;
 import com.majestic.food.api.majestic_food_api.validation.SizeConstraint;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -20,6 +22,7 @@ public class UserUpdateRequest {
 
     @NotBlank(message = "{NotBlank.validation.text}")
     private String name;
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     private Image profileImage;
     private String secondName;
     private String lastnames;

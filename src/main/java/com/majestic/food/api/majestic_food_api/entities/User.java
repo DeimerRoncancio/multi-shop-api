@@ -31,6 +31,7 @@ public class User {
     private String name;
 
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "profile_image")
     private Image profileImage;
     private String secondName;
     private String lastnames;
@@ -44,6 +45,7 @@ public class User {
     private String password;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties("user")
     private List<Order> orders;
 
     @ManyToMany

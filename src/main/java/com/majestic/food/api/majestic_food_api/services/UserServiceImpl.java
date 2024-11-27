@@ -1,6 +1,7 @@
 package com.majestic.food.api.majestic_food_api.services;
 
 import com.majestic.food.api.majestic_food_api.auth.RegisterRequest;
+import com.majestic.food.api.majestic_food_api.entities.Image;
 import com.majestic.food.api.majestic_food_api.entities.Role;
 import com.majestic.food.api.majestic_food_api.entities.User;
 import com.majestic.food.api.majestic_food_api.entities.dtos.UserUpdateRequest;
@@ -11,8 +12,10 @@ import com.majestic.food.api.majestic_food_api.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -25,6 +28,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private RoleRepository roleRepository;
+
+    @Autowired
+    private ImageService imageService;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -43,13 +49,23 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public User save(RegisterRequest userDTO) {
+    public User save(RegisterRequest userDTO, MultipartFile file) {
         List<Role> roles = new ArrayList<>();
 
         roleRepository.findByRole("ROLE_USER").ifPresent(roles::add);
 
         if (userDTO.isAdmin())
             roleRepository.findByRole("ROLE_ADMIN").ifPresent(roles::add);
+        
+        if (file != null && !file.isEmpty()) {
+            Image image;
+            try {
+                image = imageService.uploadImage(file);
+                userDTO.setProfileImage(image);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
         
         userDTO.setRoles(roles);
         User user = UserMapper.mapper.userCreateDTOtoUser(userDTO);

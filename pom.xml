@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.3.5</version>
+		<version>3.3.6</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.majestic.food.api</groupId>
@@ -101,7 +101,6 @@
 			<plugin>
         	    <groupId>org.apache.maven.plugins</groupId>
         	    <artifactId>maven-compiler-plugin</artifactId>
-        	    <version>3.8.1</version>
         	    <configuration>
         	        <source>17</source> <!-- Asegúrate de que coincide con la versión de Java de tu proyecto -->
         	        <target>17</target>

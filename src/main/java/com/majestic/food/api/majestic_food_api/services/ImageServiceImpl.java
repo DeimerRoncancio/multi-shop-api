@@ -15,6 +15,7 @@ public class ImageServiceImpl implements ImageService {
     
     @Autowired
     private CloudinaryService cloudinaryService;
+    
     @Autowired
     private ImageRepository repository;
     

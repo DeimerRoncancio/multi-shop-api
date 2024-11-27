@@ -1,6 +1,7 @@
 package com.majestic.food.api.majestic_food_api.entities;
 
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 
 import org.hibernate.annotations.UuidGenerator;
@@ -9,6 +10,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 
 @Entity
+@Table(name = "images")
 public class Image {
     
     @Id
