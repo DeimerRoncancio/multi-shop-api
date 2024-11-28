@@ -31,11 +31,12 @@ public class UpdateOrderDTO {
         name = "products_to_orders",
         joinColumns = @JoinColumn(name = "id_order"),
         inverseJoinColumns = @JoinColumn(name = "id_product"))
+    @JsonIgnoreProperties({"id", "categories"})
     private List<Product> product;
 
     @ManyToOne
     @JoinColumn(name = "id_user")
-    @JsonIgnoreProperties({"orders", "roles"})
+    @JsonIgnoreProperties({"id", "orders", "roles"})
     private User user;
     
     public String getOrderName() {

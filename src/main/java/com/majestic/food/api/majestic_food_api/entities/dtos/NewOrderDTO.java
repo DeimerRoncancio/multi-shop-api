@@ -24,7 +24,7 @@ public class NewOrderDTO {
 
     @ManyToOne
     @JoinColumn(name = "id_user")
-    @JsonIgnoreProperties({"orders", "roles"})
+    @JsonIgnoreProperties({"id", "orders", "roles"})
     private User user;
     
     public String getOrderName() {
