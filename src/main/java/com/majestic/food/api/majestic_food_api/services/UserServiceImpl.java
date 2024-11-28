@@ -52,7 +52,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public User save(RegisterRequest userDTO, MultipartFile file) {
+    public RegisterRequest save(RegisterRequest userDTO, MultipartFile file) {
         List<Role> roles = new ArrayList<>();
 
         roleRepository.findByRole("ROLE_USER").ifPresent(roles::add);
@@ -66,8 +66,8 @@ public class UserServiceImpl implements UserService {
         userDTO.setRoles(roles);
         User user = UserMapper.mapper.userCreateDTOtoUser(userDTO);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        
-        return repository.save(user);
+        repository.save(user);
+        return userDTO;
     }
 
     @Override

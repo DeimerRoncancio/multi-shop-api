@@ -15,7 +15,7 @@ public interface UserService {
 
     Optional<User> findOne(String id);
 
-    User save(RegisterRequest user, MultipartFile file);
+    RegisterRequest save(RegisterRequest user, MultipartFile file);
 
     Optional<User> update(String id, UserUpdateRequest user);
 

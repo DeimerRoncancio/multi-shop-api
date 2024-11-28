@@ -83,7 +83,7 @@ public class UserController {
 
         if (optionalUser.isPresent()) {
             User user = service.updateProfileImage(optionalUser.get(), file);
-            return ResponseEntity.status(HttpStatus.CREATED).body(user);
+            return ResponseEntity.status(HttpStatus.CREATED).body(user.getProfileImage().getImageUrl());
         }
         
         return ResponseEntity.notFound().build();

@@ -3,6 +3,7 @@ package com.majestic.food.api.majestic_food_api.entities.dtos;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.majestic.food.api.majestic_food_api.entities.Role;
 import com.majestic.food.api.majestic_food_api.entities.User;
 import com.majestic.food.api.majestic_food_api.validation.IfExistsUpdate;
@@ -33,7 +34,7 @@ public class UserUpdateRequest {
 
     @SizeConstraint(min = 8, max = 255)
     @NotBlank(message = "{NotBlank.validation.text}")
-    // @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
     @ManyToMany
@@ -42,9 +43,10 @@ public class UserUpdateRequest {
         joinColumns = @JoinColumn(name = "id_user"),
         inverseJoinColumns = @JoinColumn(name = "id_role"),
         uniqueConstraints = @UniqueConstraint(columnNames = {"id_user", "id_role"}))
-    @JsonIgnoreProperties("users")
+    @JsonIgnoreProperties({"users", "id"})
     private List<Role> roles;
     
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private boolean admin;
     
     public String getName() {

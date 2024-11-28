@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.majestic.food.api.majestic_food_api.entities.Image;
 import com.majestic.food.api.majestic_food_api.entities.Role;
 import com.majestic.food.api.majestic_food_api.entities.User;
@@ -25,6 +26,7 @@ public class RegisterRequest {
     private String name;
     
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties("id")
     private Image profileImage;
     private String secondName;
     private String lastnames;
@@ -40,7 +42,7 @@ public class RegisterRequest {
 
     @NotBlank(message = "{NotBlank.validation.text}")
     @SizeConstraint(min = 8, max = 255)
-    // @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
     @ManyToMany
@@ -49,10 +51,11 @@ public class RegisterRequest {
         joinColumns = @JoinColumn(name = "id_user"),
         inverseJoinColumns = @JoinColumn(name = "id_role"),
         uniqueConstraints = @UniqueConstraint(columnNames = {"id_user", "id_role"}))
-    @JsonIgnoreProperties("users")
+    @JsonIgnoreProperties({"users", "id"})
     private List<Role> roles;
 
-    private boolean isAdmin;
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private boolean admin;
 
     public RegisterRequest() {
         this.roles = new ArrayList<> ();
@@ -131,10 +134,10 @@ public class RegisterRequest {
     }
 
     public boolean isAdmin() {
-        return isAdmin;
+        return admin;
     }
 
     public void setAdmin(boolean isAdmin) {
-        this.isAdmin = isAdmin;
+        this.admin = isAdmin;
     }
 }
