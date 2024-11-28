@@ -109,8 +109,11 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public Optional<User> delete(String id) {
         Optional<User> optionalUser = repository.findById(id);
-        
+
         optionalUser.ifPresent(user -> {
+            if (user.getProfileImage() != null)
+                deleteProfileImage(user);
+            
             repository.delete(user);
         });
 
