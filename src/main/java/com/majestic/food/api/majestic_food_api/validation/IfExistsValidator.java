@@ -9,19 +9,19 @@ import org.springframework.stereotype.Component;
 
 import com.majestic.food.api.majestic_food_api.services.CustomService;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
 @Component
 public class IfExistsValidator implements ConstraintValidator<IfExists, Object> {
 
     @PersistenceContext
     private EntityManager entityManager;
-
     private Class<?> entity;
     private String field;
 
-    @Autowired
-    private CustomService service;
+    private final CustomService service;
+
+    public IfExistsValidator(CustomService service) {
+        this.service = service;
+    }
 
     @Override
     public void initialize(IfExists annotation) {

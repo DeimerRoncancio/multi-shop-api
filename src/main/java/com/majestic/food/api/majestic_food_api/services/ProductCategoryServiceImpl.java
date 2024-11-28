@@ -7,7 +7,6 @@ import com.majestic.food.api.majestic_food_api.mappers.ProductCategoryMapper;
 import com.majestic.food.api.majestic_food_api.repositories.ProductCategoryRepository;
 
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,8 +15,11 @@ import java.util.Optional;
 @Service
 public class ProductCategoryServiceImpl implements ProductCategoryService {
 
-    @Autowired
-    private ProductCategoryRepository repository;
+    private final ProductCategoryRepository repository;
+
+    public ProductCategoryServiceImpl(ProductCategoryRepository repository) {
+        this.repository = repository;
+    }
     
     @Override
     @Transactional(readOnly = true)

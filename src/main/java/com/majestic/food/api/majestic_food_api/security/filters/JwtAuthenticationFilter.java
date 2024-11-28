@@ -31,10 +31,10 @@ import static com.majestic.food.api.majestic_food_api.security.JwtConfig.*;
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
-    private AuthenticationManager authenticationManager;
+    private final AuthenticationManager authManager;
 
     public JwtAuthenticationFilter(AuthenticationManager authManager) {
-        this.authenticationManager = authManager;
+        this.authManager = authManager;
     }
 
     @Override
@@ -52,7 +52,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             logger.error("Exception by bringing user: " + e);
         }
         
-        return authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
+        return authManager.authenticate(new UsernamePasswordAuthenticationToken(
             emailOrPhone,
             password
         ));

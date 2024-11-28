@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -32,8 +31,11 @@ import java.util.Optional;
 @CrossOrigin(originPatterns = "*")
 public class OrderController {
 
-    @Autowired
-    private OrderService service;
+    private final OrderService service;
+
+    public OrderController(OrderService service) {
+        this.service = service;
+    }
 
     @GetMapping
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")

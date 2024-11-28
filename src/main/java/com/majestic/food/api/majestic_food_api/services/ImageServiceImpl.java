@@ -5,7 +5,6 @@ import java.util.Map;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.majestic.food.api.majestic_food_api.entities.Image;
 import com.majestic.food.api.majestic_food_api.repositories.ImageRepository;
@@ -13,11 +12,13 @@ import com.majestic.food.api.majestic_food_api.repositories.ImageRepository;
 @Service
 public class ImageServiceImpl implements ImageService {
     
-    @Autowired
-    private CloudinaryService cloudinaryService;
-    
-    @Autowired
-    private ImageRepository repository;
+    private final ImageRepository repository;
+    private final CloudinaryService cloudinaryService;
+
+    public ImageServiceImpl(ImageRepository repository, CloudinaryService cloudinaryService) {
+        this.repository = repository;
+        this.cloudinaryService = cloudinaryService;
+    }
     
     @Override
     @SuppressWarnings("rawtypes")

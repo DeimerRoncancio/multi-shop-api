@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 
@@ -20,8 +19,11 @@ import java.util.Optional;
 @CrossOrigin(originPatterns = "*")
 public class RoleController {
 
-    @Autowired
-    private RoleService service;
+    private final RoleService service;
+
+    public RoleController(RoleService service) {
+        this.service = service;
+    }
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")

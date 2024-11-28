@@ -11,7 +11,6 @@ import com.majestic.food.api.majestic_food_api.repositories.UserRepository;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,17 +24,17 @@ import java.util.Optional;
 @Service
 public class UserServiceImpl implements UserService {
 
-    @Autowired
-    private UserRepository repository;
+    private final UserRepository repository;
+    private final RoleRepository roleRepository;
+    private final ImageService imageService;
+    private final PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private RoleRepository roleRepository;
-
-    @Autowired
-    private ImageService imageService;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    public UserServiceImpl(UserRepository repository, RoleRepository roleRepository, ImageService imageService, PasswordEncoder passwordEncoder) {
+        this.repository = repository;
+        this.roleRepository = roleRepository;
+        this.imageService = imageService;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     private final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
     

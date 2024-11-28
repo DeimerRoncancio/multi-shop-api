@@ -9,7 +9,6 @@ import com.majestic.food.api.majestic_food_api.repositories.OrderRepository;
 import com.majestic.food.api.majestic_food_api.repositories.UserRepository;
 
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -20,11 +19,13 @@ import java.util.Optional;
 @Service
 public class OrderServiceImpl implements OrderService {
 
-    @Autowired
-    private OrderRepository repository;
+    private final OrderRepository repository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+    public OrderServiceImpl(OrderRepository repository, UserRepository userRepository) {
+        this.repository = repository;
+        this.userRepository = userRepository;
+    }
     
     @Override
     @Transactional(readOnly = true)

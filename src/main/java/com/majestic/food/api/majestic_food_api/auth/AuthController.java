@@ -3,7 +3,6 @@ package com.majestic.food.api.majestic_food_api.auth;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,8 +23,11 @@ import jakarta.validation.Valid;
 @RequestMapping("/app/users")
 public class AuthController {
 
-    @Autowired
-    private UserService service;
+    private final UserService service;
+
+    public AuthController(UserService service) {
+        this.service = service;
+    }
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")

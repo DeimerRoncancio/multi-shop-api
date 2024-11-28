@@ -22,19 +22,21 @@ import com.majestic.food.api.majestic_food_api.security.filters.JwtValidationFil
 
 import java.util.Arrays;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 
 @Configuration
 @EnableMethodSecurity(prePostEnabled = true)
 public class SpringSecurityConfig {
 
-    @Autowired
-    private AuthenticationConfiguration authenticationConfiguration;
+    private final AuthenticationConfiguration authConfig;
+
+    public SpringSecurityConfig(AuthenticationConfiguration authConfig){ 
+        this.authConfig = authConfig;
+    }
 
     @Bean
     AuthenticationManager authenticationManager() throws Exception {
-        return authenticationConfiguration.getAuthenticationManager();
+        return authConfig.getAuthenticationManager();
     }
 
     @Bean

@@ -8,7 +8,6 @@ import jakarta.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -24,14 +23,15 @@ public class IfExistsUpdateValidator implements ConstraintValidator<IfExistsUpda
 
     @PersistenceContext
     private EntityManager entityManager;
-
-    private static final Logger logger = LoggerFactory.getLogger(IfExistsUpdateValidator.class);
-
     private Class<?> entity;
     private String field;
+    
+    private static final Logger logger = LoggerFactory.getLogger(IfExistsUpdateValidator.class);
+    private final CustomService service;
 
-    @Autowired
-    private CustomService service;
+    public IfExistsUpdateValidator(CustomService service) {
+        this.service = service;
+    }
 
     @Override
     public void initialize(IfExistsUpdate annotation) {

@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -32,8 +31,11 @@ import java.util.Optional;
 @CrossOrigin(originPatterns = "*")
 public class ProductCategoryController {
 
-    @Autowired
-    private ProductCategoryService service;
+    private final ProductCategoryService service;
+
+    public ProductCategoryController(ProductCategoryService service) {
+        this.service = service;
+    }
 
     @GetMapping
     public List<ProductCategory> viewdAll() {
