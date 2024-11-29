@@ -80,9 +80,16 @@ public class ProductServiceImpl implements ProductService {
     public Optional<Product> delete(String id) {
         Optional<Product> productOptional = repository.findById(id);
 
-        if (productOptional.isPresent())
+        productOptional.ifPresent(product -> {
+            if (!product.getImages().isEmpty()) {
+                product.getImages().forEach(img -> {
+                    deleteProductImage(img);
+                });
+            }
+
             repository.delete(productOptional.get());
-        
+        });
+
         return productOptional;
     }
     
@@ -98,5 +105,13 @@ public class ProductServiceImpl implements ProductService {
         }
 
         return image;
+    }
+
+    public void deleteProductImage(Image image) {
+        try {
+            imageService.deleteImage(image);
+        } catch(IOException e) {
+            logger.error("Exception to try delete image: " + e);
+        }
     }
 }
