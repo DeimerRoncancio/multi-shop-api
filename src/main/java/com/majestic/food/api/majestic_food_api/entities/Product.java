@@ -34,6 +34,13 @@ public class Product {
 
     @ManyToMany
     @JoinTable(
+        name = "images_to_products",
+        joinColumns = @JoinColumn(name = "id_product"),
+        inverseJoinColumns = @JoinColumn(name = "id_image"))
+    private List<Image> images;
+    
+    @ManyToMany
+    @JoinTable(
         name = "categories_to_products",
         joinColumns = @JoinColumn(name = "id_product"),
         inverseJoinColumns = @JoinColumn(name = "id_category"),
@@ -89,5 +96,13 @@ public class Product {
 
     public void setCategories(List<ProductCategory> productCategory) {
         this.categories = productCategory;
+    }
+
+    public List<Image> getImages() {
+        return images;
+    }
+
+    public void setImages(List<Image> images) {
+        this.images = images;
     }
 }

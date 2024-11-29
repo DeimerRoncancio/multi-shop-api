@@ -8,10 +8,13 @@ import com.majestic.food.api.majestic_food_api.services.ProductService;
 import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -54,11 +57,14 @@ public class ProductController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> create(@Valid @RequestBody NewProductDTO product, BindingResult result) {
+    public ResponseEntity<?> create(@Valid @ModelAttribute NewProductDTO product, BindingResult result, 
+    @RequestPart("files") List<MultipartFile> files) {
         if (result.hasFieldErrors())
             return validate(result);
+
+        System.out.println(files.get(0).getOriginalFilename());
         
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.save(product));
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.save(product, files));
     }
 
     @PutMapping("/{id}")

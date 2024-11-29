@@ -1,5 +1,6 @@
 package com.majestic.food.api.majestic_food_api.services;
 
+import com.majestic.food.api.majestic_food_api.entities.Image;
 import com.majestic.food.api.majestic_food_api.entities.Product;
 import com.majestic.food.api.majestic_food_api.entities.ProductCategory;
 import com.majestic.food.api.majestic_food_api.entities.dtos.NewProductDTO;
@@ -9,20 +10,27 @@ import com.majestic.food.api.majestic_food_api.repositories.ProductCategoryRepos
 import com.majestic.food.api.majestic_food_api.repositories.ProductRepository;
 
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class ProductServiceImpl implements ProductService {
 
+    private final Logger logger = LoggerFactory.getLogger(ProductServiceImpl.class);
     private final ProductRepository repository;
     private final ProductCategoryRepository categoryRepository;
+    private final ImageService imageService;
 
-    public ProductServiceImpl(ProductRepository repository, ProductCategoryRepository categoryRepository) {
+    public ProductServiceImpl(ProductRepository repository, ProductCategoryRepository categoryRepository, ImageService imageService) {
         this.repository = repository;
         this.categoryRepository = categoryRepository;
+        this.imageService = imageService;
     }
     
     @Override
@@ -39,9 +47,14 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    public Product save(NewProductDTO dto) {
+    public Product save(NewProductDTO dto, List<MultipartFile> files) {
         List<ProductCategory> categoryList =  categoryRepository.findByCategoryNameIn(dto.getCategoriesList());
         dto.setCategories(categoryList);
+        
+        files.forEach(img -> {
+            Image image = uploadProductImage(img);
+            dto.getImages().add(image);
+        });
         
         Product product = ProductMapper.mapper.productCreateDTOtoProduct(dto);
 
@@ -71,5 +84,19 @@ public class ProductServiceImpl implements ProductService {
             repository.delete(productOptional.get());
         
         return productOptional;
+    }
+    
+    public Image uploadProductImage(MultipartFile file) {
+        Image image = null;
+
+        if (file != null && !file.isEmpty()) {
+            try {
+                image = imageService.uploadImage(file);
+            } catch (IOException e) {
+                logger.error("Exception to try add the image: " + e);
+            }
+        }
+
+        return image;
     }
 }

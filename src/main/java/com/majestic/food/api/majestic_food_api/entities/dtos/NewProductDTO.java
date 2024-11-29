@@ -1,10 +1,12 @@
 package com.majestic.food.api.majestic_food_api.entities.dtos;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.annotation.Transient;
 
+import com.majestic.food.api.majestic_food_api.entities.Image;
 import com.majestic.food.api.majestic_food_api.entities.Product;
 import com.majestic.food.api.majestic_food_api.entities.ProductCategory;
 import com.majestic.food.api.majestic_food_api.validation.IfExists;
@@ -33,6 +35,13 @@ public class NewProductDTO {
 
     @ManyToMany
     @JoinTable(
+        name = "images_to_products",
+        joinColumns = @JoinColumn(name = "id_product"),
+        inverseJoinColumns = @JoinColumn(name = "id_image"))
+    private List<Image> images;
+    
+    @ManyToMany
+    @JoinTable(
         name = "categories_to_products",
         joinColumns = @JoinColumn(name = "id_product"),
         inverseJoinColumns = @JoinColumn(name = "id_category"),
@@ -44,6 +53,8 @@ public class NewProductDTO {
     private List<String> categoriesList;
 
     public NewProductDTO() {
+        categoriesList = new ArrayList<>();
+        images = new ArrayList<> ();
     }
 
     public NewProductDTO(String productName, String description, BigDecimal price, List<ProductCategory> categories) {
@@ -91,5 +102,13 @@ public class NewProductDTO {
 
     public void setCategoriesList(List<String> categoriesList) {
         this.categoriesList = categoriesList;
+    }
+
+    public List<Image> getImages() {
+        return images;
+    }
+
+    public void setImages(List<Image> images) {
+        this.images = images;
     }
 }
