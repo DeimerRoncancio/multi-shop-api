@@ -11,10 +11,6 @@ import com.majestic.food.api.majestic_food_api.entities.Product;
 import com.majestic.food.api.majestic_food_api.entities.ProductCategory;
 import com.majestic.food.api.majestic_food_api.validation.IfExists;
 
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -33,19 +29,8 @@ public class NewProductDTO {
     @NotNull(message = "{NotBlank.validation.text}")
     private BigDecimal price;
 
-    @ManyToMany
-    @JoinTable(
-        name = "images_to_products",
-        joinColumns = @JoinColumn(name = "id_product"),
-        inverseJoinColumns = @JoinColumn(name = "id_image"))
     private List<Image> images;
     
-    @ManyToMany
-    @JoinTable(
-        name = "categories_to_products",
-        joinColumns = @JoinColumn(name = "id_product"),
-        inverseJoinColumns = @JoinColumn(name = "id_category"),
-        uniqueConstraints = @UniqueConstraint(columnNames = {"id_product", "id_category"}))
     private List<ProductCategory> categories;
 
     @NotEmpty

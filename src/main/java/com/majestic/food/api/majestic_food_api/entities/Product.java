@@ -3,6 +3,7 @@ package com.majestic.food.api.majestic_food_api.entities;
 import org.hibernate.annotations.UuidGenerator;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -25,6 +26,7 @@ public class Product {
     @Id
     @UuidGenerator
     @Column(name = "id", nullable = false, updatable = false)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String id;
 
     @Column(unique = true)
@@ -39,6 +41,7 @@ public class Product {
         name = "images_to_products",
         joinColumns = @JoinColumn(name = "id_product"),
         inverseJoinColumns = @JoinColumn(name = "id_image"))
+    @JsonIgnoreProperties("id")
     private List<Image> images;
     
     @ManyToMany
@@ -47,7 +50,7 @@ public class Product {
         joinColumns = @JoinColumn(name = "id_product"),
         inverseJoinColumns = @JoinColumn(name = "id_category"),
         uniqueConstraints = @UniqueConstraint(columnNames = {"id_product", "id_category"}))
-    @JsonIgnoreProperties("products")
+    @JsonIgnoreProperties({"id", "products"})
     private List<ProductCategory> categories;
 
     public Product() {

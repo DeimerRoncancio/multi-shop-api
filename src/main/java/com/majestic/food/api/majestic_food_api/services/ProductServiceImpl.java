@@ -70,7 +70,7 @@ public class ProductServiceImpl implements ProductService {
         
         productOptional.ifPresent(productDb -> {
             List<ProductCategory> categories = categoryRepository.findByCategoryNameIn(dto.getCategoriesList());
-            List<Image> productImages = updateProductImage(productDb.getImages(), files);
+            List<Image> productImages = updateProductImages(productDb.getImages(), files);
             
             dto.setCategories(categories);
             ProductMapper.mapper.toUpdateProduct(dto, productDb);
@@ -114,7 +114,7 @@ public class ProductServiceImpl implements ProductService {
         return image;
     }
 
-    public List<Image> updateProductImage(List<Image> productImages, List<MultipartFile> files) {
+    public List<Image> updateProductImages(List<Image> productImages, List<MultipartFile> files) {
         List<Image> imagesToRemove = productImages.stream().filter(img -> files.stream()
             .noneMatch(file -> Optional.ofNullable(file.getOriginalFilename()).orElse("")
             .equals(img.getName()))).collect(Collectors.toList());

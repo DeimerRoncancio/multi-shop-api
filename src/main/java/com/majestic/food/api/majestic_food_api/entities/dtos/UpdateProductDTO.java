@@ -9,12 +9,7 @@ import com.majestic.food.api.majestic_food_api.entities.Product;
 import com.majestic.food.api.majestic_food_api.entities.ProductCategory;
 import com.majestic.food.api.majestic_food_api.validation.IfExistsUpdate;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Transient;
-import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -33,19 +28,8 @@ public class UpdateProductDTO {
     @NotNull(message = "{NotBlank.validation.text}")
     private BigDecimal price;
 
-    @ManyToMany(cascade = CascadeType.ALL)
-    @JoinTable(
-        name = "images_to_products",
-        joinColumns = @JoinColumn(name = "id_product"),
-        inverseJoinColumns = @JoinColumn(name = "id_image"))
     private List<Image> images;
 
-    @ManyToMany
-    @JoinTable(
-        name = "categories_to_products",
-        joinColumns = @JoinColumn(name = "id_product"),
-        inverseJoinColumns = @JoinColumn(name = "id_category"),
-        uniqueConstraints = @UniqueConstraint(columnNames = {"id_product", "id_category"}))
     private List<ProductCategory> categories;
 
     @NotEmpty
