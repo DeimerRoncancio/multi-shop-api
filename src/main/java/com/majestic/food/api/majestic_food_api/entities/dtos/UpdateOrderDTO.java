@@ -10,8 +10,6 @@ import com.majestic.food.api.majestic_food_api.entities.User;
 import com.majestic.food.api.majestic_food_api.validation.IfExistsUpdate;
 
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -26,11 +24,6 @@ public class UpdateOrderDTO {
     @NotNull(message = "{NotBlank.validation.text}")
     private Date orderDate;
 
-    @ManyToMany
-    @JoinTable(
-        name = "products_to_orders",
-        joinColumns = @JoinColumn(name = "id_order"),
-        inverseJoinColumns = @JoinColumn(name = "id_product"))
     @JsonIgnoreProperties({"id", "categories"})
     private List<Product> product;
 

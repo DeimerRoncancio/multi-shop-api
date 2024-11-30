@@ -9,10 +9,6 @@ import com.majestic.food.api.majestic_food_api.entities.User;
 import com.majestic.food.api.majestic_food_api.validation.IfExistsUpdate;
 import com.majestic.food.api.majestic_food_api.validation.SizeConstraint;
 
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
@@ -37,12 +33,6 @@ public class UserUpdateRequest {
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
-    @ManyToMany
-    @JoinTable(
-        name = "roles_to_users",
-        joinColumns = @JoinColumn(name = "id_user"),
-        inverseJoinColumns = @JoinColumn(name = "id_role"),
-        uniqueConstraints = @UniqueConstraint(columnNames = {"id_user", "id_role"}))
     @JsonIgnoreProperties({"users", "id"})
     private List<Role> roles;
     
