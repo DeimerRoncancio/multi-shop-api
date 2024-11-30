@@ -18,5 +18,6 @@ public interface ProductMapper {
     Product productCreateDTOtoProduct(NewProductDTO dto);
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "images", ignore = true)
     void toUpdateProduct(UpdateProductDTO dto, @MappingTarget Product product);
 }

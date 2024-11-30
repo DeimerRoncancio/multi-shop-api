@@ -9,11 +9,14 @@ import com.majestic.food.api.majestic_food_api.entities.Product;
 import com.majestic.food.api.majestic_food_api.entities.ProductCategory;
 import com.majestic.food.api.majestic_food_api.validation.IfExistsUpdate;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.Transient;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
@@ -30,7 +33,7 @@ public class UpdateProductDTO {
     @NotNull(message = "{NotBlank.validation.text}")
     private BigDecimal price;
 
-    @ManyToMany
+    @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(
         name = "images_to_products",
         joinColumns = @JoinColumn(name = "id_product"),
@@ -44,6 +47,10 @@ public class UpdateProductDTO {
         inverseJoinColumns = @JoinColumn(name = "id_category"),
         uniqueConstraints = @UniqueConstraint(columnNames = {"id_product", "id_category"}))
     private List<ProductCategory> categories;
+
+    @NotEmpty
+    @Transient
+    private List<String> categoriesList;
 
     public UpdateProductDTO() {
         categories = new ArrayList<>();
@@ -95,5 +102,13 @@ public class UpdateProductDTO {
 
     public void setImages(List<Image> images) {
         this.images = images;
+    }
+
+    public List<String> getCategoriesList() {
+        return categoriesList;
+    }
+
+    public void setCategoriesList(List<String> categoryList) {
+        this.categoriesList = categoryList;
     }
 }

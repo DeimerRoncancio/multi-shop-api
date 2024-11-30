@@ -16,7 +16,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -59,8 +58,6 @@ public class ProductServiceImpl implements ProductService {
             dto.getImages().add(image);
         });
 
-        files.forEach(file -> System.out.println(file.getOriginalFilename()));
-
         Product product = ProductMapper.mapper.productCreateDTOtoProduct(dto);
 
         return repository.save(product);
@@ -70,30 +67,14 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public Optional<Product> update(String id, UpdateProductDTO dto, List<MultipartFile> files) {
         Optional<Product> productOptional = repository.findById(id);
-
+        
         productOptional.ifPresent(productDb -> {
-            List<Image> productImages = new ArrayList<> (productDb.getImages());
+            List<ProductCategory> categories = categoryRepository.findByCategoryNameIn(dto.getCategoriesList());
+            List<Image> productImages = updateProductImage(productDb.getImages(), files);
             
-            @SuppressWarnings("null")
-            List<Image> imagesToRemove = productImages.stream().filter(img -> 
-                files.stream().noneMatch(file -> file.getOriginalFilename().equals(img.getName())))
-                .collect(Collectors.toList());
-
-            productImages.removeAll(imagesToRemove);
-            imagesToRemove.forEach(this::deleteProductImage);
-
-            for (MultipartFile file : files) {
-                boolean alreadyExists = productImages.stream()
-                    .anyMatch(img -> img.getName().equals(file.getOriginalFilename()));
-
-                if (!alreadyExists) {
-                    Image image = uploadProductImage(file);
-                    productImages.add(image);
-                }
-            }
-
-            dto.setImages(productImages);
+            dto.setCategories(categories);
             ProductMapper.mapper.toUpdateProduct(dto, productDb);
+            productDb.setImages(productImages);
 
             repository.save(productDb);
         });
@@ -131,6 +112,22 @@ public class ProductServiceImpl implements ProductService {
         }
 
         return image;
+    }
+
+    public List<Image> updateProductImage(List<Image> productImages, List<MultipartFile> files) {
+        List<Image> imagesToRemove = productImages.stream().filter(img -> files.stream()
+            .noneMatch(file -> Optional.ofNullable(file.getOriginalFilename()).orElse("")
+            .equals(img.getName()))).collect(Collectors.toList());
+        
+        productImages.removeAll(imagesToRemove);
+        imagesToRemove.forEach(this::deleteProductImage);
+        
+        if (!files.isEmpty())
+            files.stream().filter(file -> productImages.stream()
+                .noneMatch(img -> img.getName().equals(file.getOriginalFilename())))
+                .forEach(file -> productImages.add(uploadProductImage(file)));
+        
+        return productImages;
     }
 
     public void deleteProductImage(Image image) {
