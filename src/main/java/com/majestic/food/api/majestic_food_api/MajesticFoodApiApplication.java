@@ -9,5 +9,4 @@ public class MajesticFoodApiApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(MajesticFoodApiApplication.class, args);
 	}
-
 }

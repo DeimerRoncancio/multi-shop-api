@@ -37,7 +37,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
-    
+
     @Override
     @Transactional(readOnly = true)
     public List<User> findAll() {
@@ -116,7 +116,7 @@ public class UserServiceImpl implements UserService {
             
             repository.delete(user);
         });
-
+        
         return optionalUser;
     }
 

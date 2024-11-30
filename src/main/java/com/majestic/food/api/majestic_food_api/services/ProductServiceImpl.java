@@ -16,8 +16,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductServiceImpl implements ProductService {
@@ -27,12 +29,13 @@ public class ProductServiceImpl implements ProductService {
     private final ProductCategoryRepository categoryRepository;
     private final ImageService imageService;
 
-    public ProductServiceImpl(ProductRepository repository, ProductCategoryRepository categoryRepository, ImageService imageService) {
+    public ProductServiceImpl(ProductRepository repository, ProductCategoryRepository categoryRepository, 
+    ImageService imageService) {
         this.repository = repository;
         this.categoryRepository = categoryRepository;
         this.imageService = imageService;
     }
-    
+
     @Override
     @Transactional(readOnly = true)
     public List<Product> findAll() {
@@ -50,12 +53,14 @@ public class ProductServiceImpl implements ProductService {
     public Product save(NewProductDTO dto, List<MultipartFile> files) {
         List<ProductCategory> categoryList =  categoryRepository.findByCategoryNameIn(dto.getCategoriesList());
         dto.setCategories(categoryList);
-        
+
         files.forEach(img -> {
             Image image = uploadProductImage(img);
             dto.getImages().add(image);
         });
-        
+
+        files.forEach(file -> System.out.println(file.getOriginalFilename()));
+
         Product product = ProductMapper.mapper.productCreateDTOtoProduct(dto);
 
         return repository.save(product);
@@ -63,10 +68,31 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    public Optional<Product> update(String id, UpdateProductDTO dto) {
+    public Optional<Product> update(String id, UpdateProductDTO dto, List<MultipartFile> files) {
         Optional<Product> productOptional = repository.findById(id);
 
         productOptional.ifPresent(productDb -> {
+            List<Image> productImages = new ArrayList<> (productDb.getImages());
+            
+            @SuppressWarnings("null")
+            List<Image> imagesToRemove = productImages.stream().filter(img -> 
+                files.stream().noneMatch(file -> file.getOriginalFilename().equals(img.getName())))
+                .collect(Collectors.toList());
+
+            productImages.removeAll(imagesToRemove);
+            imagesToRemove.forEach(this::deleteProductImage);
+
+            for (MultipartFile file : files) {
+                boolean alreadyExists = productImages.stream()
+                    .anyMatch(img -> img.getName().equals(file.getOriginalFilename()));
+
+                if (!alreadyExists) {
+                    Image image = uploadProductImage(file);
+                    productImages.add(image);
+                }
+            }
+
+            dto.setImages(productImages);
             ProductMapper.mapper.toUpdateProduct(dto, productDb);
 
             repository.save(productDb);

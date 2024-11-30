@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -39,7 +38,7 @@ public class ProductController {
     public ProductController(ProductService service) {
         this.service = service;
     }
-    
+
     @GetMapping
     public List<Product> viewAll() {
         return service.findAll();
@@ -61,19 +60,18 @@ public class ProductController {
     @RequestPart("files") List<MultipartFile> files) {
         if (result.hasFieldErrors())
             return validate(result);
-
-        System.out.println(files.get(0).getOriginalFilename());
         
         return ResponseEntity.status(HttpStatus.CREATED).body(service.save(product, files));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> update(@Valid @RequestBody UpdateProductDTO product, BindingResult result, @PathVariable String id) {
+    public ResponseEntity<?> update(@Valid @ModelAttribute UpdateProductDTO product, BindingResult result, 
+    @PathVariable String id, List<MultipartFile> files) {
         if (result.hasFieldErrors())
             return validate(result);
         
-        Optional<Product> productDb = service.update(id, product);
+        Optional<Product> productDb = service.update(id, product, files);
 
         if (productDb.isPresent())
             return ResponseEntity.status(HttpStatus.CREATED).body(productDb.get());

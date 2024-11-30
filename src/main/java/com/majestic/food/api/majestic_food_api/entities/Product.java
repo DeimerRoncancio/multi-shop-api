@@ -11,6 +11,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 
 import java.math.BigDecimal;
@@ -32,7 +34,7 @@ public class Product {
     
     private BigDecimal price;
 
-    @ManyToMany
+    @OneToMany(cascade = CascadeType.ALL)
     @JoinTable(
         name = "images_to_products",
         joinColumns = @JoinColumn(name = "id_product"),
