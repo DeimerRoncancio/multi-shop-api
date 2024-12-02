@@ -32,19 +32,19 @@ public class AuthController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> create(@Valid @ModelAttribute RegisterRequest user, BindingResult result, 
-    @RequestPart("image") MultipartFile image) {
+    @RequestPart("image") MultipartFile profileImage) {
         if (result.hasFieldErrors())
             return validate(result);
         
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.save(user, image));
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.save(user, profileImage));
     }
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestAttribute RegisterRequest user, BindingResult result, 
-    @RequestPart("image") MultipartFile image) {
+    @RequestPart("image") MultipartFile profileImage) {
         user.setAdmin(false);
 
-        return create(user, result, image);
+        return create(user, result, profileImage);
     }
 
     public ResponseEntity<?> validate(BindingResult result) {

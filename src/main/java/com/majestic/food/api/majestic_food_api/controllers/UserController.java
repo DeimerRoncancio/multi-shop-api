@@ -68,7 +68,7 @@ public class UserController {
         return ResponseEntity.notFound().build();
     }
 
-    @PutMapping("/update/user/{id}")
+    @PutMapping("/update/{id}")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<?> updateUser(@Valid @RequestBody UserUpdateRequest user, BindingResult result, @PathVariable String id) {
         user.setAdmin(false);
@@ -78,11 +78,11 @@ public class UserController {
 
     @PutMapping("/update/profile-image/{id}")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<?> updateProfileImage(@PathVariable String id, @RequestPart("file") MultipartFile file) {
+    public ResponseEntity<?> updateProfileImage(@PathVariable String id, @RequestPart("file") MultipartFile profileImage) {
         Optional<User> optionalUser = service.findOne(id);
 
         if (optionalUser.isPresent()) {
-            User user = service.updateProfileImage(optionalUser.get(), file);
+            User user = service.updateProfileImage(optionalUser.get(), profileImage);
             return ResponseEntity.status(HttpStatus.CREATED).body(user.getProfileImage().getImageUrl());
         }
         

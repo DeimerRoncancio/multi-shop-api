@@ -60,8 +60,10 @@ public class UserServiceImpl implements UserService {
         if (userDTO.isAdmin())
             roleRepository.findByRole("ROLE_ADMIN").ifPresent(roles::add);
 
-        Image image = uploadProfileImage(file);
-        userDTO.setProfileImage(image);
+        if (file != null && !file.isEmpty()) {
+            Image image = uploadProfileImage(file);
+            userDTO.setProfileImage(image);
+        }
         
         userDTO.setRoles(roles);
         User user = UserMapper.mapper.userCreateDTOtoUser(userDTO);

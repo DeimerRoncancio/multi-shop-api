@@ -127,8 +127,8 @@ public class ProductServiceImpl implements ProductService {
 
         files.stream()
             .filter(file -> productImages.stream()
-            .noneMatch(img -> img.getName().equals(
-                Optional.ofNullable(file.getOriginalFilename()).orElse(""))))
+            .noneMatch(img -> img.getName()
+            .equals(Optional.ofNullable(file.getOriginalFilename()).orElse(""))))
             .forEach(file -> productImages.add(uploadProductImage(file)));
         
         return productImages;
