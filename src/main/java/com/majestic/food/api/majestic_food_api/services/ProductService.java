@@ -15,7 +15,7 @@ public interface ProductService {
 
     Optional<Product> findOne(String id);
 
-    Product save(NewProductDTO product, List<MultipartFile> files);
+    NewProductDTO save(NewProductDTO product, List<MultipartFile> files);
 
     Optional<Product> update(String id, UpdateProductDTO product, List<MultipartFile> files);
 

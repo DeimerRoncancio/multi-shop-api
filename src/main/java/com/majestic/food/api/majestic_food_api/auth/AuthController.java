@@ -41,10 +41,10 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestAttribute RegisterRequest user, BindingResult result, 
-    @RequestPart("image") MultipartFile profileImage) {
+    @RequestPart("image") MultipartFile file) {
         user.setAdmin(false);
 
-        return create(user, result, profileImage);
+        return create(user, result, file);
     }
 
     public ResponseEntity<?> validate(BindingResult result) {

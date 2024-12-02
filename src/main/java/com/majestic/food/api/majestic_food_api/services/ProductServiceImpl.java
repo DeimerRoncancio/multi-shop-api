@@ -49,7 +49,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    public Product save(NewProductDTO dto, List<MultipartFile> files) {
+    public NewProductDTO save(NewProductDTO dto, List<MultipartFile> files) {
         List<ProductCategory> categoryList =  categoryRepository.findByCategoryNameIn(dto.getCategoriesList());
         dto.setCategories(categoryList);
 
@@ -59,8 +59,8 @@ public class ProductServiceImpl implements ProductService {
         });
 
         Product product = ProductMapper.mapper.productCreateDTOtoProduct(dto);
-
-        return repository.save(product);
+        repository.save(product);
+        return dto;
     }
 
     @Override

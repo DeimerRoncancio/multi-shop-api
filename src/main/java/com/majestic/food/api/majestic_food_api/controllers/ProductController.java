@@ -58,23 +58,35 @@ public class ProductController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> create(@Valid @ModelAttribute NewProductDTO product, BindingResult result, 
     @RequestPart("files") List<MultipartFile> files) {
+        boolean hasValidFiles = files.stream()
+            .anyMatch(file -> !file.isEmpty() && file.getSize() > 0);
+        
+        if (!hasValidFiles) 
+            return ResponseEntity.badRequest().body("Debe subir al menos una imagen válida");
+        
         if (result.hasFieldErrors())
             return validate(result);
-        
+
         return ResponseEntity.status(HttpStatus.CREATED).body(service.save(product, files));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> update(@Valid @ModelAttribute UpdateProductDTO product, BindingResult result, 
-    @PathVariable String id, List<MultipartFile> files) {
+    @PathVariable String id, @RequestPart("files") List<MultipartFile> files) {
+        boolean hasValidFiles = files.stream()
+            .anyMatch(file -> !file.isEmpty() && file.getSize() > 0);
+        
+        if (!hasValidFiles) 
+            return ResponseEntity.badRequest().body("Debe subir al menos una imagen válida");
+        
         if (result.hasFieldErrors())
             return validate(result);
         
         Optional<Product> productDb = service.update(id, product, files);
 
         if (productDb.isPresent())
-            return ResponseEntity.status(HttpStatus.CREATED).body(productDb.get());
+            return ResponseEntity.status(HttpStatus.CREATED).body(product);
         
         return ResponseEntity.notFound().build();
     }

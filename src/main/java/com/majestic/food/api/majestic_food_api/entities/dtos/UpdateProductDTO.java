@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.majestic.food.api.majestic_food_api.entities.Image;
 import com.majestic.food.api.majestic_food_api.entities.Product;
 import com.majestic.food.api.majestic_food_api.entities.ProductCategory;
@@ -28,12 +30,15 @@ public class UpdateProductDTO {
     @NotNull(message = "{NotBlank.validation.text}")
     private BigDecimal price;
 
+    @JsonIgnoreProperties("id")
     private List<Image> images;
 
+    @JsonIgnoreProperties({"id", "products"})
     private List<ProductCategory> categories;
 
-    @NotEmpty
     @Transient
+    @NotEmpty(message = "tiene que tener minimo una categoria")
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private List<String> categoriesList;
 
     public UpdateProductDTO() {

@@ -3,7 +3,6 @@ package com.majestic.food.api.majestic_food_api.entities;
 import org.hibernate.annotations.UuidGenerator;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -26,7 +25,6 @@ public class Product {
     @Id
     @UuidGenerator
     @Column(name = "id", nullable = false, updatable = false)
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String id;
 
     @Column(unique = true)
