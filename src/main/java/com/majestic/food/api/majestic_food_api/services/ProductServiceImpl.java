@@ -69,10 +69,11 @@ public class ProductServiceImpl implements ProductService {
         Optional<Product> productOptional = repository.findById(id);
         
         productOptional.ifPresent(productDb -> {
-            List<ProductCategory> categories = categoryRepository.findByCategoryNameIn(dto.getCategoriesList());
+            List<ProductCategory> categoriesDb = categoryRepository.findByCategoryNameIn(dto.getCategoriesList());
+            List<ProductCategory> productCategories = updateProductCategories(productDb.getCategories(), categoriesDb);
             List<Image> productImages = updateProductImages(productDb.getImages(), files);
-            
-            dto.setCategories(categories);
+
+            dto.setCategories(productCategories);
             dto.setImages(productImages);
             ProductMapper.mapper.toUpdateProduct(dto, productDb);
 
@@ -133,6 +134,24 @@ public class ProductServiceImpl implements ProductService {
         return productImages;
     }
 
+    public List<ProductCategory> updateProductCategories(List<ProductCategory> productCategories, 
+    List<ProductCategory> categories) {
+        List<ProductCategory> categoriesToRemove = productCategories.stream()
+            .filter(cat -> categories.stream()
+            .noneMatch(cats -> cats.getCategoryName()
+            .equals(cat.getCategoryName())))
+            .collect(Collectors.toList());
+        
+        productCategories.removeAll(categoriesToRemove);
+
+        categories.stream()
+            .filter(cats -> productCategories.stream()
+            .noneMatch(cat -> cat.getCategoryName().equals(cats.getCategoryName())))
+            .forEach(c -> productCategories.add(c));
+        
+        return productCategories;
+    }
+    
     public void deleteProductImage(Image image) {
         try {
             imageService.deleteImage(image);
