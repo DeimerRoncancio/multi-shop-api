@@ -35,10 +35,11 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
 
     @Override
     @Transactional
-    public ProductCategory save(NewProductCategoryDTO dto) {
+    public NewProductCategoryDTO save(NewProductCategoryDTO dto) {
         ProductCategory category = ProductCategoryMapper.mapper.categoryCreateDTOtoCategory(dto);
         
-        return repository.save(category);
+        repository.save(category);
+        return dto;
     }
 
     @Override

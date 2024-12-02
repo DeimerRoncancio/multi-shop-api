@@ -63,14 +63,15 @@ public class ProductCategoryController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> update(@Valid @RequestBody UpdateProductCategoryDTO category, BindingResult result, @PathVariable String id) {
+    public ResponseEntity<?> update(@Valid @RequestBody UpdateProductCategoryDTO category, BindingResult result, 
+    @PathVariable String id) {
         if (result.hasFieldErrors())
             return validate(result);
         
         Optional<ProductCategory> categoryDb = service.update(id, category);
 
         if (categoryDb.isPresent())
-            return ResponseEntity.status(HttpStatus.CREATED).body(categoryDb.get());
+            return ResponseEntity.status(HttpStatus.CREATED).body(category);
         
         return ResponseEntity.notFound().build();
     }
