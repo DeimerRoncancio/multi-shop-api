@@ -73,8 +73,8 @@ public class ProductServiceImpl implements ProductService {
             List<Image> productImages = updateProductImages(productDb.getImages(), files);
             
             dto.setCategories(categories);
+            dto.setImages(productImages);
             ProductMapper.mapper.toUpdateProduct(dto, productDb);
-            productDb.setImages(productImages);
 
             repository.save(productDb);
         });
@@ -115,17 +115,20 @@ public class ProductServiceImpl implements ProductService {
     }
 
     public List<Image> updateProductImages(List<Image> productImages, List<MultipartFile> files) {
-        List<Image> imagesToRemove = productImages.stream().filter(img -> files.stream()
-            .noneMatch(file -> Optional.ofNullable(file.getOriginalFilename()).orElse("")
-            .equals(img.getName()))).collect(Collectors.toList());
-        
+        List<Image> imagesToRemove = productImages.stream()
+            .filter(img -> files.stream()
+            .noneMatch(file -> Optional.ofNullable(file.getOriginalFilename())
+            .orElse("").equals(img.getName())))
+            .collect(Collectors.toList());
+
         productImages.removeAll(imagesToRemove);
         imagesToRemove.forEach(this::deleteProductImage);
-        
-        if (!files.isEmpty())
-            files.stream().filter(file -> productImages.stream()
-                .noneMatch(img -> img.getName().equals(file.getOriginalFilename())))
-                .forEach(file -> productImages.add(uploadProductImage(file)));
+
+        files.stream()
+            .filter(file -> productImages.stream()
+            .noneMatch(img -> img.getName().equals(
+                Optional.ofNullable(file.getOriginalFilename()).orElse(""))))
+            .forEach(file -> productImages.add(uploadProductImage(file)));
         
         return productImages;
     }
