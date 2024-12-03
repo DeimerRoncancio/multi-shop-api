@@ -4,6 +4,7 @@ import com.majestic.food.api.majestic_food_api.entities.Product;
 import com.majestic.food.api.majestic_food_api.entities.dtos.NewProductDTO;
 import com.majestic.food.api.majestic_food_api.entities.dtos.UpdateProductDTO;
 import com.majestic.food.api.majestic_food_api.services.ProductService;
+import com.majestic.food.api.majestic_food_api.validation.FilesValidation;
 
 import jakarta.validation.Valid;
 
@@ -34,9 +35,11 @@ import java.util.Optional;
 public class ProductController {
 
     private final ProductService service;
+    private final FilesValidation validation;
 
-    public ProductController(ProductService service) {
+    public ProductController(ProductService service, FilesValidation validation) {
         this.service = service;
+        this.validation = validation;
     }
 
     @GetMapping
@@ -57,13 +60,8 @@ public class ProductController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> create(@Valid @ModelAttribute NewProductDTO product, BindingResult result, 
-    @RequestPart("files") List<MultipartFile> files) {
-        boolean hasValidFiles = files.stream()
-            .anyMatch(file -> !file.isEmpty() && file.getSize() > 0);
-        
-        if (!hasValidFiles) 
-            return ResponseEntity.badRequest().body("Debe subir al menos una imagen válida");
-        
+    @Valid @RequestPart List<MultipartFile> files) {
+        validation.validate(files, result);
         if (result.hasFieldErrors())
             return validate(result);
 
@@ -73,13 +71,8 @@ public class ProductController {
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> update(@Valid @ModelAttribute UpdateProductDTO product, BindingResult result, 
-    @PathVariable String id, @RequestPart("files") List<MultipartFile> files) {
-        boolean hasValidFiles = files.stream()
-            .anyMatch(file -> !file.isEmpty() && file.getSize() > 0);
-        
-        if (!hasValidFiles) 
-            return ResponseEntity.badRequest().body("Debe subir al menos una imagen válida");
-        
+    @PathVariable String id, @RequestPart List<MultipartFile> files) {
+        validation.validate(files, result);
         if (result.hasFieldErrors())
             return validate(result);
         

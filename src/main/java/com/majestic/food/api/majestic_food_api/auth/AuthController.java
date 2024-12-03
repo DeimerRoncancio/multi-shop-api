@@ -32,7 +32,7 @@ public class AuthController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> create(@Valid @ModelAttribute RegisterRequest user, BindingResult result, 
-    @RequestPart("image") MultipartFile profileImage) {
+    @RequestPart MultipartFile profileImage) {
         if (result.hasFieldErrors())
             return validate(result);
         
@@ -41,7 +41,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestAttribute RegisterRequest user, BindingResult result, 
-    @RequestPart("image") MultipartFile file) {
+    @RequestPart MultipartFile file) {
         user.setAdmin(false);
 
         return create(user, result, file);
