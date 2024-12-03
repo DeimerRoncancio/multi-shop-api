@@ -37,7 +37,7 @@ public class UpdateProductDTO {
     private List<ProductCategory> categories;
 
     @Transient
-    @NotEmpty(message = "tiene que tener minimo una categoria")
+    @NotEmpty(message = "{NotEmpty.validation.list}")
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private List<String> categoriesList;
 
