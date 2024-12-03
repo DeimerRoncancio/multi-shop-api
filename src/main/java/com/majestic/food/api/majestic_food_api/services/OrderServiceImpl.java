@@ -41,12 +41,11 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public Order save(NewOrderDTO dto) {
+    public NewOrderDTO save(NewOrderDTO dto) {
         Order order = OrderMapper.mapper.orderCreateDTOtoOrder(dto);
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String principal = (String) authentication.getPrincipal();
-        System.out.println(principal);
         
         Optional<User> userOptional = userRepository.findByEmail(principal);
 
@@ -55,7 +54,8 @@ public class OrderServiceImpl implements OrderService {
         
         order.setUser(userOptional.orElseThrow());
 
-        return repository.save(order);
+        repository.save(order);
+        return dto;
     }
 
     @Override

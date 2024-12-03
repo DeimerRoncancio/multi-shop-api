@@ -65,14 +65,15 @@ public class OrderController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<?> update(@Valid @RequestBody UpdateOrderDTO order, BindingResult result, @PathVariable String id) {
+    public ResponseEntity<?> update(@Valid @RequestBody UpdateOrderDTO order, BindingResult result, 
+    @PathVariable String id) {
         if (result.hasFieldErrors())
             return validate(result);
         
         Optional<Order> orderDb = service.update(id, order);
         
         if (orderDb.isPresent())
-            return ResponseEntity.status(HttpStatus.CREATED).body(orderDb.get());
+            return ResponseEntity.status(HttpStatus.CREATED).body(order);
         
         return ResponseEntity.notFound().build();
     }

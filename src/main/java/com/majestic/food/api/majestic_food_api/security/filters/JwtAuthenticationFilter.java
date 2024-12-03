@@ -41,19 +41,19 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) 
     throws AuthenticationException {
 
-        String emailOrPhone = null;
+        String identifier = null;
         String password = null;
 
         try {
             LoginRequest credentials = new ObjectMapper().readValue(request.getInputStream(), LoginRequest.class);
-            emailOrPhone = credentials.getIdentifier();
+            identifier = credentials.getIdentifier();
             password = credentials.getPassword();
         } catch(IOException e) {
             logger.error("Exception by bringing user: " + e);
         }
         
         return authManager.authenticate(new UsernamePasswordAuthenticationToken(
-            emailOrPhone,
+            identifier,
             password
         ));
     }

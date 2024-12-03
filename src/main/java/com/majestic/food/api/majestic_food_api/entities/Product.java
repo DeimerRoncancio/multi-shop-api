@@ -29,9 +29,7 @@ public class Product {
 
     @Column(unique = true)
     private String productName;
-
     private String description;
-    
     private BigDecimal price;
 
     @OneToMany(cascade = CascadeType.ALL)

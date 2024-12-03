@@ -9,8 +9,6 @@ import com.majestic.food.api.majestic_food_api.entities.Product;
 import com.majestic.food.api.majestic_food_api.entities.User;
 import com.majestic.food.api.majestic_food_api.validation.IfExistsUpdate;
 
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -27,8 +25,6 @@ public class UpdateOrderDTO {
     @JsonIgnoreProperties({"id", "categories"})
     private List<Product> product;
 
-    @ManyToOne
-    @JoinColumn(name = "id_user")
     @JsonIgnoreProperties({"id", "orders", "roles"})
     private User user;
     

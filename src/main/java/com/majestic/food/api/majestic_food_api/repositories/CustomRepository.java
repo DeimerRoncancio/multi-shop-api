@@ -20,8 +20,8 @@ public class CustomRepository {
         String SELECT_JPQL = String.format("SELECT e FROM %s e WHERE e.%s = :value", entity, fieldName);
 
         List<?> objQuery = entityManager.createQuery(SELECT_JPQL)
-                            .setParameter("value", value)
-                            .getResultList();
+            .setParameter("value", value)
+            .getResultList();
         
        return objQuery.isEmpty() ? Optional.empty() : Optional.of(objQuery.get(0));
     }
@@ -30,8 +30,8 @@ public class CustomRepository {
         String EXISTS_JPQL = String.format("SELECT COUNT(e) FROM %s e WHERE e.%s = :value", entity, fieldName);
 
         return entityManager.createQuery(EXISTS_JPQL, Long.class)
-                            .setParameter("value", value)
-                            .getSingleResult();
+            .setParameter("value", value)
+            .getSingleResult();
     }
 }
 

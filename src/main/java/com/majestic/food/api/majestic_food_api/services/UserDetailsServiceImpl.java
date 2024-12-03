@@ -33,7 +33,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         UserInfo userInfo = getUserInfo(identifier);
 
         return new CustomUserDetails(
-            identifier, userInfo.getUser().getPassword(),
+            identifier, 
+            userInfo.getUser().getPassword(),
             userInfo.getUser().isEnabled(),
             getAuthorities(userInfo.getUser()));
     }
@@ -55,8 +56,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     
     public List<GrantedAuthority> getAuthorities(User user) {
         return user.getRoles().stream()
-        .map(role -> new SimpleGrantedAuthority(role.getRole()))
-        .collect(Collectors.toList());
+            .map(role -> new SimpleGrantedAuthority(role.getRole()))
+            .collect(Collectors.toList());
     }
 
     public boolean isNumeric(String str) {

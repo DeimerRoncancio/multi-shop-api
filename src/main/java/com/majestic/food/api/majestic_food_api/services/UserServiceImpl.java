@@ -24,6 +24,7 @@ import java.util.Optional;
 @Service
 public class UserServiceImpl implements UserService {
 
+    private final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
     private final UserRepository repository;
     private final RoleRepository roleRepository;
     private final ImageService imageService;
@@ -35,8 +36,6 @@ public class UserServiceImpl implements UserService {
         this.imageService = imageService;
         this.passwordEncoder = passwordEncoder;
     }
-
-    private final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
     @Override
     @Transactional(readOnly = true)

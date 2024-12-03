@@ -100,20 +100,6 @@ public class ProductServiceImpl implements ProductService {
 
         return productOptional;
     }
-    
-    public Image uploadProductImage(MultipartFile file) {
-        Image image = null;
-
-        if (file != null && !file.isEmpty()) {
-            try {
-                image = imageService.uploadImage(file);
-            } catch (IOException e) {
-                logger.error("Exception to try add the image: " + e);
-            }
-        }
-
-        return image;
-    }
 
     public List<Image> updateProductImages(List<Image> productImages, List<MultipartFile> files) {
         List<Image> imagesToRemove = productImages.stream()
@@ -158,5 +144,19 @@ public class ProductServiceImpl implements ProductService {
         } catch(IOException e) {
             logger.error("Exception to try delete image: " + e);
         }
+    }
+
+    public Image uploadProductImage(MultipartFile file) {
+        Image image = null;
+
+        if (file != null && !file.isEmpty()) {
+            try {
+                image = imageService.uploadImage(file);
+            } catch (IOException e) {
+                logger.error("Exception to try add the image: " + e);
+            }
+        }
+
+        return image;
     }
 }

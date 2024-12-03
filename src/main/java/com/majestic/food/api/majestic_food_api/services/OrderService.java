@@ -13,7 +13,7 @@ public interface OrderService {
 
     Optional<Order> findOne(String id);
 
-    Order save(NewOrderDTO user);
+    NewOrderDTO save(NewOrderDTO user);
 
     Optional<Order> update(String id, UpdateOrderDTO order);
 

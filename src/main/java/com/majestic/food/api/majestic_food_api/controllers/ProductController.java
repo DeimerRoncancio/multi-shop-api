@@ -60,7 +60,7 @@ public class ProductController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> create(@Valid @ModelAttribute NewProductDTO product, BindingResult result, 
-    @Valid @RequestPart List<MultipartFile> files) {
+    @RequestPart List<MultipartFile> files) {
         validation.validate(files, result);
         if (result.hasFieldErrors())
             return validate(result);

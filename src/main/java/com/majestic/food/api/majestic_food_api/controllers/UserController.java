@@ -97,7 +97,7 @@ public class UserController {
         Optional<User> optionalUser = service.delete(id);
 
         if (optionalUser.isPresent())
-            return ResponseEntity.ok().body("Eliminado correctamente");
+            return ResponseEntity.ok().build();
         
         return ResponseEntity.notFound().build();
     }
