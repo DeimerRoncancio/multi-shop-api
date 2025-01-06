@@ -1,1 +1,1 @@
-web: java -jar target/majestic-food-api-1.0.0-SNAPSHOT.jar
+web: java -jar target/majestic-food-api-0.0.1-SNAPSHOT.jar
