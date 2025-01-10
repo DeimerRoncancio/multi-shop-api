@@ -8,10 +8,10 @@
 		<version>3.3.6</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.majestic.food.api</groupId>
-	<artifactId>majestic-food-api</artifactId>
+	<groupId>com.multi.shop.api</groupId>
+	<artifactId>multi.shop.api</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>majestic-food-api</name>
+	<name>multi-shop-api</name>
 	<description>Demo project for Spring Boot</description>
 	<url/>
 	<licenses>
