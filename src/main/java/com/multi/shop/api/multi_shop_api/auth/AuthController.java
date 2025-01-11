@@ -10,8 +10,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
@@ -54,8 +54,9 @@ public class AuthController {
         return create(user, result, file);
     }
 
-    @GetMapping("/token-validation")
-    public ResponseEntity<?> tokenValidation(@RequestBody String token) {
+    @GetMapping("/token-validation/{token}")
+    public ResponseEntity<?> tokenValidation(@PathVariable String token) {
+        System.out.println("entra");
         try {
             Jwts.parser().verifyWith(SECRET_KEY).build().parseSignedClaims(token).getPayload();
         } catch(JwtException e) {
