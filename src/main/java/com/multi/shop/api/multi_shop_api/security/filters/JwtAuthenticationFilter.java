@@ -67,11 +67,11 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         Claims rolesClaims = getRoles(authResult);
         String identifier = user.getUsername();
         String token = getToken(identifier, rolesClaims);
-        
+
         Map<String, Object> body = new HashMap<> ();
-        body.put("username", identifier);
+        body.put("user", user.getUser());
         body.put("token", token);
-        
+    
         response.addHeader(HEADER_AUTHORIZATION, PREFIX_TOKEN + token);
         response.getWriter().write(new ObjectMapper().writeValueAsString(body));
         response.setContentType(CONTENT_TYPE);
@@ -104,5 +104,9 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     public Claims getRoles(Authentication authResult) throws IOException {
         Collection<? extends GrantedAuthority> roles = authResult.getAuthorities();
         return Jwts.claims().add("authorities", new ObjectMapper().writeValueAsString(roles)).build();
+    }
+
+    public boolean isNumeric(String str) {
+        return str != null && str.matches("\\d+");
     }
 }
