@@ -8,8 +8,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,7 +19,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.multi.shop.api.multi_shop_api.services.UserService;
 
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
 import jakarta.validation.Valid;
+
+import static com.multi.shop.api.multi_shop_api.security.JwtConfig.*;
 
 @RestController
 @RequestMapping("/app/users")
@@ -46,6 +52,17 @@ public class AuthController {
         user.setAdmin(false);
 
         return create(user, result, file);
+    }
+
+    @GetMapping("/token-validation")
+    public ResponseEntity<?> tokenValidation(@RequestBody String token) {
+        try {
+            Jwts.parser().verifyWith(SECRET_KEY).build().parseSignedClaims(token).getPayload();
+        } catch(JwtException e) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.ok().build();
     }
 
     public ResponseEntity<?> validate(BindingResult result) {
