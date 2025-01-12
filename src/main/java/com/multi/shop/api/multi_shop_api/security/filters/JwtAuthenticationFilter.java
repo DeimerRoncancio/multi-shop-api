@@ -69,7 +69,6 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         String token = getToken(identifier, rolesClaims);
 
         Map<String, Object> body = new HashMap<> ();
-        body.put("user", user.getUser());
         body.put("token", token);
     
         response.addHeader(HEADER_AUTHORIZATION, PREFIX_TOKEN + token);

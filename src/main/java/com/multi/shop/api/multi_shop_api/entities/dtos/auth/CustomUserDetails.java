@@ -6,17 +6,17 @@ import java.util.List;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import com.multi.shop.api.multi_shop_api.entities.dtos.LoginUserInfoDTO;
+import com.multi.shop.api.multi_shop_api.entities.User;
 
 public class CustomUserDetails implements UserDetails {
 
     private String identity;
-    private LoginUserInfoDTO user;
+    private User user;
     private String password;
     private boolean enabled;
     private List<GrantedAuthority> authorities;
 
-    public CustomUserDetails(String identity, LoginUserInfoDTO user, String password, boolean enabled, List<GrantedAuthority> authorities) {
+    public CustomUserDetails(String identity, User user, String password, boolean enabled, List<GrantedAuthority> authorities) {
         this.identity = identity;
         this.user = user;
         this.password = password;
@@ -29,7 +29,7 @@ public class CustomUserDetails implements UserDetails {
         return identity;
     }
 
-    public LoginUserInfoDTO getUser() {
+    public User getUser() {
         return user;
     }
 

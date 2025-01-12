@@ -4,7 +4,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.multi.shop.api.multi_shop_api.entities.User;
-import com.multi.shop.api.multi_shop_api.entities.dtos.LoginUserInfoDTO;
 import com.multi.shop.api.multi_shop_api.entities.dtos.auth.CustomUserDetails;
 import com.multi.shop.api.multi_shop_api.entities.dtos.auth.UserInfo;
 import com.multi.shop.api.multi_shop_api.repositories.UserRepository;
@@ -32,11 +31,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String identifier) throws UsernameNotFoundException {
         UserInfo userInfo = getUserInfo(identifier);
-        LoginUserInfoDTO userInfoDTO = getUserInfoDTO(userInfo.getUser());
 
         return new CustomUserDetails(
             identifier, 
-            userInfoDTO,
+            userInfo.getUser(),
             userInfo.getUser().getPassword(),
             userInfo.getUser().isEnabled(),
             getAuthorities(userInfo.getUser()));
@@ -55,19 +53,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             throw new UsernameNotFoundException(" ");
         
         return new UserInfo(optionalUser.get());
-    }
-
-    public LoginUserInfoDTO getUserInfoDTO(User userInfo) {
-        return new LoginUserInfoDTO(
-            userInfo.getName(),
-            userInfo.getProfileImage(),
-            userInfo.getSecondName(),
-            userInfo.getLastnames(),
-            userInfo.getPhoneNumber(),
-            userInfo.getGender(),
-            userInfo.getEmail(),
-            userInfo.isAdmin(),
-            userInfo.isEnabled());
     }
     
     public List<GrantedAuthority> getAuthorities(User user) {
