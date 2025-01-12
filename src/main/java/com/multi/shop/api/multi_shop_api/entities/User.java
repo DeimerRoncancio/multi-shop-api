@@ -56,9 +56,7 @@ public class User {
         uniqueConstraints = @UniqueConstraint(columnNames = {"id_user", "id_role"}))
     @JsonIgnoreProperties("users")
     private List<Role> roles;
-
     private boolean admin;
-
     private boolean enabled;
 
     @PrePersist
