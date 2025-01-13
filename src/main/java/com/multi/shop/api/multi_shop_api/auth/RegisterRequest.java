@@ -20,7 +20,7 @@ public class RegisterRequest {
     private String name;
     
     @JsonIgnoreProperties("id")
-    private Image profileImage;
+    private Image imageUser;
     private String secondName;
     private String lastnames;
 
@@ -56,12 +56,12 @@ public class RegisterRequest {
         this.name = name;
     }
 
-    public Image getProfileImage() {
-        return profileImage;
+    public Image getImageUser() {
+        return imageUser;
     }
 
-    public void setProfileImage(Image profile_image) {
-        this.profileImage = profile_image;
+    public void setImageUser(Image profile_image) {
+        this.imageUser = profile_image;
     }
 
     public String getSecondName() {

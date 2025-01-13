@@ -62,7 +62,7 @@ public class UserServiceImpl implements UserService {
 
         if (file != null && !file.isEmpty()) {
             Image image = uploadProfileImage(file);
-            userDTO.setProfileImage(image);
+            userDTO.setImageUser(image);
         }
         
         userDTO.setRoles(roles);

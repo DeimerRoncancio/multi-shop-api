@@ -26,7 +26,7 @@ public class CloudinaryServiceImpl implements CloudinaryService {
         valuesMap.put("api_secret", "bDgoglF6cLqEvwbSCsdJO47Ww1I");
         cloudinary = new Cloudinary(valuesMap);
     }
-    
+
     @Override
     @SuppressWarnings("rawtypes")
     public Map upload(MultipartFile multipartFile) throws IOException {

@@ -55,10 +55,10 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @ModelAttribute RegisterRequest user, BindingResult result, 
-    @RequestPart MultipartFile file) {
+    @RequestPart MultipartFile profileImage) {
         user.setAdmin(false);
 
-        return create(user, result, file);
+        return create(user, result, profileImage);
     }
 
     @GetMapping("/get-user/{token}")
