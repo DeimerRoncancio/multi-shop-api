@@ -32,7 +32,7 @@ public class NewProductDTO {
     private BigDecimal price;
 
     @JsonIgnoreProperties("id")
-    private List<Image> images;
+    private List<Image> productImages;
     
     @JsonIgnoreProperties({"id", "products"})
     private List<ProductCategory> categories;
@@ -44,7 +44,7 @@ public class NewProductDTO {
 
     public NewProductDTO() {
         categoriesList = new ArrayList<>();
-        images = new ArrayList<> ();
+        productImages = new ArrayList<> ();
     }
 
     public NewProductDTO(String productName, String description, BigDecimal price, List<ProductCategory> categories) {
@@ -94,11 +94,11 @@ public class NewProductDTO {
         this.categoriesList = categoriesList;
     }
 
-    public List<Image> getImages() {
-        return images;
+    public List<Image> getProductImages() {
+        return productImages;
     }
 
-    public void setImages(List<Image> images) {
-        this.images = images;
+    public void setProductImages(List<Image> images) {
+        this.productImages = images;
     }
 }

@@ -56,7 +56,7 @@ public class ProductServiceImpl implements ProductService {
 
         files.forEach(img -> {
             Image image = uploadProductImage(img);
-            dto.getImages().add(image);
+            dto.getProductImages().add(image);
         });
 
         Product product = ProductMapper.mapper.productCreateDTOtoProduct(dto);
@@ -72,7 +72,7 @@ public class ProductServiceImpl implements ProductService {
         productOptional.ifPresent(productDb -> {
             List<ProductCategory> categoriesDb = categoryRepository.findByCategoryNameIn(dto.getCategoriesList());
             List<ProductCategory> productCategories = updateProductCategories(productDb.getCategories(), categoriesDb);
-            List<Image> productImages = updateProductImages(productDb.getImages(), files);
+            List<Image> productImages = updateProductImages(productDb.getProductImages(), files);
 
             dto.setCategories(productCategories);
             dto.setImages(productImages);
@@ -90,8 +90,8 @@ public class ProductServiceImpl implements ProductService {
         Optional<Product> productOptional = repository.findById(id);
 
         productOptional.ifPresent(product -> {
-            if (!product.getImages().isEmpty()) {
-                product.getImages().forEach(img -> {
+            if (!product.getProductImages().isEmpty()) {
+                product.getProductImages().forEach(img -> {
                     deleteProductImage(img);
                 });
             }

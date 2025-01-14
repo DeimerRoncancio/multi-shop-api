@@ -98,11 +98,11 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public User updateProfileImage(User user, MultipartFile file) {
-        if (user.getProfileImage() != null)
+        if (user.getImageUser() != null)
             deleteProfileImage(user);
         
         Image image = uploadProfileImage(file);        
-        user.setProfileImage(image);
+        user.setImageUser(image);
 
         return repository.save(user);
     }
@@ -113,7 +113,7 @@ public class UserServiceImpl implements UserService {
         Optional<User> optionalUser = repository.findById(id);
 
         optionalUser.ifPresent(user -> {
-            if (user.getProfileImage() != null)
+            if (user.getImageUser() != null)
                 deleteProfileImage(user);
             
             repository.delete(user);
@@ -138,7 +138,7 @@ public class UserServiceImpl implements UserService {
 
     public void deleteProfileImage(User user) {
         try {
-            imageService.deleteImage(user.getProfileImage());
+            imageService.deleteImage(user.getImageUser());
         } catch(IOException e) {
             logger.error("Exception to try delete the image: " + e);
         }

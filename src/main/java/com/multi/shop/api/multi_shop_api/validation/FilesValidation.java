@@ -20,8 +20,15 @@ public class FilesValidation implements Validator {
 
     @Override
     public void validate(@NonNull Object target, @NonNull Errors errors) {
-        List<MultipartFile> files;
+        List<MultipartFile> files = null;
         
+        files = validateEachFile(files, target);
+        
+        if (!files.stream().anyMatch(file -> !file.isEmpty() && file.getSize() > 0))
+            errors.rejectValue("productImages", "", "debe tener minimo una imagen");
+    }
+
+    public List<MultipartFile> validateEachFile(List<MultipartFile> files, Object target) {
         if (target instanceof List<?>) {
             files = ((List<?>) target).stream()
                 .filter(item -> item instanceof MultipartFile)
@@ -30,8 +37,7 @@ public class FilesValidation implements Validator {
         } else {
             throw new IllegalArgumentException("El parámetro 'files' no es una lista de archivos válidos.");
         }
-        
-        if (!files.stream().anyMatch(file -> !file.isEmpty() && file.getSize() > 0))
-            errors.rejectValue("images", "", "debe tener minimo una imagen");
+
+        return files;
     }
 }

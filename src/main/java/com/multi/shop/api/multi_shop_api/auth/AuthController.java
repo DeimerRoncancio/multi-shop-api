@@ -109,7 +109,7 @@ public class AuthController {
     public UserInfoRequest getUser(User user) {
         return new UserInfoRequest(
             user.getName(),
-            user.getProfileImage(),
+            user.getImageUser(),
             user.getSecondName(),
             user.getLastnames(),
             user.getPhoneNumber(),

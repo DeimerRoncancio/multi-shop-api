@@ -23,6 +23,6 @@ public interface UserMapper {
     @Mapping(target = "orders", ignore = true)
     @Mapping(target = "roles", ignore = true)
     @Mapping(target = "enabled", ignore = true)
-    @Mapping(target = "profileImage", ignore = true)
+    @Mapping(target = "imageUser", ignore = true)
     void toUpdateUser(UserUpdateRequest dto, @MappingTarget User user);
 }

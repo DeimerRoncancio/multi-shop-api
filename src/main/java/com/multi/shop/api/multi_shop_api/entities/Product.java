@@ -38,7 +38,7 @@ public class Product {
         joinColumns = @JoinColumn(name = "id_product"),
         inverseJoinColumns = @JoinColumn(name = "id_image"))
     @JsonIgnoreProperties("id")
-    private List<Image> images;
+    private List<Image> productImages;
     
     @ManyToMany
     @JoinTable(
@@ -99,11 +99,11 @@ public class Product {
         this.categories = productCategory;
     }
 
-    public List<Image> getImages() {
-        return images;
+    public List<Image> getProductImages() {
+        return productImages;
     }
 
-    public void setImages(List<Image> images) {
-        this.images = images;
+    public void setProductImages(List<Image> images) {
+        this.productImages = images;
     }
 }

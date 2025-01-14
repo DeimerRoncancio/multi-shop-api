@@ -61,23 +61,23 @@ public class ProductController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> create(@Valid @ModelAttribute NewProductDTO product, BindingResult result, 
-    @RequestPart List<MultipartFile> files) {
-        validation.validate(files, result);
+    @RequestPart List<MultipartFile> images) {
+        validation.validate(images, result);
         if (result.hasFieldErrors())
             return validate(result);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.save(product, files));
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.save(product, images));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> update(@Valid @ModelAttribute UpdateProductDTO product, BindingResult result, 
-    @PathVariable String id, @RequestPart List<MultipartFile> files) {
-        validation.validate(files, result);
+    @PathVariable String id, @RequestPart List<MultipartFile> images) {
+        validation.validate(images, result);
         if (result.hasFieldErrors())
             return validate(result);
         
-        Optional<Product> productDb = service.update(id, product, files);
+        Optional<Product> productDb = service.update(id, product, images);
 
         if (productDb.isPresent())
             return ResponseEntity.status(HttpStatus.CREATED).body(product);
