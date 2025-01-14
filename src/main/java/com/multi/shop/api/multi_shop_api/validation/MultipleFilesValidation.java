@@ -11,7 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.multi.shop.api.multi_shop_api.entities.Product;
 
 @Component
-public class FilesValidation implements Validator {
+public class MultipleFilesValidation implements Validator {
 
     @Override
     public boolean supports(@NonNull Class<?> clazz) {
@@ -20,24 +20,12 @@ public class FilesValidation implements Validator {
 
     @Override
     public void validate(@NonNull Object target, @NonNull Errors errors) {
-        List<MultipartFile> files = null;
-        
-        files = validateEachFile(files, target);
+        List<MultipartFile> files = ((List<?>) target).stream()
+            .filter(item -> item instanceof MultipartFile)
+            .map(item -> (MultipartFile) item)
+            .toList();
         
         if (!files.stream().anyMatch(file -> !file.isEmpty() && file.getSize() > 0))
             errors.rejectValue("productImages", "", "debe tener minimo una imagen");
-    }
-
-    public List<MultipartFile> validateEachFile(List<MultipartFile> files, Object target) {
-        if (target instanceof List<?>) {
-            files = ((List<?>) target).stream()
-                .filter(item -> item instanceof MultipartFile)
-                .map(item -> (MultipartFile) item)
-                .toList();
-        } else {
-            throw new IllegalArgumentException("El parámetro 'files' no es una lista de archivos válidos.");
-        }
-
-        return files;
     }
 }

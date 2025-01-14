@@ -9,7 +9,8 @@ import com.multi.shop.api.multi_shop_api.entities.Product;
 import com.multi.shop.api.multi_shop_api.entities.dtos.NewProductDTO;
 import com.multi.shop.api.multi_shop_api.entities.dtos.UpdateProductDTO;
 import com.multi.shop.api.multi_shop_api.services.ProductService;
-import com.multi.shop.api.multi_shop_api.validation.FilesValidation;
+import com.multi.shop.api.multi_shop_api.validation.IfExistsCategories;
+import com.multi.shop.api.multi_shop_api.validation.MultipleFilesValidation;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -36,11 +37,13 @@ import java.util.Optional;
 public class ProductController {
 
     private final ProductService service;
-    private final FilesValidation validation;
+    private final MultipleFilesValidation multipleFilesValidation;
+    private final IfExistsCategories ifExistsCategories;
 
-    public ProductController(ProductService service, FilesValidation validation) {
+    public ProductController(ProductService service, MultipleFilesValidation validation, IfExistsCategories ifExistsCategories) {
         this.service = service;
-        this.validation = validation;
+        this.multipleFilesValidation = validation;
+        this.ifExistsCategories = ifExistsCategories;
     }
 
     @GetMapping
@@ -62,7 +65,9 @@ public class ProductController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> create(@Valid @ModelAttribute NewProductDTO product, BindingResult result, 
     @RequestPart List<MultipartFile> images) {
-        validation.validate(images, result);
+        ifExistsCategories.validate(product.getCategoriesList(), result);
+        multipleFilesValidation.validate(images, result);
+
         if (result.hasFieldErrors())
             return validate(result);
 
@@ -73,7 +78,7 @@ public class ProductController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> update(@Valid @ModelAttribute UpdateProductDTO product, BindingResult result, 
     @PathVariable String id, @RequestPart List<MultipartFile> images) {
-        validation.validate(images, result);
+        multipleFilesValidation.validate(images, result);
         if (result.hasFieldErrors())
             return validate(result);
         
