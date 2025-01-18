@@ -9,7 +9,6 @@ import com.multi.shop.api.multi_shop_api.entities.ProductCategory;
 import com.multi.shop.api.multi_shop_api.entities.dtos.NewProductDTO;
 import com.multi.shop.api.multi_shop_api.entities.dtos.UpdateProductDTO;
 import com.multi.shop.api.multi_shop_api.mappers.ProductMapper;
-import com.multi.shop.api.multi_shop_api.repositories.ProductCategoryRepository;
 import com.multi.shop.api.multi_shop_api.repositories.ProductRepository;
 
 import org.slf4j.Logger;
@@ -26,13 +25,13 @@ public class ProductServiceImpl implements ProductService {
 
     private final Logger logger = LoggerFactory.getLogger(ProductServiceImpl.class);
     private final ProductRepository repository;
-    private final ProductCategoryRepository categoryRepository;
+    private final ProductCategoryService categoryService;
     private final ImageService imageService;
 
-    public ProductServiceImpl(ProductRepository repository, ProductCategoryRepository categoryRepository, 
+    public ProductServiceImpl(ProductRepository repository, ProductCategoryService categoryService, 
     ImageService imageService) {
         this.repository = repository;
-        this.categoryRepository = categoryRepository;
+        this.categoryService = categoryService;
         this.imageService = imageService;
     }
 
@@ -51,7 +50,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public NewProductDTO save(NewProductDTO dto, List<MultipartFile> files) {
-        List<ProductCategory> categoryList =  categoryRepository.findByCategoryNameIn(dto.getCategoriesList());
+        List<ProductCategory> categoryList =  categoryService.findCategoriesByName(dto.getCategoriesList());
         dto.setCategories(categoryList);
 
         files.forEach(img -> {
@@ -70,7 +69,7 @@ public class ProductServiceImpl implements ProductService {
         Optional<Product> productOptional = repository.findById(id);
         
         productOptional.ifPresent(productDb -> {
-            List<ProductCategory> categoriesDb = categoryRepository.findByCategoryNameIn(dto.getCategoriesList());
+            List<ProductCategory> categoriesDb = categoryService.findCategoriesByName(dto.getCategoriesList());
             List<ProductCategory> productCategories = updateProductCategories(productDb.getCategories(), categoriesDb);
             List<Image> productImages = updateProductImages(productDb.getProductImages(), files);
 

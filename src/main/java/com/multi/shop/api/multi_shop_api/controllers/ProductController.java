@@ -9,7 +9,8 @@ import com.multi.shop.api.multi_shop_api.entities.Product;
 import com.multi.shop.api.multi_shop_api.entities.dtos.NewProductDTO;
 import com.multi.shop.api.multi_shop_api.entities.dtos.UpdateProductDTO;
 import com.multi.shop.api.multi_shop_api.services.ProductService;
-import com.multi.shop.api.multi_shop_api.validation.IfExistsCategories;
+import com.multi.shop.api.multi_shop_api.validation.FileSizeValidation;
+import com.multi.shop.api.multi_shop_api.validation.IfExistsCategoriesValidation;
 import com.multi.shop.api.multi_shop_api.validation.MultipleFilesValidation;
 
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,6 +27,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,12 +40,15 @@ public class ProductController {
 
     private final ProductService service;
     private final MultipleFilesValidation multipleFilesValidation;
-    private final IfExistsCategories ifExistsCategories;
+    private final IfExistsCategoriesValidation ifExistsCategories;
+    private final FileSizeValidation fileSizeValidation;
 
-    public ProductController(ProductService service, MultipleFilesValidation validation, IfExistsCategories ifExistsCategories) {
+    public ProductController(ProductService service, MultipleFilesValidation validation, 
+    IfExistsCategoriesValidation ifExistsCategories, FileSizeValidation fileSizeValidation) {
         this.service = service;
         this.multipleFilesValidation = validation;
         this.ifExistsCategories = ifExistsCategories;
+        this.fileSizeValidation = fileSizeValidation;
     }
 
     @GetMapping
@@ -67,6 +72,12 @@ public class ProductController {
     @RequestPart List<MultipartFile> images) {
         ifExistsCategories.validate(product.getCategoriesList(), result);
         multipleFilesValidation.validate(images, result);
+
+        String key = "productImages";
+        
+        images.forEach(productImage -> fileSizeValidation.validate(
+            Arrays.asList(key, productImage), result
+        ));
 
         if (result.hasFieldErrors())
             return validate(result);

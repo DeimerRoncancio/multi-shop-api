@@ -9,15 +9,15 @@ import org.springframework.validation.Validator;
 
 import com.multi.shop.api.multi_shop_api.entities.Product;
 import com.multi.shop.api.multi_shop_api.entities.ProductCategory;
-import com.multi.shop.api.multi_shop_api.repositories.ProductCategoryRepository;
+import com.multi.shop.api.multi_shop_api.services.ProductCategoryService;
 
 @Component
-public class IfExistsCategories implements Validator {
+public class IfExistsCategoriesValidation implements Validator {
 
-    private final ProductCategoryRepository categoryRepository;
+    private final ProductCategoryService categoryService;
 
-    public IfExistsCategories(ProductCategoryRepository categoryRepository) {
-        this.categoryRepository = categoryRepository;
+    public IfExistsCategoriesValidation(ProductCategoryService categoryRepository) {
+        this.categoryService = categoryRepository;
     }
 
     @Override
@@ -32,7 +32,7 @@ public class IfExistsCategories implements Validator {
             .map(item -> (String) item)
             .toList();
 
-        List<ProductCategory> categories = categoryRepository.findByCategoryNameIn(categoriesList);
+        List<ProductCategory> categories = categoryService.findCategoriesByName(categoriesList);
 
         List<String> categoriesDoesntExists = categoriesList.stream()
             .filter(category -> categories.stream()

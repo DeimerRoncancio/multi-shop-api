@@ -1,5 +1,6 @@
 package com.multi.shop.api.multi_shop_api.auth;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -22,6 +23,7 @@ import com.multi.shop.api.multi_shop_api.entities.User;
 import com.multi.shop.api.multi_shop_api.entities.dtos.UserInfoRequest;
 import com.multi.shop.api.multi_shop_api.repositories.UserRepository;
 import com.multi.shop.api.multi_shop_api.services.UserService;
+import com.multi.shop.api.multi_shop_api.validation.FileSizeValidation;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -37,16 +39,22 @@ public class AuthController {
 
     private final UserService service;
     private final UserRepository repository;
+    private final FileSizeValidation fileSizeValidation;
 
-    public AuthController(UserService service, UserRepository repository) {
+    public AuthController(UserService service, UserRepository repository, FileSizeValidation fileSizeValidation) {
         this.service = service;
         this.repository = repository;
+        this.fileSizeValidation = fileSizeValidation;
     }
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> create(@Valid @ModelAttribute RegisterRequest user, BindingResult result, 
     @RequestPart MultipartFile profileImage) {
+        String key = "imageUser";
+        
+        fileSizeValidation.validate(Arrays.asList(key, profileImage), result);
+        
         if (result.hasFieldErrors())
             return validate(result);
         

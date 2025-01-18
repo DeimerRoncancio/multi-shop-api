@@ -67,4 +67,10 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
         
         return optionalCategory;
     }
+
+    @Override
+    @Transactional
+    public List<ProductCategory> findCategoriesByName(List<String> categoryNames) {
+        return repository.findByCategoryNameIn(categoryNames);
+    }
 }

@@ -18,4 +18,6 @@ public interface ProductCategoryService {
     Optional<ProductCategory> update(String id, UpdateProductCategoryDTO category);
 
     Optional<ProductCategory> delete(String id);
+
+    List<ProductCategory> findCategoriesByName(List<String> categoryNames);
 }
