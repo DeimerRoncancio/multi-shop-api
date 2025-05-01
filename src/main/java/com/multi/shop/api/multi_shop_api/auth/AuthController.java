@@ -51,7 +51,7 @@ public class AuthController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> create(@Valid @ModelAttribute RegisterRequest user, BindingResult result, 
     @RequestPart MultipartFile profileImage) {
-        String key = "imageUser";
+        String key = "useImage";
         
         fileSizeValidation.validate(Arrays.asList(key, profileImage), result);
         
