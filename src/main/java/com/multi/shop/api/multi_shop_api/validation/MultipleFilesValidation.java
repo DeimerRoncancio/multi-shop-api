@@ -8,7 +8,7 @@ import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.multi.shop.api.multi_shop_api.entities.Product;
+import com.multi.shop.api.multi_shop_api.products.entities.Product;
 
 @Component
 public class MultipleFilesValidation implements Validator {

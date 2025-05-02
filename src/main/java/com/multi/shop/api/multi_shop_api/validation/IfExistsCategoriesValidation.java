@@ -7,9 +7,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 
-import com.multi.shop.api.multi_shop_api.entities.Product;
-import com.multi.shop.api.multi_shop_api.entities.ProductCategory;
-import com.multi.shop.api.multi_shop_api.services.ProductCategoryService;
+import com.multi.shop.api.multi_shop_api.products.entities.Product;
+import com.multi.shop.api.multi_shop_api.products.entities.ProductCategory;
+import com.multi.shop.api.multi_shop_api.products.services.ProductCategoryService;
 
 @Component
 public class IfExistsCategoriesValidation implements Validator {
