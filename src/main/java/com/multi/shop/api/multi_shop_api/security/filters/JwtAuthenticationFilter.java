@@ -18,8 +18,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.multi.shop.api.multi_shop_api.auth.LoginRequest;
-import com.multi.shop.api.multi_shop_api.entities.dtos.auth.CustomUserDetails;
+import com.multi.shop.api.multi_shop_api.auth.entities.LoginRequest;
+import com.multi.shop.api.multi_shop_api.auth.entities.dtos.CustomUserDetails;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
