@@ -152,7 +152,7 @@ public class User {
     }
 
     public void addOrder(List<Order> order) {
-        order.stream().forEach(ord -> {
+        order.forEach(ord -> {
             ord.setUser(this);
             orders.add(ord);
         });

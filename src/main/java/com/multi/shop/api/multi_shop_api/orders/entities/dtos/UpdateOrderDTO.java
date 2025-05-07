@@ -15,7 +15,7 @@ import jakarta.validation.constraints.NotNull;
 public class UpdateOrderDTO {
 
     @NotBlank(message = "{NotBlank.validation.text}")
-    @IfExistsUpdate(entity = Order.class, field = "orderName", message = "{IfExists.order.name}")
+//    @IfExistsUpdate(entity = Order.class, field = "orderName", message = "{IfExists.order.name}")
     private String orderName;
     private String notes;
 

@@ -41,29 +41,26 @@ public class IfExistsUpdateValidator implements ConstraintValidator<IfExistsUpda
 
     @Override
     public boolean isValid(Object value, ConstraintValidatorContext context) {
-        if (entityManager == null)
-           return false;
+        if (entityManager == null) return false;
 
         Optional<?> entityList = service.findByCustomField(entity.getSimpleName(), field, value);
         String idURI = getIdByURI();
 
-        if (!entityList.isPresent())
-            return true;
-        
+        if (entityList.isEmpty()) return true;
+
         Object obj = entityList.get();
 
         try {
             Field field = obj.getClass().getDeclaredField("id");
             field.setAccessible(true);
-            String id = (String) field.get(obj);
 
+            String id = (String) field.get(obj);
             return id.equals(idURI);
-                
         } catch (NoSuchFieldException | IllegalAccessException | SecurityException e) {
-            logger.error("Exception to try acces to id: " + e);
+            logger.error("Exception to try acces to id: {e}");
         }
 
-        return true;
+        return false;
     }
 
     public String getIdByURI() {
@@ -72,7 +69,7 @@ public class IfExistsUpdateValidator implements ConstraintValidator<IfExistsUpda
 
         if (requestAttributes != null)
             request = ((ServletRequestAttributes) requestAttributes).getRequest();
-        
+
         return request != null ? request.getRequestURI().substring(request.getRequestURI().lastIndexOf('/') + 1) : null;
     }
 }
