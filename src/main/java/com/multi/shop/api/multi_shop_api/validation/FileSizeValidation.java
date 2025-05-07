@@ -1,6 +1,7 @@
 package com.multi.shop.api.multi_shop_api.validation;
 
 import java.util.List;
+import java.util.Objects;
 
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
@@ -21,7 +22,7 @@ public class FileSizeValidation implements Validator {
     @Override
     public void validate(@NonNull Object target, @NonNull Errors errors) {
         List<Object> list = ((List<?>) target).stream()
-            .filter(item -> item instanceof Object)
+            .filter(Objects::nonNull)
             .map(item -> (Object) item).toList();
 
         MultipartFile file = (MultipartFile) list.get(1);

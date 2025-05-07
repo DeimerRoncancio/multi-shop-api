@@ -7,7 +7,6 @@ import jakarta.validation.ConstraintValidatorContext;
 
 @Component
 public class SizeConstraintValidator implements ConstraintValidator<SizeConstraint, String>{
-
     private int min;
     private int max;
     
@@ -19,7 +18,6 @@ public class SizeConstraintValidator implements ConstraintValidator<SizeConstrai
     
     @Override
     public boolean isValid(String target, ConstraintValidatorContext context) {
-        return !(target == null || target.isBlank()) ? 
-            (target.length() >= min && target.length() <= max) : true;
+        return (target == null || target.isBlank()) || (target.length() >= min && target.length() <= max);
     }
 }

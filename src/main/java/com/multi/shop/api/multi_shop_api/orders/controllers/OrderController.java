@@ -1,7 +1,9 @@
 package com.multi.shop.api.multi_shop_api.orders.controllers;
 
+import com.multi.shop.api.multi_shop_api.orders.repositories.OrderRepository;
 import jakarta.validation.Valid;
 
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -33,9 +35,11 @@ import java.util.Optional;
 public class OrderController {
 
     private final OrderService service;
+    private final OrderRepository repository;
 
-    public OrderController(OrderService service) {
+    public OrderController(OrderService service, OrderRepository repository) {
         this.service = service;
+        this.repository = repository;
     }
 
     @GetMapping
@@ -51,7 +55,7 @@ public class OrderController {
 
         if (orderDb.isPresent())
             return ResponseEntity.ok().body(orderDb.get());
-        
+
         return ResponseEntity.notFound().build();
     }
 
@@ -68,14 +72,16 @@ public class OrderController {
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<?> update(@Valid @RequestBody UpdateOrderDTO order, BindingResult result,
     @PathVariable String id) {
+        handleObjectError(order, id, result);
+
         if (result.hasFieldErrors())
             return validate(result);
-        
+
         Optional<Order> orderDb = service.update(id, order);
-        
+
         if (orderDb.isPresent())
             return ResponseEntity.status(HttpStatus.CREATED).body(order);
-        
+
         return ResponseEntity.notFound().build();
     }
 
@@ -97,6 +103,25 @@ public class OrderController {
             errors.put(err.getField(), "El campo " + err.getField() + " " + err.getDefaultMessage());
         });
 
+        result.getGlobalErrors().forEach(err -> {
+            errors.put(err.getObjectName(), "El campo " + err.getObjectName() + " " + err.getDefaultMessage());
+        });
+
         return ResponseEntity.badRequest().body(errors);
+    }
+
+    public void handleObjectError(UpdateOrderDTO order, String id, BindingResult result) {
+        Optional<Order> orderOp = repository.findByOrderName(order.getOrderName());
+        Optional<Order> currentOrder = repository.findById(id);
+
+        if (orderOp.isPresent()) {
+            if (currentOrder.isEmpty()) return;
+            if (!currentOrder.get().getOrderName().equals(order.getOrderName()))
+                setError("orderName", "tiene un valor existente", result);
+        }
+    }
+
+    public void setError(String objName, String defaultMessage, BindingResult result) {
+        result.addError(new ObjectError(objName, defaultMessage));
     }
 }
