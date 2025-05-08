@@ -1,7 +1,9 @@
 package com.multi.shop.api.multi_shop_api.products.controllers;
 
+import com.multi.shop.api.multi_shop_api.products.repositories.ProductCategoryRepository;
 import jakarta.validation.Valid;
 
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.multi.shop.api.multi_shop_api.products.entities.ProductCategory;
@@ -33,9 +35,11 @@ import java.util.Optional;
 public class ProductCategoryController {
 
     private final ProductCategoryService service;
+    private final ProductCategoryRepository repository;
 
-    public ProductCategoryController(ProductCategoryService service) {
+    public ProductCategoryController(ProductCategoryService service, ProductCategoryRepository repository) {
         this.service = service;
+        this.repository = repository;
     }
 
     @GetMapping
@@ -66,9 +70,11 @@ public class ProductCategoryController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> update(@Valid @RequestBody UpdateProductCategoryDTO category, BindingResult result, 
     @PathVariable String id) {
-        if (result.hasFieldErrors())
+        handleObjectError(category, result, id);
+
+        if (result.hasErrors())
             return validate(result);
-        
+
         Optional<ProductCategory> categoryDb = service.update(id, category);
 
         if (categoryDb.isPresent())
@@ -95,6 +101,25 @@ public class ProductCategoryController {
             errors.put(err.getField(), "El campo " + err.getField() + " " + err.getDefaultMessage());
         });
 
+        result.getGlobalErrors().forEach(err -> {
+            errors.put(err.getObjectName(), "El campo" + err.getObjectName() + " " + err.getDefaultMessage());
+        });
+
         return ResponseEntity.badRequest().body(errors);
+    }
+
+    public void handleObjectError(UpdateProductCategoryDTO category, BindingResult result, String id) {
+        Optional<ProductCategory> categoryOp = repository.findByCategoryName(category.getCategoryName());
+        Optional<ProductCategory> currentCategory = repository.findById(id);
+
+        if (categoryOp.isPresent()) {
+            if (currentCategory.isEmpty()) return;
+            if (!currentCategory.get().getCategoryName().equals(category.getCategoryName()))
+                setError("productCategoryName", "tiene un valor existente", result);
+        }
+    }
+
+    public void setError(String objName, String defaultMessage, BindingResult result) {
+        result.addError(new ObjectError(objName, defaultMessage));
     }
 }
