@@ -74,7 +74,7 @@ public class OrderController {
     @PathVariable String id) {
         handleObjectError(order, id, result);
 
-        if (result.hasFieldErrors())
+        if (result.hasErrors())
             return validate(result);
 
         Optional<Order> orderDb = service.update(id, order);
