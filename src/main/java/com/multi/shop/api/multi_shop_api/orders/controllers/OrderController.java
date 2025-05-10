@@ -53,8 +53,7 @@ public class OrderController {
     public ResponseEntity<Order> view(@PathVariable String id) {
         Optional<Order> orderDb = service.findOne(id);
 
-        if (orderDb.isPresent())
-            return ResponseEntity.ok().body(orderDb.get());
+        if (orderDb.isPresent()) return ResponseEntity.ok().body(orderDb.get());
 
         return ResponseEntity.notFound().build();
     }
