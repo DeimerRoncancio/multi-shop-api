@@ -13,7 +13,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public class NewOrderDTO {
-
     @NotBlank(message = "{NotBlank.validation.text}")
     @IfExists(entity = Order.class, field = "orderName", message = "{IfExists.order.name}")
     private String orderName;

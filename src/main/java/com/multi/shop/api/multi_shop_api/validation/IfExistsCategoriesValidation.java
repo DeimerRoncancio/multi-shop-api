@@ -28,7 +28,6 @@ public class IfExistsCategoriesValidation implements Validator {
     @Override
     public void validate(@NonNull Object target, @NonNull Errors errors) {
         List<String> categoriesList = ((List<?>) target).stream()
-            .filter(item -> item instanceof String)
             .map(item -> (String) item)
             .toList();
 
@@ -36,12 +35,13 @@ public class IfExistsCategoriesValidation implements Validator {
 
         List<String> categoriesDoesntExists = categoriesList.stream()
             .filter(category -> categories.stream()
-            .noneMatch(cats -> cats.getCategoryName()
-            .equals(category))).toList();
+            .noneMatch(cats -> cats.getCategoryName().equals(category)))
+            .toList();
         
         if (!categoriesDoesntExists.isEmpty()){
             categoriesDoesntExists.forEach(item -> {
-                errors.rejectValue("categories", "", "tiene un error. La categoría " + item + " no existe");
+                String messageError = "tiene un error. La categoría " + item + " no existe";
+                errors.rejectValue("categories", "", messageError);
             });
         }
     }

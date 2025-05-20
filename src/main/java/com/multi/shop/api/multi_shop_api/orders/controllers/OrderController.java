@@ -110,17 +110,11 @@ public class OrderController {
     }
 
     public void handleObjectError(UpdateOrderDTO order, String id, BindingResult result) {
-        Optional<Order> orderOp = repository.findByOrderName(order.getOrderName());
-        Optional<Order> currentOrder = repository.findById(id);
-
-        if (orderOp.isPresent()) {
-            if (currentOrder.isEmpty()) return;
-            if (!currentOrder.get().getOrderName().equals(order.getOrderName()))
-                setError("orderName", "tiene un valor existente", result);
-        }
-    }
-
-    public void setError(String objName, String defaultMessage, BindingResult result) {
-        result.addError(new ObjectError(objName, defaultMessage));
+        repository.findById(id).ifPresent(cat -> {
+            if (cat.getOrderName().equals(order.getOrderName())) {
+                String messageError = "ya tiene este valor";
+                result.addError(new ObjectError("orderName", messageError));
+            }
+        });
     }
 }

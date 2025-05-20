@@ -102,24 +102,18 @@ public class ProductCategoryController {
         });
 
         result.getGlobalErrors().forEach(err -> {
-            errors.put(err.getObjectName(), "El campo" + err.getObjectName() + " " + err.getDefaultMessage());
+            errors.put(err.getObjectName(), "El campo " + err.getObjectName() + " " + err.getDefaultMessage());
         });
 
         return ResponseEntity.badRequest().body(errors);
     }
 
     public void handleObjectError(UpdateProductCategoryDTO category, BindingResult result, String id) {
-        Optional<ProductCategory> categoryOp = repository.findByCategoryName(category.getCategoryName());
-        Optional<ProductCategory> currentCategory = repository.findById(id);
-
-        if (categoryOp.isPresent()) {
-            if (currentCategory.isEmpty()) return;
-            if (!currentCategory.get().getCategoryName().equals(category.getCategoryName()))
-                setError("productCategoryName", "tiene un valor existente", result);
-        }
-    }
-
-    public void setError(String objName, String defaultMessage, BindingResult result) {
-        result.addError(new ObjectError(objName, defaultMessage));
+        repository.findById(id).ifPresent(cat -> {
+            if (cat.getCategoryName().equals(category.getCategoryName())) {
+                String messageError = "ya tiene este valor";
+                result.addError(new ObjectError("categoryName", messageError));
+            }
+        });
     }
 }

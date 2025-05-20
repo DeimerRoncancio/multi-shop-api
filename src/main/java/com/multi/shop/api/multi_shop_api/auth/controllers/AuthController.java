@@ -81,7 +81,7 @@ public class AuthController {
         } catch(JwtException e) {
             return ResponseEntity.badRequest().build();
         }
-        
+
         if (isNumeric(identifier)) {
             optionalUser = repository.findByPhoneNumber(Long.parseLong(identifier));
         } else {

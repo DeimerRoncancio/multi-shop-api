@@ -19,7 +19,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public class NewProductDTO {
-
     @NotBlank(message = "{NotBlank.validation.text}")
     @IfExists(entity = Product.class, field = "productName", message = "{IfExists.product.name}")
     private String productName;

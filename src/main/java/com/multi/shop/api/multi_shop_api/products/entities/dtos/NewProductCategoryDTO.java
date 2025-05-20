@@ -6,7 +6,6 @@ import com.multi.shop.api.multi_shop_api.validation.IfExists;
 import jakarta.validation.constraints.NotBlank;
 
 public class NewProductCategoryDTO {
-
     @IfExists(entity = ProductCategory.class, field = "categoryName", message = "{IfExists.category.name}")
     @NotBlank(message = "{NotBlank.validation.text}")
     private String categoryName;
