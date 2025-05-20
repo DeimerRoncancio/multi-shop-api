@@ -1,5 +1,6 @@
 package com.multi.shop.api.multi_shop_api.products.controllers;
 
+import com.multi.shop.api.multi_shop_api.products.repositories.ProductRepository;
 import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.RestController;
@@ -39,13 +40,15 @@ import java.util.Optional;
 public class ProductController {
 
     private final ProductService service;
+    private final ProductRepository repository;
     private final MultipleFilesValidation multipleFilesValidation;
     private final IfExistsCategoriesValidation ifExistsCategories;
     private final FileSizeValidation fileSizeValidation;
 
-    public ProductController(ProductService service, MultipleFilesValidation validation, 
+    public ProductController(ProductService service, ProductRepository repository, MultipleFilesValidation validation,
     IfExistsCategoriesValidation ifExistsCategories, FileSizeValidation fileSizeValidation) {
         this.service = service;
+        this.repository = repository;
         this.multipleFilesValidation = validation;
         this.ifExistsCategories = ifExistsCategories;
         this.fileSizeValidation = fileSizeValidation;

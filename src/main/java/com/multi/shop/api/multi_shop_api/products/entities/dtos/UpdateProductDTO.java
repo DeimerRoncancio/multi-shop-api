@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.multi.shop.api.multi_shop_api.images.entities.Image;
 import com.multi.shop.api.multi_shop_api.products.entities.Product;
 import com.multi.shop.api.multi_shop_api.products.entities.ProductCategory;
-import com.multi.shop.api.multi_shop_api.validation.IfExistsUpdate;
+import com.multi.shop.api.multi_shop_api.validation.IfExists;
 
 import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotBlank;
@@ -18,9 +18,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public class UpdateProductDTO {
-
     @NotBlank(message = "{NotBlank.validation.text}")
-    @IfExistsUpdate(entity = Product.class, field = "productName", message = "{IfExists.product.name}")
+    @IfExists(entity = Product.class, field = "productName", message = "{IfExists.product.name}")
     private String productName;
 
     @NotBlank(message = "{NotBlank.validation.text}")
