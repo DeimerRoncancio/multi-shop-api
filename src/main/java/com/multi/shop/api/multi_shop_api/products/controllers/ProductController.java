@@ -3,6 +3,7 @@ package com.multi.shop.api.multi_shop_api.products.controllers;
 import com.multi.shop.api.multi_shop_api.products.repositories.ProductRepository;
 import jakarta.validation.Valid;
 
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -28,6 +29,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 
+import javax.crypto.spec.PSource;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -72,17 +74,10 @@ public class ProductController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> create(@Valid @ModelAttribute NewProductDTO product, BindingResult result, 
-    @RequestPart List<MultipartFile> images) {
-        ifExistsCategories.validate(product.getCategoriesList(), result);
-        multipleFilesValidation.validate(images, result);
+    @RequestPart(required = false) List<MultipartFile> images) {
+        handleValidations(images, product.getCategoriesList(), result);
 
-        String key = "productImages";
-        
-        images.forEach(productImage -> fileSizeValidation.validate(
-            Arrays.asList(key, productImage), result
-        ));
-
-        if (result.hasFieldErrors())
+        if (result.hasErrors())
             return validate(result);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(service.save(product, images));
@@ -91,11 +86,13 @@ public class ProductController {
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> update(@Valid @ModelAttribute UpdateProductDTO product, BindingResult result, 
-    @PathVariable String id, @RequestPart List<MultipartFile> images) {
-        multipleFilesValidation.validate(images, result);
-        if (result.hasFieldErrors())
+    @PathVariable String id, @RequestPart(required = false) List<MultipartFile> images) {
+        handleValidations(images, product.getCategoriesList(), result);
+        handleObjectError(product, id, result);
+
+        if (result.hasErrors())
             return validate(result);
-        
+
         Optional<Product> productDb = service.update(id, product, images);
 
         if (productDb.isPresent())
@@ -122,6 +119,34 @@ public class ProductController {
             errors.put(err.getField(), "El campo " + err.getField() + " " + err.getDefaultMessage());
         });
 
+        result.getGlobalErrors().forEach(err -> {
+            errors.put(err.getObjectName(),"El campo " + err.getObjectName() + " " + err.getDefaultMessage());
+        });
+
         return ResponseEntity.badRequest().body(errors);
+    }
+
+    public void handleValidations(List<MultipartFile> images, List<String> categories, BindingResult result) {
+        multipleFilesValidation.validate(images, result);
+        ifExistsCategories.validate(categories, result);
+
+        if (images != null) {
+            String key = "productImages";
+
+            images.forEach(productImage -> fileSizeValidation.validate(
+                    Arrays.asList(key, productImage), result
+            ));
+        }
+    }
+
+    public void handleObjectError(UpdateProductDTO product, String id, BindingResult result) {
+        repository.findById(id).ifPresent(prod -> {
+            if (prod.getProductName().equals(product.getProductName())) return;
+
+            repository.findByProductName(product.getProductName()).ifPresent(p -> {
+                String messageError = "tiene un valor existente";
+                result.addError(new ObjectError("productName", messageError));
+            });
+        });
     }
 }

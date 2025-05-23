@@ -19,7 +19,6 @@ import jakarta.validation.constraints.Size;
 
 public class UpdateProductDTO {
     @NotBlank(message = "{NotBlank.validation.text}")
-    @IfExists(entity = Product.class, field = "productName", message = "{IfExists.product.name}")
     private String productName;
 
     @NotBlank(message = "{NotBlank.validation.text}")
@@ -30,7 +29,7 @@ public class UpdateProductDTO {
     private BigDecimal price;
 
     @JsonIgnoreProperties("id")
-    private List<Image> images;
+    private List<Image> productImages;
 
     @JsonIgnoreProperties({"id", "products"})
     private List<ProductCategory> categories;
@@ -42,7 +41,7 @@ public class UpdateProductDTO {
 
     public UpdateProductDTO() {
         categories = new ArrayList<>();
-        images = new ArrayList<> ();
+        productImages = new ArrayList<> ();
     }
 
     public UpdateProductDTO(String productName, String description, BigDecimal price, List<ProductCategory> categories) {
@@ -84,12 +83,12 @@ public class UpdateProductDTO {
         this.categories = productCategory;
     }
 
-    public List<Image> getImages() {
-        return images;
+    public List<Image> getProductImages() {
+        return productImages;
     }
 
-    public void setImages(List<Image> images) {
-        this.images = images;
+    public void setProductImages(List<Image> productImages) {
+        this.productImages = productImages;
     }
 
     public List<String> getCategoriesList() {

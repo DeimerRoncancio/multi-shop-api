@@ -26,12 +26,15 @@ public class FileSizeValidation implements Validator {
             .map(item -> (Object) item).toList();
 
         MultipartFile file = (MultipartFile) list.get(1);
+        String defaultMessage = "tiene un error. ";
         String field = (String) list.get(0);
 
         if (field.equals("imageUser") && !file.isEmpty() && file.getSize() > 1000000) {
-            errors.rejectValue(field, "", "tiene un error. El tamaño de la imagen debe ser menor a 1M");
+            defaultMessage += "El tamaño de la imagen debe ser menor a 1MB";
+            errors.rejectValue(field, "", defaultMessage);
         } else if (field.equals("productImages") && !file.isEmpty() && file.getSize() > 3000000) {
-            errors.rejectValue(field, "", "tiene un error. El tamaño minimo de las imagenes debe ser 5M");
+            defaultMessage += "El tamaño minímo de las imágenes debe ser 3MB";
+            errors.rejectValue(field, "", defaultMessage);
         }
     }
 }
