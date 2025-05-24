@@ -15,7 +15,6 @@ import jakarta.persistence.Column;
 @Entity
 @Table(name = "prod_categories")
 public class ProductCategory {
-
     @Id
     @UuidGenerator
     @Column(name = "id", nullable = false, updatable = false)

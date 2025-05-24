@@ -10,7 +10,6 @@ import com.multi.shop.api.multi_shop_api.products.entities.dtos.NewProductDTO;
 import com.multi.shop.api.multi_shop_api.products.entities.dtos.UpdateProductDTO;
 
 public interface ProductService {
-
     List<Product> findAll();
 
     Optional<Product> findOne(String id);

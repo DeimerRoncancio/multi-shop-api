@@ -23,7 +23,6 @@ import java.util.stream.Collectors;
 
 @Service
 public class ProductServiceImpl implements ProductService {
-
     private final Logger logger = LoggerFactory.getLogger(ProductServiceImpl.class);
     private final ProductRepository repository;
     private final ProductCategoryService categoryService;

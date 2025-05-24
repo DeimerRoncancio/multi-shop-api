@@ -7,9 +7,7 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.multi.shop.api.multi_shop_api.images.entities.Image;
-import com.multi.shop.api.multi_shop_api.products.entities.Product;
 import com.multi.shop.api.multi_shop_api.products.entities.ProductCategory;
-import com.multi.shop.api.multi_shop_api.validation.IfExists;
 
 import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotBlank;

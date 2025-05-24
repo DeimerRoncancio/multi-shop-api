@@ -29,7 +29,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 
-import javax.crypto.spec.PSource;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -40,7 +39,6 @@ import java.util.Optional;
 @RequestMapping("/app/products")
 @CrossOrigin(originPatterns = "*")
 public class ProductController {
-
     private final ProductService service;
     private final ProductRepository repository;
     private final MultipleFilesValidation multipleFilesValidation;
@@ -65,10 +63,9 @@ public class ProductController {
     public ResponseEntity<Product> view(@PathVariable String id) {
         Optional<Product> productDb = service.findOne(id);
 
-        if (productDb.isPresent())
-            return ResponseEntity.ok().body(productDb.get());
-        
-        return ResponseEntity.notFound().build();
+        return productDb.map(product ->
+            ResponseEntity.ok().body(product)).orElseGet(() -> ResponseEntity.notFound().build()
+        );
     }
 
     @PostMapping

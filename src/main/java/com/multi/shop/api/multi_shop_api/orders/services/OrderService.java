@@ -8,7 +8,6 @@ import com.multi.shop.api.multi_shop_api.orders.entities.dtos.NewOrderDTO;
 import com.multi.shop.api.multi_shop_api.orders.entities.dtos.UpdateOrderDTO;
 
 public interface OrderService {
-
     List<Order> findAll();
 
     Optional<Order> findOne(String id);

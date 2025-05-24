@@ -33,7 +33,6 @@ import java.util.Optional;
 @RequestMapping("/app/orders")
 @CrossOrigin(originPatterns = "*")
 public class OrderController {
-
     private final OrderService service;
     private final OrderRepository repository;
 
@@ -53,9 +52,9 @@ public class OrderController {
     public ResponseEntity<Order> view(@PathVariable String id) {
         Optional<Order> orderDb = service.findOne(id);
 
-        if (orderDb.isPresent()) return ResponseEntity.ok().body(orderDb.get());
-
-        return ResponseEntity.notFound().build();
+        return orderDb.map(order ->
+            ResponseEntity.ok().body(order)).orElseGet(() -> ResponseEntity.notFound().build()
+        );
     }
 
     @PostMapping
@@ -111,10 +110,12 @@ public class OrderController {
 
     public void handleObjectError(UpdateOrderDTO order, String id, BindingResult result) {
         repository.findById(id).ifPresent(cat -> {
-            if (cat.getOrderName().equals(order.getOrderName())) {
-                String messageError = "ya tiene este valor";
+            if (cat.getOrderName().equals(order.getOrderName())) return;
+
+            repository.findByOrderName(order.getOrderName()).ifPresent(o -> {
+                String messageError = "tiene un valor existente";
                 result.addError(new ObjectError("orderName", messageError));
-            }
+            });
         });
     }
 }

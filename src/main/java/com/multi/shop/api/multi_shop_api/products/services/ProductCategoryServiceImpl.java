@@ -15,7 +15,6 @@ import java.util.Optional;
 
 @Service
 public class ProductCategoryServiceImpl implements ProductCategoryService {
-
     private final ProductCategoryRepository repository;
 
     public ProductCategoryServiceImpl(ProductCategoryRepository repository) {
@@ -62,8 +61,7 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
     public Optional<ProductCategory> delete(String id) {
         Optional<ProductCategory> optionalCategory = repository.findById(id);
 
-        if (optionalCategory.isPresent())
-            repository.delete(optionalCategory.get());
+        optionalCategory.ifPresent(repository::delete);
         
         return optionalCategory;
     }

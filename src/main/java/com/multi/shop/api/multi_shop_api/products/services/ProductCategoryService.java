@@ -8,7 +8,6 @@ import com.multi.shop.api.multi_shop_api.products.entities.dtos.NewProductCatego
 import com.multi.shop.api.multi_shop_api.products.entities.dtos.UpdateProductCategoryDTO;
 
 public interface ProductCategoryService {
-
     List<ProductCategory> findAll();
 
     Optional<ProductCategory> findOne(String id);

@@ -11,7 +11,6 @@ import com.multi.shop.api.multi_shop_api.orders.entities.dtos.UpdateOrderDTO;
 
 @Mapper
 public interface OrderMapper {
-
     OrderMapper mapper = Mappers.getMapper(OrderMapper.class);
 
     @Mapping(target = "id", ignore = true)

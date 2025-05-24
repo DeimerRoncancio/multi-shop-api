@@ -22,7 +22,6 @@ import java.util.List;
 @Entity
 @Table(name = "products")
 public class Product {
-
     @Id
     @UuidGenerator
     @Column(name = "id", nullable = false, updatable = false)

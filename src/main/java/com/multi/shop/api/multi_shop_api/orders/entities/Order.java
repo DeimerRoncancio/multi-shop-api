@@ -21,7 +21,6 @@ import java.util.List;
 @Entity
 @Table(name = "orders")
 public class Order {
-    
     @Id
     @UuidGenerator
     @Column(name = "id", nullable = false, updatable = false)
