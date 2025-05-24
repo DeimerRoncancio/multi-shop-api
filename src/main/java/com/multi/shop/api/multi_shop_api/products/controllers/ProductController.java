@@ -64,7 +64,9 @@ public class ProductController {
         Optional<Product> productDb = service.findOne(id);
 
         return productDb.map(product ->
-            ResponseEntity.ok().body(product)).orElseGet(() -> ResponseEntity.notFound().build()
+            ResponseEntity.ok().body(product)
+        ).orElseGet(() ->
+            ResponseEntity.notFound().build()
         );
     }
 

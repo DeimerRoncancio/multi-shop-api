@@ -43,18 +43,19 @@ public class ProductCategoryController {
     }
 
     @GetMapping
-    public List<ProductCategory> viewdAll() {
+    public List<ProductCategory> viewAll() {
         return service.findAll();
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ProductCategory> view(@PathVariable String id) {
-        Optional<ProductCategory> optionalCategory = service.findOne(id);
+        Optional<ProductCategory> opCategory = service.findOne(id);
 
-        if (optionalCategory.isPresent())
-            return ResponseEntity.ok().body(optionalCategory.get());
-        
-        return ResponseEntity.notFound().build();
+        return opCategory.map(category ->
+            ResponseEntity.ok().body(category)
+        ).orElseGet(() ->
+            ResponseEntity.notFound().build()
+        );
     }
 
     @PostMapping

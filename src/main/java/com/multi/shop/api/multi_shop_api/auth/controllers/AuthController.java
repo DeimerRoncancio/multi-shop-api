@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.multi.shop.api.multi_shop_api.auth.entities.RegisterRequest;
+import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -54,10 +55,10 @@ public class AuthController {
     @RequestPart MultipartFile profileImage) {
         String key = "imageUser";
         fileSizeValidation.validate(Arrays.asList(key, profileImage), result);
-        
+
         if (result.hasFieldErrors())
             return validate(result);
-        
+
         return ResponseEntity.status(HttpStatus.CREATED).body(service.save(user, profileImage));
     }
 
@@ -88,9 +89,12 @@ public class AuthController {
             optionalUser = repository.findByEmail(identifier);
         }
 
-        UserInfoRequest user = getUser(optionalUser.get());
-        
-        return ResponseEntity.ok().body(user);
+        if (optionalUser.isPresent()) {
+            UserInfoRequest user = getUser(optionalUser.get());
+            return ResponseEntity.ok().body(user);
+        }
+
+        return ResponseEntity.notFound().build();
     }
 
     @GetMapping("/token-validation/{token}")

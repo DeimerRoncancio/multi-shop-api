@@ -1,7 +1,9 @@
 package com.multi.shop.api.multi_shop_api.users.controllers;
 
+import com.multi.shop.api.multi_shop_api.users.repository.UserRepository;
 import jakarta.validation.Valid;
 
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
@@ -31,11 +33,12 @@ import java.util.Optional;
 @RequestMapping("/app/users")
 @CrossOrigin(originPatterns = "*")
 public class UserController {
-
     private final UserService service;
+    private final UserRepository repository;
 
-    public UserController(UserService service) {
+    public UserController(UserService service, UserRepository repository) {
         this.service = service;
+        this.repository = repository;
     }
     
     @GetMapping
@@ -47,26 +50,27 @@ public class UserController {
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<User> view(@PathVariable String id) {
-        Optional<User> product = service.findOne(id);
+        Optional<User> opProduct = service.findOne(id);
 
-        if (product.isPresent())
-            return ResponseEntity.ok().body(product.get());
-        
-        return ResponseEntity.notFound().build();
+        return opProduct.map(product ->
+            ResponseEntity.ok().body(product)
+        ).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> update(@Valid @RequestBody UserUpdateRequest user, BindingResult result, 
     @PathVariable String id) {
-        if (result.hasFieldErrors())
+        handleObjectError(user, id, result);
+
+        if (result.hasErrors())
             return validate(result);
         
         Optional<User> userOptional = service.update(id, user);
-        
+
         if (userOptional.isPresent())
             return ResponseEntity.status(HttpStatus.CREATED).body(user);
-        
+
         return ResponseEntity.notFound().build();
     }
 
@@ -110,6 +114,32 @@ public class UserController {
             errors.put(err.getField(), "El campo " + err.getField() + " " + err.getDefaultMessage());
         });
 
+        result.getGlobalErrors().forEach(err -> {
+           errors.put(err.getObjectName(), "El campo " + err.getObjectName() + " " + err.getDefaultMessage());
+        });
+
         return ResponseEntity.badRequest().body(errors);
+    }
+
+    public void handleObjectError(UserUpdateRequest userDto, String id, BindingResult result) {
+        Optional<User> user = repository.findById(id);
+
+        user.ifPresent(a -> {
+            if (user.get().getPhoneNumber().equals(userDto.getPhoneNumber())) return;
+
+            repository.findByPhoneNumber(userDto.getPhoneNumber()).ifPresent(u -> {
+                String defaultMessage = "tiene un valor existente";
+                result.addError(new ObjectError("phoneNumber", defaultMessage));
+            });
+        });
+
+        user.ifPresent(a -> {
+            if (user.get().getEmail().equals(userDto.getEmail())) return;
+
+            repository.findByEmail(userDto.getEmail()).ifPresent(u -> {
+                String defaultMessage = "tiene un valor existente";
+                result.addError(new ObjectError("email", defaultMessage));
+            });
+        });
     }
 }

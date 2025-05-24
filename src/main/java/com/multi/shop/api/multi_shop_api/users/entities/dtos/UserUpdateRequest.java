@@ -13,18 +13,14 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
 public class UserUpdateRequest {
-
     @NotBlank(message = "{NotBlank.validation.text}")
     private String name;
     private String secondName;
     private String lastnames;
-
-    @IfExistsUpdate(entity = User.class, field = "phoneNumber", message = "{IfExists.user.phone}")
     private Long phoneNumber;
     private String gender;
 
     @Email
-    @IfExistsUpdate(entity = User.class, field = "email")
     @NotBlank(message = "{NotBlank.validation.text}")
     private String email;
 

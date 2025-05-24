@@ -10,7 +10,6 @@ import com.multi.shop.api.multi_shop_api.users.entities.User;
 import com.multi.shop.api.multi_shop_api.users.entities.dtos.UserUpdateRequest;
 
 public interface UserService {
-
     List<User> findAll();
 
     Optional<User> findOne(String id);
