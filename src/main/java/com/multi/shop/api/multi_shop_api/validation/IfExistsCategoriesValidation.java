@@ -13,7 +13,6 @@ import com.multi.shop.api.multi_shop_api.products.services.ProductCategoryServic
 
 @Component
 public class IfExistsCategoriesValidation implements Validator {
-
     private final ProductCategoryService categoryService;
 
     public IfExistsCategoriesValidation(ProductCategoryService categoryRepository) {

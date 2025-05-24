@@ -25,7 +25,6 @@ import jakarta.persistence.Entity;
 @Entity
 @Table(name = "users")
 public class User {
-
     @Id
     @UuidGenerator
     @Column(name = "id", updatable = false, nullable = false)
@@ -195,12 +194,12 @@ public class User {
     @Override
     public boolean equals(Object obj) {
         if (this == obj)
-        return true;
+            return true;
         if (obj == null)
             return false;
-            if (getClass() != obj.getClass())
+        if (getClass() != obj.getClass())
             return false;
-            User other = (User) obj;
+        User other = (User) obj;
         if (id == null) {
             if (other.id != null)
                 return false;

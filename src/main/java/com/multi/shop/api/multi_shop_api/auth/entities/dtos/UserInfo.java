@@ -3,7 +3,6 @@ package com.multi.shop.api.multi_shop_api.auth.entities.dtos;
 import com.multi.shop.api.multi_shop_api.users.entities.User;
 
 public class UserInfo {
-
     private String identifier;
     private User user;
 

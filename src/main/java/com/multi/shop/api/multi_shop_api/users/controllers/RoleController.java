@@ -19,7 +19,6 @@ import java.util.Optional;
 @RequestMapping("/app/roles")
 @CrossOrigin(originPatterns = "*")
 public class RoleController {
-
     private final RoleService service;
 
     public RoleController(RoleService service) {
@@ -37,9 +36,8 @@ public class RoleController {
     public ResponseEntity<Role> view(@PathVariable String id) {
         Optional<Role> roleDb = service.findOne(id);
 
-        if (roleDb.isPresent())
-            return ResponseEntity.ok().body(roleDb.get());
-        
-        return ResponseEntity.notFound().build();
+        return roleDb.map(role ->
+            ResponseEntity.ok().body(role)
+        ).orElseGet(() -> ResponseEntity.notFound().build());
     }
 }

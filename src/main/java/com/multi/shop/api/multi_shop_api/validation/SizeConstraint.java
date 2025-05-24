@@ -12,7 +12,6 @@ import jakarta.validation.Payload;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.METHOD})
 public @interface SizeConstraint {
-
     String message() default "debe tener un valor mayor a {min} caracteres";
 
     Class<?>[] groups() default {};

@@ -29,7 +29,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
-
     private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
     private final AuthenticationManager authManager;
 
@@ -40,7 +39,6 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) 
     throws AuthenticationException {
-
         String identifier = null;
         String password = null;
 
@@ -49,7 +47,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             identifier = credentials.getIdentifier();
             password = credentials.getPassword();
         } catch(IOException e) {
-            logger.error("Exception by bringing user: " + e);
+            logger.error("Exception by bringing user: {}", String.valueOf(e));
         }
         
         return authManager.authenticate(new UsernamePasswordAuthenticationToken(
@@ -61,7 +59,6 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     @Override
     public void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, 
     FilterChain filter, Authentication authResult) throws IOException {
-
         CustomUserDetails user = (CustomUserDetails) authResult.getPrincipal();
         
         Claims rolesClaims = getRoles(authResult);
@@ -78,11 +75,10 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     }
 
     @Override
-    public void unsuccessfulAuthentication(HttpServletRequest reques, HttpServletResponse response, 
+    public void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response,
     AuthenticationException failed) throws IOException, ServletException {
-
         Map<String, Object> body = new HashMap<> ();
-        body.put("message", "Error en la authenticación. Usuario o contraseña incorrectos.");
+        body.put("message", "Error en la autenticación. Usuario o contraseña incorrectos.");
         body.put("error", failed.getMessage());
 
         response.getWriter().write(new ObjectMapper().writeValueAsString(body));

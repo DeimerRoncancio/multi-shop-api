@@ -65,9 +65,7 @@ public class ProductController {
 
         return productDb.map(product ->
             ResponseEntity.ok().body(product)
-        ).orElseGet(() ->
-            ResponseEntity.notFound().build()
-        );
+        ).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping

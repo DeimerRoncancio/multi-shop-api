@@ -9,7 +9,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import com.multi.shop.api.multi_shop_api.users.entities.User;
 
 public class CustomUserDetails implements UserDetails {
-
     private String identity;
     private User user;
     private String password;

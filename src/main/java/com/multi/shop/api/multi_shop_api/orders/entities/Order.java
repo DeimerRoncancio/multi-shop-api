@@ -43,8 +43,7 @@ public class Order {
     @JsonIgnoreProperties({"orders", "roles"})
     private User user;
 
-    public Order() {
-    }
+    public Order() {}
     
     public Order(String orderName, String notes, Date orderDate) {
         this.orderName = orderName;

@@ -11,7 +11,6 @@ import com.multi.shop.api.multi_shop_api.users.entities.dtos.UserUpdateRequest;
 
 @Mapper
 public interface UserMapper {
-
     UserMapper mapper = Mappers.getMapper(UserMapper.class);
 
     @Mapping(target = "id", ignore = true)

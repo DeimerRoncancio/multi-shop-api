@@ -13,7 +13,6 @@ import com.multi.shop.api.multi_shop_api.images.entities.Image;
 
 @Component
 public class FileSizeValidation implements Validator {
-
     @Override
     public boolean supports(@NonNull Class<?> clazz) {
         return Image.class.isAssignableFrom(clazz);

@@ -33,7 +33,6 @@ import java.util.Optional;
 @RequestMapping("/app/categories")
 @CrossOrigin(originPatterns = "*")
 public class ProductCategoryController {
-
     private final ProductCategoryService service;
     private final ProductCategoryRepository repository;
 
@@ -53,9 +52,7 @@ public class ProductCategoryController {
 
         return opCategory.map(category ->
             ResponseEntity.ok().body(category)
-        ).orElseGet(() ->
-            ResponseEntity.notFound().build()
-        );
+        ).orElseGet(() ->ResponseEntity.notFound().build());
     }
 
     @PostMapping

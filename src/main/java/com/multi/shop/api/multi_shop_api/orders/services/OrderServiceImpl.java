@@ -65,7 +65,6 @@ public class OrderServiceImpl implements OrderService {
 
         orderDb.ifPresent(order -> {
             OrderMapper.mapper.toUpdateOrder(dto, order);
-
             repository.save(order);
         });
 
@@ -76,10 +75,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public Optional<Order> delete(String id) {
         Optional<Order> orderOptional = repository.findById(id);
-
-        if (orderOptional.isPresent())
-            repository.delete(orderOptional.get());
-        
+        orderOptional.ifPresent(repository::delete);
         return orderOptional;
     }
 }

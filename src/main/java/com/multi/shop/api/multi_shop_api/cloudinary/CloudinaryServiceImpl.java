@@ -16,7 +16,6 @@ import com.cloudinary.utils.ObjectUtils;
 
 @Service
 public class CloudinaryServiceImpl implements CloudinaryService {
-
     private final Cloudinary cloudinary;
 
     public CloudinaryServiceImpl() {

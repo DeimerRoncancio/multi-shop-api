@@ -1,7 +1,6 @@
 package com.multi.shop.api.multi_shop_api.auth.entities;
 
 public class LoginRequest {
-
     private String identifier;
     private String password;
 

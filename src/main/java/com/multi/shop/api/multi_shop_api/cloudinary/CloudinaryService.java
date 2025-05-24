@@ -6,7 +6,6 @@ import java.util.Map;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface CloudinaryService {
-
     @SuppressWarnings("rawtypes")
     Map upload(MultipartFile miltipartFile) throws IOException;
     

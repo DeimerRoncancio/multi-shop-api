@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.multi.shop.api.multi_shop_api.images.entities.Image;
 
 public class UserInfoRequest {
-
     private String name;
+
     @JsonIgnoreProperties("id")
     private Image profileImage;
     private String secondName;

@@ -12,7 +12,6 @@ import com.multi.shop.api.multi_shop_api.images.repositories.ImageRepository;
 
 @Service
 public class ImageServiceImpl implements ImageService {
-    
     private final ImageRepository repository;
     private final CloudinaryService cloudinaryService;
 

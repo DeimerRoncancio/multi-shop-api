@@ -12,7 +12,6 @@ import jakarta.persistence.Entity;
 @Entity
 @Table(name = "images")
 public class Image {
-    
     @Id
     @UuidGenerator
     @Column(name = "id", updatable = false, nullable = false)

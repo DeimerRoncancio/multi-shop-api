@@ -17,7 +17,6 @@ import java.util.List;
 @Entity
 @Table(name = "roles")
 public class Role {
-
     @Id
     @UuidGenerator
     @Column(name = "id", nullable = false, updatable = false)
@@ -93,6 +92,4 @@ public class Role {
             return false;
         return true;
     }
-
-    
 }

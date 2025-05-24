@@ -92,9 +92,7 @@ public class ProductServiceImpl implements ProductService {
 
         productOptional.ifPresent(product -> {
             if (!product.getProductImages().isEmpty()) {
-                product.getProductImages().forEach(img -> {
-                    deleteProductImage(img);
-                });
+                product.getProductImages().forEach(this::deleteProductImage);
             }
 
             repository.delete(productOptional.get());
@@ -135,7 +133,7 @@ public class ProductServiceImpl implements ProductService {
         categories.stream()
             .filter(cats -> productCategories.stream()
             .noneMatch(cat -> cat.getCategoryName().equals(cats.getCategoryName())))
-            .forEach(c -> productCategories.add(c));
+            .forEach(productCategories::add);
         
         return productCategories;
     }
@@ -144,7 +142,7 @@ public class ProductServiceImpl implements ProductService {
         try {
             imageService.deleteImage(image);
         } catch(IOException e) {
-            logger.error("Exception to try delete image: " + e);
+            logger.error("Exception to try delete image: {}", String.valueOf(e));
         }
     }
 
@@ -155,7 +153,7 @@ public class ProductServiceImpl implements ProductService {
             try {
                 image = imageService.uploadImage(file);
             } catch (IOException e) {
-                logger.error("Exception to try add the image: " + e);
+                logger.error("Exception to try add the image: {}", String.valueOf(e));
             }
         }
 
