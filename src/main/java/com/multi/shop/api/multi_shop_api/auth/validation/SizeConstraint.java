@@ -1,4 +1,4 @@
-package com.multi.shop.api.multi_shop_api.validation;
+package com.multi.shop.api.multi_shop_api.auth.validation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

@@ -106,7 +106,7 @@ public class ProductServiceImpl implements ProductService {
             .filter(img -> files.stream()
             .noneMatch(file -> Optional.ofNullable(file.getOriginalFilename())
             .orElse("").equals(img.getName())))
-            .collect(Collectors.toList());
+            .toList();
 
         productImages.removeAll(imagesToRemove);
         imagesToRemove.forEach(this::deleteProductImage);
@@ -126,7 +126,7 @@ public class ProductServiceImpl implements ProductService {
             .filter(cat -> categories.stream()
             .noneMatch(cats -> cats.getCategoryName()
             .equals(cat.getCategoryName())))
-            .collect(Collectors.toList());
+            .toList();
         
         productCategories.removeAll(categoriesToRemove);
 

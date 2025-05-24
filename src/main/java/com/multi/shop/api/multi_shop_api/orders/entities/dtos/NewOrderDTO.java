@@ -5,7 +5,7 @@ import java.util.Date;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.multi.shop.api.multi_shop_api.orders.entities.Order;
 import com.multi.shop.api.multi_shop_api.users.entities.User;
-import com.multi.shop.api.multi_shop_api.validation.IfExists;
+import com.multi.shop.api.multi_shop_api.common.validation.IfExists;
 
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;

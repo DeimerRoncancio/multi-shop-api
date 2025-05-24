@@ -1,4 +1,4 @@
-package com.multi.shop.api.multi_shop_api.validation;
+package com.multi.shop.api.multi_shop_api.auth.validation;
 
 import org.springframework.stereotype.Component;
 

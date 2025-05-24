@@ -8,8 +8,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.multi.shop.api.multi_shop_api.images.entities.Image;
 import com.multi.shop.api.multi_shop_api.users.entities.Role;
 import com.multi.shop.api.multi_shop_api.users.entities.User;
-import com.multi.shop.api.multi_shop_api.validation.IfExists;
-import com.multi.shop.api.multi_shop_api.validation.SizeConstraint;
+import com.multi.shop.api.multi_shop_api.common.validation.IfExists;
+import com.multi.shop.api.multi_shop_api.auth.validation.SizeConstraint;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

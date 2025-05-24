@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.multi.shop.api.multi_shop_api.auth.entities.RegisterRequest;
-import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -25,7 +24,7 @@ import com.multi.shop.api.multi_shop_api.users.entities.User;
 import com.multi.shop.api.multi_shop_api.users.entities.dtos.UserInfoRequest;
 import com.multi.shop.api.multi_shop_api.users.repository.UserRepository;
 import com.multi.shop.api.multi_shop_api.users.services.UserService;
-import com.multi.shop.api.multi_shop_api.validation.FileSizeValidation;
+import com.multi.shop.api.multi_shop_api.common.validation.FileSizeValidation;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;

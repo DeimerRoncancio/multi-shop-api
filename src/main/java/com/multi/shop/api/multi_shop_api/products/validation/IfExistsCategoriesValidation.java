@@ -1,4 +1,4 @@
-package com.multi.shop.api.multi_shop_api.validation;
+package com.multi.shop.api.multi_shop_api.products.validation;
 
 import java.util.List;
 

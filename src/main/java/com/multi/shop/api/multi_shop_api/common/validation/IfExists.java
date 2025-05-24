@@ -1,4 +1,4 @@
-package com.multi.shop.api.multi_shop_api.validation;
+package com.multi.shop.api.multi_shop_api.common.validation;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
