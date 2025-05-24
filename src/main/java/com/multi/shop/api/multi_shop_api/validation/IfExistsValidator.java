@@ -5,7 +5,7 @@ import jakarta.validation.ConstraintValidatorContext;
 
 import org.springframework.stereotype.Component;
 
-import com.multi.shop.api.multi_shop_api.services.CustomService;
+import com.multi.shop.api.multi_shop_api.common.services.CustomService;
 
 @Component
 public class IfExistsValidator implements ConstraintValidator<IfExists, Object> {

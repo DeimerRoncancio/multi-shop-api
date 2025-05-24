@@ -15,7 +15,6 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
 public class RegisterRequest {
-
     @NotBlank(message = "{NotBlank.validation.text}")
     private String name;
     
