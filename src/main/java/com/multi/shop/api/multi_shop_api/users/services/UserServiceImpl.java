@@ -76,13 +76,18 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public Optional<User> update(String id, UserUpdateRequest userDTO) {
         Optional<User> optionalUser = repository.findById(id);
-        
+
         optionalUser.ifPresent(userDb -> {
             List<Role> roles = userDb.getRoles();
-            
+
+            if (passwordEncoder.matches(userDTO.getPassword(), userDb.getPassword()))
+                userDTO.setPassword(userDb.getPassword());
+            else
+                userDTO.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+
             if (userDTO.isAdmin() && !userDb.isAdmin())
                 roleRepository.findByRole("ROLE_ADMIN").ifPresent(roles::add);
-            
+
             if (!userDTO.isAdmin() && userDb.isAdmin())
                 roleRepository.findByRole("ROLE_ADMIN").ifPresent(roles::remove);
 

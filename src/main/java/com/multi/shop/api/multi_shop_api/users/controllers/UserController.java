@@ -71,6 +71,7 @@ public class UserController {
         if (userOptional.isPresent())
             return ResponseEntity.status(HttpStatus.CREATED).body(user);
 
+
         return ResponseEntity.notFound().build();
     }
 
