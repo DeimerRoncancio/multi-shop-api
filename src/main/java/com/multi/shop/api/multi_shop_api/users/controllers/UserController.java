@@ -71,7 +71,6 @@ public class UserController {
         if (userOptional.isPresent())
             return ResponseEntity.status(HttpStatus.CREATED).body(user);
 
-
         return ResponseEntity.notFound().build();
     }
 
@@ -93,7 +92,7 @@ public class UserController {
             User user = service.updateProfileImage(optionalUser.get(), file);
             return ResponseEntity.status(HttpStatus.CREATED).body(user.getImageUser().getImageUrl());
         }
-        
+
         return ResponseEntity.notFound().build();
     }
 

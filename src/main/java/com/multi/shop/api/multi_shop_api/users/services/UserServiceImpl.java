@@ -80,11 +80,6 @@ public class UserServiceImpl implements UserService {
         optionalUser.ifPresent(userDb -> {
             List<Role> roles = userDb.getRoles();
 
-            if (passwordEncoder.matches(userDTO.getPassword(), userDb.getPassword()))
-                userDTO.setPassword(userDb.getPassword());
-            else
-                userDTO.setPassword(passwordEncoder.encode(userDTO.getPassword()));
-
             if (userDTO.isAdmin() && !userDb.isAdmin())
                 roleRepository.findByRole("ROLE_ADMIN").ifPresent(roles::add);
 
@@ -98,6 +93,17 @@ public class UserServiceImpl implements UserService {
         });
 
         return optionalUser;
+    }
+
+    public User updatePassword(User userDTO, String password) {
+        User userDb = new User();
+
+        if (passwordEncoder.matches(userDTO.getPassword(), userDb.getPassword()))
+            userDTO.setPassword(userDTO.getPassword());
+        else
+            userDTO.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+
+        return new User();
     }
 
     @Override
@@ -134,7 +140,7 @@ public class UserServiceImpl implements UserService {
             try {
                 image = imageService.uploadImage(file);
             } catch (IOException e) {
-                logger.error("Exception to try upload image: " + e);
+                logger.error("Exception to try upload image: {}", String.valueOf(e));
             }
         }
 
@@ -145,7 +151,7 @@ public class UserServiceImpl implements UserService {
         try {
             imageService.deleteImage(user.getImageUser());
         } catch(IOException e) {
-            logger.error("Exception to try delete the image: " + e);
+            logger.error("Exception to try delete the image: {}", String.valueOf(e));
         }
     }
 }

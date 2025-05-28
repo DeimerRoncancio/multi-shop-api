@@ -5,7 +5,6 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.multi.shop.api.multi_shop_api.users.entities.Role;
-import com.multi.shop.api.multi_shop_api.auth.validation.SizeConstraint;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -21,11 +20,6 @@ public class UserUpdateRequest {
     @Email
     @NotBlank(message = "{NotBlank.validation.text}")
     private String email;
-
-    @SizeConstraint(min = 8, max = 255)
-    @NotBlank(message = "{NotBlank.validation.text}")
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    private String password;
 
     @JsonIgnoreProperties({"users", "id"})
     private List<Role> roles;
@@ -81,14 +75,6 @@ public class UserUpdateRequest {
         this.email = email;
     }
     
-    public String getPassword() {
-        return password;
-    }
-    
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
     public List<Role> getRoles() {
         return roles;
     }
