@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.multi.shop.api.multi_shop_api.images.entities.Image;
 
 public class UserInfoRequest {
+    private String id;
     private String name;
 
     @JsonIgnoreProperties("id")
@@ -16,8 +17,9 @@ public class UserInfoRequest {
     private boolean admin;
     private boolean enabled;
 
-    public UserInfoRequest(String name, Image profileImage, String secondName, String lastnames,
-            Long phoneNumber, String gender, String email, boolean admin, boolean enabled) {
+    public UserInfoRequest(String id, String name, Image profileImage, String secondName, String lastnames,
+    Long phoneNumber, String gender, String email, boolean admin, boolean enabled) {
+        this.id = id;
         this.name = name;
         this.profileImage = profileImage;
         this.secondName = secondName;
@@ -27,6 +29,14 @@ public class UserInfoRequest {
         this.email = email;
         this.admin = admin;
         this.enabled = enabled;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getName() {
