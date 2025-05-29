@@ -119,6 +119,7 @@ public class AuthController {
 
     public UserInfoRequest getUser(User user) {
         return new UserInfoRequest(
+            user.getId(),
             user.getName(),
             user.getImageUser(),
             user.getSecondName(),
