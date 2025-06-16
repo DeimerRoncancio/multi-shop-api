@@ -40,7 +40,7 @@ public class UserController {
         this.service = service;
         this.repository = repository;
     }
-    
+
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public List<User> viewAll() {
@@ -125,7 +125,8 @@ public class UserController {
         Optional<User> user = repository.findById(id);
 
         user.ifPresent(a -> {
-            if (user.get().getPhoneNumber().equals(userDto.getPhoneNumber())) return;
+            if (user.get().getPhoneNumber() == null || user.get().getPhoneNumber().equals(userDto.getPhoneNumber()))
+                return;
 
             repository.findByPhoneNumber(userDto.getPhoneNumber()).ifPresent(u -> {
                 String defaultMessage = "tiene un valor existente";

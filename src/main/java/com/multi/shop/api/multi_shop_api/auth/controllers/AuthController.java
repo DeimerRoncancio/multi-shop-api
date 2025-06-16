@@ -37,7 +37,6 @@ import static com.multi.shop.api.multi_shop_api.security.JwtConfig.*;
 @RequestMapping("/app/users")
 @CrossOrigin(originPatterns = "*")
 public class AuthController {
-
     private final UserService service;
     private final UserRepository repository;
     private final FileSizeValidation fileSizeValidation;

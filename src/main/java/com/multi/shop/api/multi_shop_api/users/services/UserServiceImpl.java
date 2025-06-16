@@ -133,6 +133,13 @@ public class UserServiceImpl implements UserService {
         return optionalUser;
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public int usersSize() {
+        List<User> users = findAll();
+        return users.size();
+    }
+
     public Image uploadProfileImage(MultipartFile file) {
         Image image = null;
         

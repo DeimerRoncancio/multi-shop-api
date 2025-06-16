@@ -101,6 +101,12 @@ public class ProductServiceImpl implements ProductService {
         return productOptional;
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public int productsSize() {
+        return findAll().size();
+    }
+
     public List<Image> updateProductImages(List<Image> productImages, List<MultipartFile> files) {
         List<Image> imagesToRemove = productImages.stream()
             .filter(img -> files.stream()

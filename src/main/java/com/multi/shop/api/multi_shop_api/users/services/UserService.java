@@ -21,4 +21,6 @@ public interface UserService {
     User updateProfileImage(User user, MultipartFile file);
 
     Optional<User> delete(String id);
+
+    int usersSize();
 }

@@ -19,4 +19,6 @@ public interface ProductService {
     Optional<Product> update(String id, UpdateProductDTO product, List<MultipartFile> files);
 
     Optional<Product> delete(String id);
+
+    int productsSize();
 }

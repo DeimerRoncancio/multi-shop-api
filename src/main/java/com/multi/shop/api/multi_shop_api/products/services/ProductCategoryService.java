@@ -19,4 +19,6 @@ public interface ProductCategoryService {
     Optional<ProductCategory> delete(String id);
 
     List<ProductCategory> findCategoriesByName(List<String> categoryNames);
+
+    int categoriesSize();
 }

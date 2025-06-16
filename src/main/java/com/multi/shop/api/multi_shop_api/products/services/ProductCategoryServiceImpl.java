@@ -71,4 +71,10 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
     public List<ProductCategory> findCategoriesByName(List<String> categoryNames) {
         return repository.findByCategoryNameIn(categoryNames);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public int categoriesSize() {
+        return findAll().size();
+    }
 }
