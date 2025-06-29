@@ -19,7 +19,7 @@ public interface UserService {
 
     Optional<User> update(String id, UserUpdateRequest user);
 
-    User updatePassword(String id, UpdatePasswordRequest passwordInfo);
+    Optional<User> updatePassword(String id, UpdatePasswordRequest passwordInfo);
 
     User updateProfileImage(User user, MultipartFile file);
 

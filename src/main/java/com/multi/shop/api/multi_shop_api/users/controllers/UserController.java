@@ -4,6 +4,7 @@ import com.multi.shop.api.multi_shop_api.users.entities.dtos.UpdatePasswordReque
 import com.multi.shop.api.multi_shop_api.users.repository.UserRepository;
 import jakarta.validation.Valid;
 
+import org.apache.coyote.Response;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -85,10 +86,14 @@ public class UserController {
     }
 
     @PutMapping("/update/password/{id}")
-//    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public User updatePassword(@RequestBody UpdatePasswordRequest passwordRequest, @PathVariable String id) {
-        User newUser = service.updatePassword(id, passwordRequest);
-        return newUser;
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ResponseEntity<?> updatePassword(@RequestBody UpdatePasswordRequest passwordRequest, @PathVariable String id) {
+        Optional<User> newUser = service.updatePassword(id, passwordRequest);
+
+        if (newUser.isEmpty())
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        return ResponseEntity.ok().body(newUser.get());
     }
 
     @PutMapping("/update/profile-image/{id}")
