@@ -1,7 +1,11 @@
 package com.multi.shop.api.multi_shop_api.users.entities.dtos;
 
+import jakarta.validation.constraints.NotBlank;
+
 public class UpdatePasswordRequest {
+    @NotBlank
     private String currentPassword;
+    @NotBlank
     private String newPassword;
 
     public UpdatePasswordRequest(String currentPassword, String newPassword) {

@@ -87,7 +87,11 @@ public class UserController {
 
     @PutMapping("/update/password/{id}")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<?> updatePassword(@RequestBody UpdatePasswordRequest passwordRequest, @PathVariable String id) {
+    public ResponseEntity<?> updatePassword(@Valid @RequestBody UpdatePasswordRequest passwordRequest,
+    BindingResult result, @PathVariable String id) {
+        if (result.hasErrors())
+            return validate(result);
+
         Optional<User> newUser = service.updatePassword(id, passwordRequest);
 
         if (newUser.isEmpty())
