@@ -1,5 +1,6 @@
 package com.multi.shop.api.multi_shop_api.users.controllers;
 
+import com.multi.shop.api.multi_shop_api.users.entities.dtos.UpdatePasswordRequest;
 import com.multi.shop.api.multi_shop_api.users.repository.UserRepository;
 import jakarta.validation.Valid;
 
@@ -81,6 +82,13 @@ public class UserController {
         user.setAdmin(false);
 
         return update(user, result, id);
+    }
+
+    @PutMapping("/update/password/{id}")
+//    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public User updatePassword(@RequestBody UpdatePasswordRequest passwordRequest, @PathVariable String id) {
+        User newUser = service.updatePassword(id, passwordRequest);
+        return newUser;
     }
 
     @PutMapping("/update/profile-image/{id}")

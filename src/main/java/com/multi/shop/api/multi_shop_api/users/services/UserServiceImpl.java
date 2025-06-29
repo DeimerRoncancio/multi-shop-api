@@ -1,6 +1,7 @@
 package com.multi.shop.api.multi_shop_api.users.services;
 
 import com.multi.shop.api.multi_shop_api.images.services.ImageService;
+import com.multi.shop.api.multi_shop_api.users.entities.dtos.UpdatePasswordRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -95,15 +96,17 @@ public class UserServiceImpl implements UserService {
         return optionalUser;
     }
 
-    public User updatePassword(User userDTO, String password) {
-        User userDb = new User();
+    @Override
+    @Transactional
+    public User updatePassword(String id, UpdatePasswordRequest passwordInfo) {
+        String currentPassword = passwordInfo.getCurrentPassword();
+        String newPassword = passwordInfo.getNewPassword();
+        Optional<User> userDb = repository.findById(id);
 
-        if (passwordEncoder.matches(userDTO.getPassword(), userDb.getPassword()))
-            userDTO.setPassword(userDTO.getPassword());
-        else
-            userDTO.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+        if (passwordEncoder.matches(currentPassword, userDb.get().getPassword()))
+            userDb.get().setPassword(newPassword);
 
-        return new User();
+        return userDb.get();
     }
 
     @Override

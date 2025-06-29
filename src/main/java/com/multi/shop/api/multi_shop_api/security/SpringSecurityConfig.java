@@ -52,6 +52,7 @@ public class SpringSecurityConfig {
             .requestMatchers(HttpMethod.GET, "/app/products", "/app/products/{id}").permitAll()
             .requestMatchers(HttpMethod.GET, "/app/users/token-validation/{token}").permitAll()
             .requestMatchers(HttpMethod.POST, "/app/users/register").permitAll()
+            .requestMatchers(HttpMethod.PUT, "/app/users/update/password/{id}").permitAll()
             .anyRequest().authenticated())
             .addFilter(new JwtAuthenticationFilter(authenticationManager()))
             .addFilter(new JwtValidationFilter(authenticationManager()))
