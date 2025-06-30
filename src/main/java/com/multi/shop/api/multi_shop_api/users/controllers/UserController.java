@@ -95,9 +95,9 @@ public class UserController {
         Optional<User> newUser = service.updatePassword(id, passwordRequest);
 
         if (newUser.isEmpty())
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("PASSWORD_UNAUTHORIZED");
 
-        return ResponseEntity.ok().body(newUser.get());
+        return ResponseEntity.ok().build();
     }
 
     @PutMapping("/update/profile-image/{id}")

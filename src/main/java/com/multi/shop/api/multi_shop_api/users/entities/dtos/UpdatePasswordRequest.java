@@ -1,11 +1,15 @@
 package com.multi.shop.api.multi_shop_api.users.entities.dtos;
 
+import com.multi.shop.api.multi_shop_api.auth.validation.SizeConstraint;
 import jakarta.validation.constraints.NotBlank;
 
 public class UpdatePasswordRequest {
-    @NotBlank
+    @NotBlank(message = "{NotBlank.validation.text}")
+    @SizeConstraint(min = 8, max = 255)
     private String currentPassword;
-    @NotBlank
+
+    @NotBlank(message = "{NotBlank.validation.text}")
+    @SizeConstraint(min = 8, max = 255)
     private String newPassword;
 
     public UpdatePasswordRequest(String currentPassword, String newPassword) {
