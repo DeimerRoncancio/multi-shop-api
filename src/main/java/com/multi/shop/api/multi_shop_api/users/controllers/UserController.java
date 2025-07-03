@@ -88,14 +88,20 @@ public class UserController {
     @PutMapping("/update/password/{id}")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<?> updatePassword(@Valid @RequestBody UpdatePasswordRequest passwordRequest,
-    BindingResult result, @PathVariable String id) {
+    BindingResult result, @PathVariable String id) throws Exception {
         if (result.hasErrors())
             return validate(result);
 
-        Optional<User> newUser = service.updatePassword(id, passwordRequest);
+        Optional<?> newUser = service.updatePassword(id, passwordRequest);
 
-        if (newUser.isEmpty())
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("PASSWORD_UNAUTHORIZED");
+        if (newUser.isPresent()) {
+            if (newUser.get().equals("PASSWORD_UNAUTHORIZED")) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(newUser.get());
+            }
+
+            if (newUser.get().equals("SAME_PASSWORD"))
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(newUser.get());
+        }
 
         return ResponseEntity.ok().build();
     }

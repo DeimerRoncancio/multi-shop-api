@@ -98,19 +98,22 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public Optional<User> updatePassword(String id, UpdatePasswordRequest passwordInfo) {
+    public Optional<?> updatePassword(String id, UpdatePasswordRequest passwordInfo) {
         String currentPassword = passwordInfo.getCurrentPassword();
         String newPassword = passwordInfo.getNewPassword();
         Optional<User> userDb = repository.findById(id);
 
         if (userDb.isPresent()) {
-            if (passwordEncoder.matches(currentPassword, userDb.get().getPassword())) {
-                userDb.get().setPassword(passwordEncoder.encode(newPassword));
-                return userDb;
-            }
+            if (!passwordEncoder.matches(currentPassword, userDb.get().getPassword()))
+                return Optional.of("PASSWORD_UNAUTHORIZED");
+            if (currentPassword.equals(newPassword))
+                return Optional.of("SAME_PASSWORD");
+
+            userDb.get().setPassword(passwordEncoder.encode(newPassword));
+            repository.save(userDb.get());
         }
 
-        return Optional.empty();
+        return userDb;
     }
 
     @Override
