@@ -16,7 +16,6 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @Entity
@@ -30,7 +29,7 @@ public class Product {
     @Column(unique = true)
     private String productName;
     private String description;
-    private BigDecimal price;
+    private Long price;
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinTable(
@@ -52,7 +51,7 @@ public class Product {
     public Product() {
     }
 
-    public Product(String productName, String description, BigDecimal price, List<ProductCategory> categories) {
+    public Product(String productName, String description, Long price, List<ProductCategory> categories) {
         this.productName = productName;
         this.description = description;
         this.price = price;
@@ -83,11 +82,11 @@ public class Product {
         this.description = description;
     }
 
-    public BigDecimal getPrice() {
+    public Long getPrice() {
         return price;
     }
 
-    public void setPrice(BigDecimal price) {
+    public void setPrice(Long price) {
         this.price = price;
     }
 

@@ -10,14 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.multi.shop.api.multi_shop_api.users.entities.User;
@@ -68,9 +61,9 @@ public class AuthController {
         return create(user, result, profileImage);
     }
 
-    @GetMapping("/get-user/{token}")
+    @GetMapping("/me")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<?> getUser(@PathVariable String token) {
+    public ResponseEntity<?> getUser(@RequestHeader("Token") String token) {
         Optional<User> optionalUser;
         String identifier = null;
 
@@ -95,8 +88,8 @@ public class AuthController {
         return ResponseEntity.notFound().build();
     }
 
-    @GetMapping("/token-validation/{token}")
-    public ResponseEntity<?> tokenValidation(@PathVariable String token) {
+    @GetMapping("/token-validation")
+    public ResponseEntity<?> tokenValidation(@RequestHeader("Token") String token) {
         try {
             Jwts.parser().verifyWith(SECRET_KEY).build().parseSignedClaims(token).getPayload();
         } catch(JwtException e) {

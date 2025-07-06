@@ -1,6 +1,5 @@
 package com.multi.shop.api.multi_shop_api.products.entities.dtos;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,7 +27,7 @@ public class NewProductDTO {
     private String description;
     
     @NotNull(message = "{NotBlank.validation.text}")
-    private BigDecimal price;
+    private Long price;
 
     @JsonIgnoreProperties("id")
     private List<Image> productImages;
@@ -46,7 +45,7 @@ public class NewProductDTO {
         productImages = new ArrayList<> ();
     }
 
-    public NewProductDTO(String productName, String description, BigDecimal price, List<ProductCategory> categories) {
+    public NewProductDTO(String productName, String description, Long price, List<ProductCategory> categories) {
         this.productName = productName;
         this.description = description;
         this.price = price;
@@ -69,11 +68,11 @@ public class NewProductDTO {
         this.description = description;
     }
 
-    public BigDecimal getPrice() {
+    public Long getPrice() {
         return price;
     }
 
-    public void setPrice(BigDecimal price) {
+    public void setPrice(Long price) {
         this.price = price;
     }
 

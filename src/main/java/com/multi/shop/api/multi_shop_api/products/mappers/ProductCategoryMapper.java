@@ -11,7 +11,6 @@ import com.multi.shop.api.multi_shop_api.products.entities.dtos.UpdateProductCat
 
 @Mapper
 public interface ProductCategoryMapper {
-
     ProductCategoryMapper mapper = Mappers.getMapper(ProductCategoryMapper.class);
 
     @Mapping(target = "id", ignore = true)
