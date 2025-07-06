@@ -50,7 +50,7 @@ public class SpringSecurityConfig {
         return http.authorizeHttpRequests(authz -> authz
             .requestMatchers(HttpMethod.GET, "/app/categories", "/app/categories/{id}").permitAll()
             .requestMatchers(HttpMethod.GET, "/app/products", "/app/products/{id}").permitAll()
-            .requestMatchers(HttpMethod.GET, "/app/users/token-validation/{token}").permitAll()
+            .requestMatchers(HttpMethod.GET, "/app/users/token-validation").permitAll()
             .requestMatchers(HttpMethod.POST, "/app/users/register").permitAll()
             .anyRequest().authenticated())
             .addFilter(new JwtAuthenticationFilter(authenticationManager()))
@@ -67,7 +67,7 @@ public class SpringSecurityConfig {
 
         config.setAllowedOriginPatterns(List.of("*"));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
-        config.setAllowedHeaders(Arrays.asList("Authorization", "content-type"));
+        config.setAllowedHeaders(Arrays.asList("Authorization", "content-type", "Token"));
         config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
