@@ -1,4 +1,4 @@
-package com.multi.shop.api.multi_shop_api.auth.entities.dtos;
+package com.multi.shop.api.multi_shop_api.auth.dtos;
 
 import java.util.Collection;
 import java.util.List;

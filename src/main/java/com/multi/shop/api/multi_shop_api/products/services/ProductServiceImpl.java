@@ -57,7 +57,7 @@ public class ProductServiceImpl implements ProductService {
             dto.getProductImages().add(image);
         });
 
-        Product product = ProductMapper.mapper.productCreateDTOtoProduct(dto);
+        Product product = ProductMapper.MAPPER.productCreateDTOtoProduct(dto);
         repository.save(product);
         return dto;
     }
@@ -76,7 +76,7 @@ public class ProductServiceImpl implements ProductService {
 
             dto.setCategories(productCategories);
             dto.setProductImages(productImages);
-            ProductMapper.mapper.toUpdateProduct(dto, productDb);
+            ProductMapper.MAPPER.toUpdateProduct(dto, productDb);
 
             repository.save(productDb);
         });

@@ -11,8 +11,7 @@ import com.multi.shop.api.multi_shop_api.products.entities.dtos.UpdateProductDTO
 
 @Mapper
 public interface ProductMapper {
-
-    ProductMapper mapper = Mappers.getMapper(ProductMapper.class);
+    ProductMapper MAPPER = Mappers.getMapper(ProductMapper.class);
 
     @Mapping(target = "id", ignore = true)
     Product productCreateDTOtoProduct(NewProductDTO dto);

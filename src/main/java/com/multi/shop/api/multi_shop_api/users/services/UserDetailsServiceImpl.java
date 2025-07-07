@@ -4,8 +4,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.multi.shop.api.multi_shop_api.users.entities.User;
-import com.multi.shop.api.multi_shop_api.auth.entities.dtos.CustomUserDetails;
-import com.multi.shop.api.multi_shop_api.auth.entities.dtos.UserInfo;
+import com.multi.shop.api.multi_shop_api.auth.dtos.CustomUserDetails;
+import com.multi.shop.api.multi_shop_api.auth.dtos.UserInfo;
 import com.multi.shop.api.multi_shop_api.users.repository.UserRepository;
 
 import java.util.List;
@@ -33,9 +33,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
         return new CustomUserDetails(
             identifier, 
-            userInfo.getUser().getPassword(),
-            userInfo.getUser().isEnabled(),
-            getAuthorities(userInfo.getUser()));
+            userInfo.user().getPassword(),
+            userInfo.user().isEnabled(),
+            getAuthorities(userInfo.user()));
     }
     
     public UserInfo getUserInfo(String identifier) {
@@ -50,9 +50,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         if (optionalUser.isEmpty())
             throw new UsernameNotFoundException(" ");
         
-        return new UserInfo(optionalUser.get());
+        return new UserInfo(identifier, optionalUser.get());
     }
-    
+
     public List<GrantedAuthority> getAuthorities(User user) {
         return user.getRoles().stream()
             .map(role -> new SimpleGrantedAuthority(role.getRole()))

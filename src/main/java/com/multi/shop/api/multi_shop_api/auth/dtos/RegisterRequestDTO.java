@@ -1,4 +1,4 @@
-package com.multi.shop.api.multi_shop_api.auth.entities;
+package com.multi.shop.api.multi_shop_api.auth.dtos;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +14,7 @@ import com.multi.shop.api.multi_shop_api.auth.validation.SizeConstraint;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
-public class RegisterRequest {
+public class RegisterRequestDTO {
     @NotBlank(message = "{NotBlank.validation.text}")
     private String name;
     
@@ -43,7 +43,7 @@ public class RegisterRequest {
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private boolean admin;
 
-    public RegisterRequest() {
+    public RegisterRequestDTO() {
         this.roles = new ArrayList<> ();
     }
 

@@ -18,8 +18,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.multi.shop.api.multi_shop_api.auth.entities.LoginRequest;
-import com.multi.shop.api.multi_shop_api.auth.entities.dtos.CustomUserDetails;
+import com.multi.shop.api.multi_shop_api.auth.dtos.LoginRequestDTO;
+import com.multi.shop.api.multi_shop_api.auth.dtos.CustomUserDetails;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -43,9 +43,9 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         String password = null;
 
         try {
-            LoginRequest credentials = new ObjectMapper().readValue(request.getInputStream(), LoginRequest.class);
-            identifier = credentials.getIdentifier();
-            password = credentials.getPassword();
+            LoginRequestDTO credentials = new ObjectMapper().readValue(request.getInputStream(), LoginRequestDTO.class);
+            identifier = credentials.identifier();
+            password = credentials.password();
         } catch(IOException e) {
             logger.warn("Exception by bringing user: {}", String.valueOf(e));
         }

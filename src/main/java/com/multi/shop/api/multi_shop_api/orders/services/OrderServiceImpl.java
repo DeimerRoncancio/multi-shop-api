@@ -42,7 +42,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public NewOrderDTO save(NewOrderDTO dto) {
-        Order order = OrderMapper.mapper.orderCreateDTOtoOrder(dto);
+        Order order = OrderMapper.MAPPER.orderCreateDTOtoOrder(dto);
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String principal = (String) authentication.getPrincipal();
@@ -64,7 +64,7 @@ public class OrderServiceImpl implements OrderService {
         Optional<Order> orderDb = repository.findById(id);
 
         orderDb.ifPresent(order -> {
-            OrderMapper.mapper.toUpdateOrder(dto, order);
+            OrderMapper.MAPPER.toUpdateOrder(dto, order);
             repository.save(order);
         });
 

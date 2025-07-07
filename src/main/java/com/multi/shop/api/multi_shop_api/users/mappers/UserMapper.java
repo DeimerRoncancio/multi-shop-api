@@ -5,18 +5,18 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.factory.Mappers;
 
-import com.multi.shop.api.multi_shop_api.auth.entities.RegisterRequest;
+import com.multi.shop.api.multi_shop_api.auth.dtos.RegisterRequestDTO;
 import com.multi.shop.api.multi_shop_api.users.entities.User;
 import com.multi.shop.api.multi_shop_api.users.entities.dtos.UserUpdateRequest;
 
 @Mapper
 public interface UserMapper {
-    UserMapper mapper = Mappers.getMapper(UserMapper.class);
+    UserMapper MAPPER = Mappers.getMapper(UserMapper.class);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "orders", ignore = true)
     @Mapping(target = "enabled", ignore = true)
-    User userCreateDTOtoUser(RegisterRequest dto);
+    User userCreateDTOtoUser(RegisterRequestDTO dto);
     
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "orders", ignore = true)

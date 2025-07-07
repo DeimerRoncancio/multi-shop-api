@@ -6,7 +6,7 @@ import java.util.Optional;
 import com.multi.shop.api.multi_shop_api.users.entities.dtos.UpdatePasswordRequest;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.multi.shop.api.multi_shop_api.auth.entities.RegisterRequest;
+import com.multi.shop.api.multi_shop_api.auth.dtos.RegisterRequestDTO;
 import com.multi.shop.api.multi_shop_api.users.entities.User;
 import com.multi.shop.api.multi_shop_api.users.entities.dtos.UserUpdateRequest;
 
@@ -15,7 +15,7 @@ public interface UserService {
 
     Optional<User> findOne(String id);
 
-    RegisterRequest save(RegisterRequest user, MultipartFile file);
+    RegisterRequestDTO save(RegisterRequestDTO user, MultipartFile file);
 
     Optional<User> update(String id, UserUpdateRequest user);
 

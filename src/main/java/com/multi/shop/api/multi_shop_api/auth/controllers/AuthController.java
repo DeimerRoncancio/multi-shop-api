@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import com.multi.shop.api.multi_shop_api.auth.entities.RegisterRequest;
+import com.multi.shop.api.multi_shop_api.auth.dtos.RegisterRequestDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -42,7 +42,7 @@ public class AuthController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> create(@Valid @ModelAttribute RegisterRequest user, BindingResult result,
+    public ResponseEntity<?> create(@Valid @ModelAttribute RegisterRequestDTO user, BindingResult result,
     @RequestPart MultipartFile profileImage) {
         String key = "imageUser";
         fileSizeValidation.validate(Arrays.asList(key, profileImage), result);
@@ -54,7 +54,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @ModelAttribute RegisterRequest user, BindingResult result, 
+    public ResponseEntity<?> register(@Valid @ModelAttribute RegisterRequestDTO user, BindingResult result,
     @RequestPart MultipartFile profileImage) {
         user.setAdmin(false);
 

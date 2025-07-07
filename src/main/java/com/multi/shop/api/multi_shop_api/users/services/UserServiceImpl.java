@@ -1,5 +1,6 @@
 package com.multi.shop.api.multi_shop_api.users.services;
 
+import com.multi.shop.api.multi_shop_api.auth.dtos.RegisterRequestDTO;
 import com.multi.shop.api.multi_shop_api.images.services.ImageService;
 import com.multi.shop.api.multi_shop_api.users.entities.dtos.UpdatePasswordRequest;
 import org.slf4j.Logger;
@@ -8,7 +9,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.multi.shop.api.multi_shop_api.auth.entities.RegisterRequest;
 import com.multi.shop.api.multi_shop_api.images.entities.Image;
 import com.multi.shop.api.multi_shop_api.users.entities.Role;
 import com.multi.shop.api.multi_shop_api.users.entities.User;
@@ -53,7 +53,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public RegisterRequest save(RegisterRequest userDTO, MultipartFile file) {
+    public RegisterRequestDTO save(RegisterRequestDTO userDTO, MultipartFile file) {
         List<Role> roles = new ArrayList<>();
 
         roleRepository.findByRole("ROLE_USER").ifPresent(roles::add);
@@ -65,9 +65,9 @@ public class UserServiceImpl implements UserService {
             Image image = uploadProfileImage(file);
             userDTO.setImageUser(image);
         }
-        
+
         userDTO.setRoles(roles);
-        User user = UserMapper.mapper.userCreateDTOtoUser(userDTO);
+        User user = UserMapper.MAPPER.userCreateDTOtoUser(userDTO);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         repository.save(user);
         return userDTO;
@@ -88,7 +88,7 @@ public class UserServiceImpl implements UserService {
                 roleRepository.findByRole("ROLE_ADMIN").ifPresent(roles::remove);
 
             userDTO.setRoles(roles);
-            UserMapper.mapper.toUpdateUser(userDTO, userDb);
+            UserMapper.MAPPER.toUpdateUser(userDTO, userDb);
 
             repository.save(userDb);
         });
