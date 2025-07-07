@@ -110,9 +110,9 @@ public class OrderController {
 
     public void handleObjectError(UpdateOrderDTO order, String id, BindingResult result) {
         repository.findById(id).ifPresent(cat -> {
-            if (cat.getOrderName().equals(order.getOrderName())) return;
+            if (cat.getOrderName().equals(order.orderName())) return;
 
-            repository.findByOrderName(order.getOrderName()).ifPresent(o -> {
+            repository.findByOrderName(order.orderName()).ifPresent(o -> {
                 String messageError = "tiene un valor existente";
                 result.addError(new ObjectError("orderName", messageError));
             });
