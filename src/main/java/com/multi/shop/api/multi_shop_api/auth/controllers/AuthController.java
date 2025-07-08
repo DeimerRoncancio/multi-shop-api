@@ -44,7 +44,7 @@ public class AuthController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> create(@Valid @ModelAttribute RegisterRequestDTO user, BindingResult result,
     @RequestPart MultipartFile profileImage) {
-        String key = "imageUser";
+        final String key = "imageUser";
         fileSizeValidation.validate(Arrays.asList(key, profileImage), result);
 
         if (result.hasFieldErrors())

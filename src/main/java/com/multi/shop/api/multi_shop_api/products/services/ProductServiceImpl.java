@@ -1,6 +1,8 @@
 package com.multi.shop.api.multi_shop_api.products.services;
 
 import com.multi.shop.api.multi_shop_api.images.services.ImageService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -36,8 +38,8 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Product> findAll() {
-        return repository.findAll();
+    public Page<Product> findAll(Pageable pageable) {
+        return repository.findAll(pageable);
     }
 
     @Override
@@ -103,7 +105,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public int productsSize() {
-        return findAll().size();
+        return findAll(Pageable.unpaged()).getContent().size();
     }
 
     public List<Image> updateProductImages(List<Image> productImages, List<MultipartFile> files) {

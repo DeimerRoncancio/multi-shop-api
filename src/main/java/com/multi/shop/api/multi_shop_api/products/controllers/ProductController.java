@@ -3,6 +3,9 @@ package com.multi.shop.api.multi_shop_api.products.controllers;
 import com.multi.shop.api.multi_shop_api.products.repositories.ProductRepository;
 import jakarta.validation.Valid;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -55,8 +58,8 @@ public class ProductController {
     }
 
     @GetMapping
-    public List<Product> viewAll() {
-        return service.findAll();
+    public Page<Product> viewAll(@PageableDefault Pageable pageable) {
+        return service.findAll(pageable);
     }
 
     @GetMapping("/{id}")
