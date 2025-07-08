@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.Optional;
 
 import com.multi.shop.api.multi_shop_api.products.entities.ProductCategory;
-import com.multi.shop.api.multi_shop_api.products.entities.dtos.NewProductCategoryDTO;
-import com.multi.shop.api.multi_shop_api.products.entities.dtos.UpdateProductCategoryDTO;
+import com.multi.shop.api.multi_shop_api.products.dtos.NewProductCategoryDTO;
+import com.multi.shop.api.multi_shop_api.products.dtos.UpdateProductCategoryDTO;
 
 public interface ProductCategoryService {
     List<ProductCategory> findAll();

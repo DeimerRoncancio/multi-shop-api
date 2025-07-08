@@ -6,8 +6,8 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.factory.Mappers;
 
 import com.multi.shop.api.multi_shop_api.products.entities.Product;
-import com.multi.shop.api.multi_shop_api.products.entities.dtos.NewProductDTO;
-import com.multi.shop.api.multi_shop_api.products.entities.dtos.UpdateProductDTO;
+import com.multi.shop.api.multi_shop_api.products.dtos.NewProductDTO;
+import com.multi.shop.api.multi_shop_api.products.dtos.UpdateProductDTO;
 
 @Mapper
 public interface ProductMapper {

@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.multi.shop.api.multi_shop_api.orders.entities.Order;
-import com.multi.shop.api.multi_shop_api.orders.entities.dtos.NewOrderDTO;
-import com.multi.shop.api.multi_shop_api.orders.entities.dtos.UpdateOrderDTO;
+import com.multi.shop.api.multi_shop_api.orders.dtos.NewOrderDTO;
+import com.multi.shop.api.multi_shop_api.orders.dtos.UpdateOrderDTO;
 import com.multi.shop.api.multi_shop_api.orders.services.OrderService;
 
 import org.springframework.web.bind.annotation.CrossOrigin;

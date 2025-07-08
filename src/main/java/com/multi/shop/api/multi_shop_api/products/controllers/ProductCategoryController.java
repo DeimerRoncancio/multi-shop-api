@@ -7,8 +7,8 @@ import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.multi.shop.api.multi_shop_api.products.entities.ProductCategory;
-import com.multi.shop.api.multi_shop_api.products.entities.dtos.NewProductCategoryDTO;
-import com.multi.shop.api.multi_shop_api.products.entities.dtos.UpdateProductCategoryDTO;
+import com.multi.shop.api.multi_shop_api.products.dtos.NewProductCategoryDTO;
+import com.multi.shop.api.multi_shop_api.products.dtos.UpdateProductCategoryDTO;
 import com.multi.shop.api.multi_shop_api.products.services.ProductCategoryService;
 
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -108,7 +108,7 @@ public class ProductCategoryController {
 
     public void handleObjectError(UpdateProductCategoryDTO category, BindingResult result, String id) {
         repository.findById(id).ifPresent(cat -> {
-            if (cat.getCategoryName().equals(category.getCategoryName())) {
+            if (cat.getCategoryName().equals(category.categoryName())) {
                 String messageError = "ya tiene este valor";
                 result.addError(new ObjectError("categoryName", messageError));
             }

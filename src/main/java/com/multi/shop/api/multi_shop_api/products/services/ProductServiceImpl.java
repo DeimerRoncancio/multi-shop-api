@@ -7,8 +7,8 @@ import org.springframework.web.multipart.MultipartFile;
 import com.multi.shop.api.multi_shop_api.images.entities.Image;
 import com.multi.shop.api.multi_shop_api.products.entities.Product;
 import com.multi.shop.api.multi_shop_api.products.entities.ProductCategory;
-import com.multi.shop.api.multi_shop_api.products.entities.dtos.NewProductDTO;
-import com.multi.shop.api.multi_shop_api.products.entities.dtos.UpdateProductDTO;
+import com.multi.shop.api.multi_shop_api.products.dtos.NewProductDTO;
+import com.multi.shop.api.multi_shop_api.products.dtos.UpdateProductDTO;
 import com.multi.shop.api.multi_shop_api.products.mappers.ProductMapper;
 import com.multi.shop.api.multi_shop_api.products.repositories.ProductRepository;
 

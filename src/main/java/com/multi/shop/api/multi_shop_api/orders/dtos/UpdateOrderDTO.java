@@ -1,4 +1,4 @@
-package com.multi.shop.api.multi_shop_api.orders.entities.dtos;
+package com.multi.shop.api.multi_shop_api.orders.dtos;
 
 import java.util.Date;
 import java.util.List;

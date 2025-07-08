@@ -1,4 +1,4 @@
-package com.multi.shop.api.multi_shop_api.products.entities.dtos;
+package com.multi.shop.api.multi_shop_api.products.dtos;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +21,7 @@ public class UpdateProductDTO {
     @NotBlank(message = "{NotBlank.validation.text}")
     @Size(max = 140, message = "{Size.product.description}")
     private String description;
-    
+
     @NotNull(message = "{NotBlank.validation.text}")
     private Long price;
 

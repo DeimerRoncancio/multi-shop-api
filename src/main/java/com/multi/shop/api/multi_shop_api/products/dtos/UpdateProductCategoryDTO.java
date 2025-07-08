@@ -1,19 +1,12 @@
-package com.multi.shop.api.multi_shop_api.products.entities.dtos;
+package com.multi.shop.api.multi_shop_api.products.dtos;
 
 import com.multi.shop.api.multi_shop_api.products.entities.ProductCategory;
 import com.multi.shop.api.multi_shop_api.common.validation.IfExists;
 import jakarta.validation.constraints.NotBlank;
 
-public class UpdateProductCategoryDTO {
+public record UpdateProductCategoryDTO(
     @NotBlank(message = "{NotBlank.validation.text}")
     @IfExists(message = "{IfExists.category.name}", entity = ProductCategory.class, field = "categoryName")
-    private String categoryName;
-
-    public String getCategoryName() {
-        return categoryName;
-    }
-
-    public void setCategoryName(String categoryName) {
-        this.categoryName = categoryName;
-    }
+    String categoryName
+) {
 }

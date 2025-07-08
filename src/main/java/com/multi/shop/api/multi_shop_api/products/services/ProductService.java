@@ -6,8 +6,8 @@ import java.util.Optional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.multi.shop.api.multi_shop_api.products.entities.Product;
-import com.multi.shop.api.multi_shop_api.products.entities.dtos.NewProductDTO;
-import com.multi.shop.api.multi_shop_api.products.entities.dtos.UpdateProductDTO;
+import com.multi.shop.api.multi_shop_api.products.dtos.NewProductDTO;
+import com.multi.shop.api.multi_shop_api.products.dtos.UpdateProductDTO;
 
 public interface ProductService {
     List<Product> findAll();

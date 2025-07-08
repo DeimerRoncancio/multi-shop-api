@@ -3,8 +3,8 @@ package com.multi.shop.api.multi_shop_api.products.services;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.multi.shop.api.multi_shop_api.products.entities.ProductCategory;
-import com.multi.shop.api.multi_shop_api.products.entities.dtos.NewProductCategoryDTO;
-import com.multi.shop.api.multi_shop_api.products.entities.dtos.UpdateProductCategoryDTO;
+import com.multi.shop.api.multi_shop_api.products.dtos.NewProductCategoryDTO;
+import com.multi.shop.api.multi_shop_api.products.dtos.UpdateProductCategoryDTO;
 import com.multi.shop.api.multi_shop_api.products.mappers.ProductCategoryMapper;
 import com.multi.shop.api.multi_shop_api.products.repositories.ProductCategoryRepository;
 

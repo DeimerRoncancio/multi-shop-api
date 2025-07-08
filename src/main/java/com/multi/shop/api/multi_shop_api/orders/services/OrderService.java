@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.Optional;
 
 import com.multi.shop.api.multi_shop_api.orders.entities.Order;
-import com.multi.shop.api.multi_shop_api.orders.entities.dtos.NewOrderDTO;
-import com.multi.shop.api.multi_shop_api.orders.entities.dtos.UpdateOrderDTO;
+import com.multi.shop.api.multi_shop_api.orders.dtos.NewOrderDTO;
+import com.multi.shop.api.multi_shop_api.orders.dtos.UpdateOrderDTO;
 
 public interface OrderService {
     List<Order> findAll();

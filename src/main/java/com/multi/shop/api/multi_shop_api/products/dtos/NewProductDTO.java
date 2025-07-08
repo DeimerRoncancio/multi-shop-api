@@ -1,4 +1,4 @@
-package com.multi.shop.api.multi_shop_api.products.entities.dtos;
+package com.multi.shop.api.multi_shop_api.products.dtos;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,16 +25,16 @@ public class NewProductDTO {
     @NotBlank(message = "{NotBlank.validation.text}")
     @Size(max = 140, message = "{Size.product.description}")
     private String description;
-    
+
     @NotNull(message = "{NotBlank.validation.text}")
     private Long price;
 
     @JsonIgnoreProperties("id")
     private List<Image> productImages;
-    
+
     @JsonIgnoreProperties({"id", "products"})
     private List<ProductCategory> categories;
-    
+
     @Transient
     @NotEmpty(message = "{NotEmpty.validation.list}")
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)

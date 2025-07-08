@@ -6,8 +6,8 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.factory.Mappers;
 
 import com.multi.shop.api.multi_shop_api.orders.entities.Order;
-import com.multi.shop.api.multi_shop_api.orders.entities.dtos.NewOrderDTO;
-import com.multi.shop.api.multi_shop_api.orders.entities.dtos.UpdateOrderDTO;
+import com.multi.shop.api.multi_shop_api.orders.dtos.NewOrderDTO;
+import com.multi.shop.api.multi_shop_api.orders.dtos.UpdateOrderDTO;
 
 @Mapper
 public interface OrderMapper {
