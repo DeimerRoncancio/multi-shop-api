@@ -3,12 +3,12 @@ package com.multi.shop.api.multi_shop_api.users.services;
 import java.util.List;
 import java.util.Optional;
 
-import com.multi.shop.api.multi_shop_api.users.entities.dtos.UpdatePasswordRequest;
+import com.multi.shop.api.multi_shop_api.users.dtos.UpdatePasswordRequestDTO;
+import com.multi.shop.api.multi_shop_api.users.dtos.UserUpdateRequestDTO;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.multi.shop.api.multi_shop_api.auth.dtos.RegisterRequestDTO;
 import com.multi.shop.api.multi_shop_api.users.entities.User;
-import com.multi.shop.api.multi_shop_api.users.entities.dtos.UserUpdateRequest;
 
 public interface UserService {
     List<User> findAll();
@@ -17,9 +17,9 @@ public interface UserService {
 
     RegisterRequestDTO save(RegisterRequestDTO user, MultipartFile file);
 
-    Optional<User> update(String id, UserUpdateRequest user);
+    Optional<User> update(String id, UserUpdateRequestDTO user);
 
-    Optional<?> updatePassword(String id, UpdatePasswordRequest passwordInfo) throws Exception;
+    Optional<?> updatePassword(String id, UpdatePasswordRequestDTO passwordInfo) throws Exception;
 
     User updateProfileImage(User user, MultipartFile file);
 

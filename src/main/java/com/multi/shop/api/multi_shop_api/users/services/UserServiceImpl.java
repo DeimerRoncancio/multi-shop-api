@@ -2,7 +2,8 @@ package com.multi.shop.api.multi_shop_api.users.services;
 
 import com.multi.shop.api.multi_shop_api.auth.dtos.RegisterRequestDTO;
 import com.multi.shop.api.multi_shop_api.images.services.ImageService;
-import com.multi.shop.api.multi_shop_api.users.entities.dtos.UpdatePasswordRequest;
+import com.multi.shop.api.multi_shop_api.users.dtos.UpdatePasswordRequestDTO;
+import com.multi.shop.api.multi_shop_api.users.dtos.UserUpdateRequestDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -12,7 +13,6 @@ import org.springframework.web.multipart.MultipartFile;
 import com.multi.shop.api.multi_shop_api.images.entities.Image;
 import com.multi.shop.api.multi_shop_api.users.entities.Role;
 import com.multi.shop.api.multi_shop_api.users.entities.User;
-import com.multi.shop.api.multi_shop_api.users.entities.dtos.UserUpdateRequest;
 import com.multi.shop.api.multi_shop_api.users.mappers.UserMapper;
 import com.multi.shop.api.multi_shop_api.users.repository.RoleRepository;
 import com.multi.shop.api.multi_shop_api.users.repository.UserRepository;
@@ -75,7 +75,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public Optional<User> update(String id, UserUpdateRequest userDTO) {
+    public Optional<User> update(String id, UserUpdateRequestDTO userDTO) {
         Optional<User> optionalUser = repository.findById(id);
 
         optionalUser.ifPresent(userDb -> {
@@ -98,9 +98,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public Optional<?> updatePassword(String id, UpdatePasswordRequest passwordInfo) {
-        String currentPassword = passwordInfo.getCurrentPassword();
-        String newPassword = passwordInfo.getNewPassword();
+    public Optional<?> updatePassword(String id, UpdatePasswordRequestDTO passwordInfo) {
+        String currentPassword = passwordInfo.currentPassword();
+        String newPassword = passwordInfo.newPassword();
         Optional<User> userDb = repository.findById(id);
 
         if (userDb.isPresent()) {

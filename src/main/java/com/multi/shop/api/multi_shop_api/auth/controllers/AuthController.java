@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.multi.shop.api.multi_shop_api.users.entities.User;
-import com.multi.shop.api.multi_shop_api.users.entities.dtos.UserInfoRequest;
+import com.multi.shop.api.multi_shop_api.users.dtos.UserInfoRequestDTO;
 import com.multi.shop.api.multi_shop_api.users.repository.UserRepository;
 import com.multi.shop.api.multi_shop_api.users.services.UserService;
 import com.multi.shop.api.multi_shop_api.common.validation.FileSizeValidation;
@@ -81,7 +81,7 @@ public class AuthController {
         }
 
         if (optionalUser.isPresent()) {
-            UserInfoRequest user = getUser(optionalUser.get());
+            UserInfoRequestDTO user = getUser(optionalUser.get());
             return ResponseEntity.ok().body(user);
         }
 
@@ -109,8 +109,8 @@ public class AuthController {
         return ResponseEntity.badRequest().body(errors);
     }
 
-    public UserInfoRequest getUser(User user) {
-        return new UserInfoRequest(
+    public UserInfoRequestDTO getUser(User user) {
+        return new UserInfoRequestDTO(
             user.getId(),
             user.getName(),
             user.getImageUser(),
