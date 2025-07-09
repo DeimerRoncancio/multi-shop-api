@@ -56,23 +56,23 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public RegisterRequestDTO save(RegisterRequestDTO userDTO, MultipartFile file) {
-        List<Role> roles = new ArrayList<>();
+        User user = UserMapper.MAPPER.userDTOtoUser(userDTO);
 
+        List<Role> roles = new ArrayList<>();
         roleRepository.findByRole("ROLE_USER").ifPresent(roles::add);
 
-        if (userDTO.isAdmin())
+        if (user.isAdmin())
             roleRepository.findByRole("ROLE_ADMIN").ifPresent(roles::add);
 
         if (file != null && !file.isEmpty()) {
             Image image = uploadProfileImage(file);
-            userDTO.setImageUser(image);
+            user.setImageUser(image);
         }
 
-        userDTO.setRoles(roles);
-        User user = UserMapper.MAPPER.userCreateDTOtoUser(userDTO);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setRoles(roles);
         repository.save(user);
-        return userDTO;
+        return UserMapper.MAPPER.userToUserDTO(user);
     }
 
     @Override

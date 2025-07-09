@@ -25,8 +25,8 @@ public class FileSizeValidation implements Validator {
             .map(item -> (Object) item).toList();
 
         MultipartFile file = (MultipartFile) list.get(1);
-        String defaultMessage = "tiene un error. ";
         String field = (String) list.get(0);
+        String defaultMessage = "tiene un error. ";
 
         if (field.equals("imageUser") && !file.isEmpty() && file.getSize() > 1000000) {
             defaultMessage += "El tamaño de la imagen debe ser menor a 1MB";

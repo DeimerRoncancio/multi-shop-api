@@ -46,7 +46,7 @@ public class OrderServiceImpl implements OrderService {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String principal = (String) authentication.getPrincipal();
-        
+
         Optional<User> userOptional = userRepository.findByEmail(principal);
 
         if (userOptional.isEmpty())

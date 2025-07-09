@@ -56,9 +56,7 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @ModelAttribute RegisterRequestDTO user, BindingResult result,
     @RequestPart MultipartFile profileImage) {
-        user.setAdmin(false);
-
-        return create(user, result, profileImage);
+        return create(RegisterRequestDTO.onlyUser(user), result, profileImage);
     }
 
     @GetMapping("/me")

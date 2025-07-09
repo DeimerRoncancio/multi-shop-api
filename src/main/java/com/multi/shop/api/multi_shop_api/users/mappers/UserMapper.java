@@ -16,7 +16,7 @@ public interface UserMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "orders", ignore = true)
     @Mapping(target = "enabled", ignore = true)
-    User userCreateDTOtoUser(RegisterRequestDTO dto);
+    User userDTOtoUser(RegisterRequestDTO dto);
     
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "orders", ignore = true)
@@ -25,4 +25,6 @@ public interface UserMapper {
     @Mapping(target = "imageUser", ignore = true)
     @Mapping(target = "password", ignore = true)
     void toUpdateUser(UserUpdateRequestDTO dto, @MappingTarget User user);
+
+    RegisterRequestDTO userToUserDTO(User user);
 }
