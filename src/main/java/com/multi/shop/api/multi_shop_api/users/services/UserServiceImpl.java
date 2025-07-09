@@ -6,6 +6,8 @@ import com.multi.shop.api.multi_shop_api.users.dtos.UpdatePasswordRequestDTO;
 import com.multi.shop.api.multi_shop_api.users.dtos.UserUpdateRequestDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -41,8 +43,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<User> findAll() {
-        return repository.findAll();
+    public Page<User> findAll(Pageable pageable) {
+        return repository.findAll(pageable);
     }
 
     @Override
@@ -146,8 +148,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public int usersSize() {
-        List<User> users = findAll();
-        return users.size();
+        return findAll(Pageable.unpaged()).getContent().size();
     }
 
     public Image uploadProfileImage(MultipartFile file) {

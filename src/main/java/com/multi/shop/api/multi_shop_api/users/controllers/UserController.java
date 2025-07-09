@@ -5,6 +5,8 @@ import com.multi.shop.api.multi_shop_api.users.dtos.UserUpdateRequestDTO;
 import com.multi.shop.api.multi_shop_api.users.repository.UserRepository;
 import jakarta.validation.Valid;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -44,8 +46,8 @@ public class UserController {
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public List<User> viewAll() {
-        return service.findAll();
+    public Page<User> viewAll(Pageable pageable) {
+        return service.findAll(pageable);
     }
 
     @GetMapping("/{id}")
