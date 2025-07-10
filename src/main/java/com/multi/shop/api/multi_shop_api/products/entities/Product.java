@@ -16,6 +16,8 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 @Entity
@@ -49,6 +51,7 @@ public class Product {
     private List<ProductCategory> categories;
 
     public Product() {
+        productImages = new ArrayList<>();
     }
 
     public Product(String productName, String description, Long price, List<ProductCategory> categories) {

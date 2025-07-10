@@ -75,7 +75,7 @@ public class ProductController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> create(@Valid @ModelAttribute NewProductDTO product, BindingResult result, 
     @RequestPart(required = false) List<MultipartFile> images) {
-        handleValidations(images, product.getCategoriesList(), result);
+        handleValidations(images, product.categoriesList(), result);
 
         if (result.hasErrors())
             return validate(result);

@@ -51,17 +51,18 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public NewProductDTO save(NewProductDTO dto, List<MultipartFile> files) {
-        List<ProductCategory> categoryList =  categoryService.findCategoriesByName(dto.getCategoriesList());
-        dto.setCategories(categoryList);
+        Product product = ProductMapper.MAPPER.productCreateDTOtoProduct(dto);
+
+        List<ProductCategory> categoryList =  categoryService.findCategoriesByName(dto.categoriesList());
+        product.setCategories(categoryList);
 
         files.forEach(img -> {
             Image image = uploadProductImage(img);
-            dto.getProductImages().add(image);
+            product.getProductImages().add(image);
         });
 
-        Product product = ProductMapper.MAPPER.productCreateDTOtoProduct(dto);
         repository.save(product);
-        return dto;
+        return ProductMapper.MAPPER.productToProductDTO(product);
     }
 
     @Override
