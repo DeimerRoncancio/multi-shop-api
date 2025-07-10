@@ -67,24 +67,27 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    public Optional<Product> update(String id, UpdateProductDTO dto, List<MultipartFile> files) {
+    public Optional<UpdateProductDTO> update(String id, UpdateProductDTO dto, List<MultipartFile> files) {
         Optional<Product> productOptional = repository.findById(id);
 
-        productOptional.ifPresent(productDb -> {
-            List<ProductCategory> categoriesDb = categoryService.findCategoriesByName(dto.getCategoriesList());
+        if (productOptional.isPresent()) {
+            Product productDb = productOptional.get();
+
+            List<ProductCategory> categoriesDb = categoryService.findCategoriesByName(dto.categoriesList());
             List<ProductCategory> productCategories = updateProductCategories(
                 productDb.getCategories(), categoriesDb
             );
             List<Image> productImages = updateProductImages(productDb.getProductImages(), files);
 
-            dto.setCategories(productCategories);
-            dto.setProductImages(productImages);
+            productDb.setCategories(productCategories);
+            productDb.setProductImages(productImages);
             ProductMapper.MAPPER.toUpdateProduct(dto, productDb);
 
             repository.save(productDb);
-        });
+            return Optional.of(ProductMapper.MAPPER.productToUpdateProductDTO(productDb));
+        }
 
-        return productOptional;
+        return Optional.empty();
     }
 
     @Override

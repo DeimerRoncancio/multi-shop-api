@@ -23,4 +23,7 @@ public interface ProductMapper {
 
     @Mapping(target = "categoriesList", ignore = true)
     NewProductDTO productToProductDTO(Product product);
+
+    @Mapping(target = "categoriesList", ignore = true)
+    UpdateProductDTO productToUpdateProductDTO(Product product);
 }

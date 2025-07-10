@@ -17,7 +17,6 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 @Entity

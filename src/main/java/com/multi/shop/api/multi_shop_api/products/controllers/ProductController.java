@@ -87,16 +87,16 @@ public class ProductController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> update(@Valid @ModelAttribute UpdateProductDTO product, BindingResult result, 
     @PathVariable String id, @RequestPart(required = false) List<MultipartFile> images) {
-        handleValidations(images, product.getCategoriesList(), result);
+        handleValidations(images, product.categoriesList(), result);
         handleObjectError(product, id, result);
 
         if (result.hasErrors())
             return validate(result);
 
-        Optional<Product> productDb = service.update(id, product, images);
+        Optional<UpdateProductDTO> productDb = service.update(id, product, images);
 
         if (productDb.isPresent())
-            return ResponseEntity.status(HttpStatus.CREATED).body(product);
+            return ResponseEntity.status(HttpStatus.CREATED).body(productDb.get());
         
         return ResponseEntity.notFound().build();
     }
@@ -141,9 +141,9 @@ public class ProductController {
 
     public void handleObjectError(UpdateProductDTO product, String id, BindingResult result) {
         repository.findById(id).ifPresent(prod -> {
-            if (prod.getProductName().equals(product.getProductName())) return;
+            if (prod.getProductName().equals(product.productName())) return;
 
-            repository.findByProductName(product.getProductName()).ifPresent(p -> {
+            repository.findByProductName(product.productName()).ifPresent(p -> {
                 String messageError = "tiene un valor existente";
                 result.addError(new ObjectError("productName", messageError));
             });
