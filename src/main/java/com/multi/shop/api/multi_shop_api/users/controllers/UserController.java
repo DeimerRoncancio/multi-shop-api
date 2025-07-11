@@ -63,16 +63,16 @@ public class UserController {
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> update(@Valid @RequestBody UserUpdateRequestDTO user, BindingResult result,
-                                    @PathVariable String id) {
+    @PathVariable String id) {
         handleObjectError(user, id, result);
 
         if (result.hasErrors())
             return validate(result);
         
-        Optional<User> userOptional = service.update(id, user);
+        Optional<UserUpdateRequestDTO> userOptional = service.update(id, user);
 
         if (userOptional.isPresent())
-            return ResponseEntity.status(HttpStatus.CREATED).body(user);
+            return ResponseEntity.status(HttpStatus.CREATED).body(userOptional.get());
 
         return ResponseEntity.notFound().build();
     }
@@ -81,7 +81,7 @@ public class UserController {
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<?> updateUser(@Valid @RequestBody UserUpdateRequestDTO user, BindingResult result,
     @PathVariable String id) {
-        user.setAdmin(false);
+//        user.setAdmin(false);
 
         return update(user, result, id);
     }
@@ -149,19 +149,19 @@ public class UserController {
         Optional<User> user = repository.findById(id);
 
         user.ifPresent(a -> {
-            if (user.get().getPhoneNumber() == null || user.get().getPhoneNumber().equals(userDto.getPhoneNumber()))
+            if (user.get().getPhoneNumber() == null || user.get().getPhoneNumber().equals(userDto.phoneNumber()))
                 return;
 
-            repository.findByPhoneNumber(userDto.getPhoneNumber()).ifPresent(u -> {
+            repository.findByPhoneNumber(userDto.phoneNumber()).ifPresent(u -> {
                 String defaultMessage = "tiene un valor existente";
                 result.addError(new ObjectError("phoneNumber", defaultMessage));
             });
         });
 
         user.ifPresent(a -> {
-            if (user.get().getEmail().equals(userDto.getEmail())) return;
+            if (user.get().getEmail().equals(userDto.email())) return;
 
-            repository.findByEmail(userDto.getEmail()).ifPresent(u -> {
+            repository.findByEmail(userDto.email()).ifPresent(u -> {
                 String defaultMessage = "tiene un valor existente";
                 result.addError(new ObjectError("email", defaultMessage));
             });

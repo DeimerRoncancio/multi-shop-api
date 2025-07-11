@@ -77,25 +77,26 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public Optional<User> update(String id, UserUpdateRequestDTO userDTO) {
+    public Optional<UserUpdateRequestDTO> update(String id, UserUpdateRequestDTO userDTO) {
         Optional<User> optionalUser = repository.findById(id);
 
-        optionalUser.ifPresent(userDb -> {
-            List<Role> roles = userDb.getRoles();
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            List<Role> roles = user.getRoles();
 
-            if (userDTO.isAdmin() && !userDb.isAdmin())
+            if (userDTO.admin() && !user.isAdmin())
                 roleRepository.findByRole("ROLE_ADMIN").ifPresent(roles::add);
-
-            if (!userDTO.isAdmin() && userDb.isAdmin())
+            if (!userDTO.admin() && user.isAdmin())
                 roleRepository.findByRole("ROLE_ADMIN").ifPresent(roles::remove);
 
-            userDTO.setRoles(roles);
-            UserMapper.MAPPER.toUpdateUser(userDTO, userDb);
+            user.setRoles(roles);
+            UserMapper.MAPPER.toUpdateUser(userDTO, user);
 
-            repository.save(userDb);
-        });
+            repository.save(user);
+            return Optional.of(UserMapper.MAPPER.userUpdateToUserDTO(user));
+        }
 
-        return optionalUser;
+        return Optional.empty();
     }
 
     @Override

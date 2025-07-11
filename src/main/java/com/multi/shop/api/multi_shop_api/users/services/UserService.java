@@ -18,7 +18,7 @@ public interface UserService {
 
     RegisterRequestDTO save(RegisterRequestDTO user, MultipartFile file);
 
-    Optional<User> update(String id, UserUpdateRequestDTO user);
+    Optional<UserUpdateRequestDTO> update(String id, UserUpdateRequestDTO user);
 
     Optional<?> updatePassword(String id, UpdatePasswordRequestDTO passwordInfo) throws Exception;
 

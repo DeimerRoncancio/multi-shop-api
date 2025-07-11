@@ -27,4 +27,6 @@ public interface UserMapper {
     void toUpdateUser(UserUpdateRequestDTO dto, @MappingTarget User user);
 
     RegisterRequestDTO userToUserDTO(User user);
+
+    UserUpdateRequestDTO userUpdateToUserDTO(User user);
 }
