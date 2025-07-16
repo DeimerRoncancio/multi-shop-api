@@ -1,5 +1,6 @@
-package com.multi.shop.api.multi_shop_api.products.services;
+package com.multi.shop.api.multi_shop_api.products.services.impl;
 
+import com.multi.shop.api.multi_shop_api.products.services.ProductCategoryService;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.multi.shop.api.multi_shop_api.products.entities.ProductCategory;

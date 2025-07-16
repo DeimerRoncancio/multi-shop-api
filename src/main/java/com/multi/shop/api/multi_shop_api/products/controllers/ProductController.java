@@ -6,37 +6,24 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
+import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.multi.shop.api.multi_shop_api.products.entities.Product;
 import com.multi.shop.api.multi_shop_api.products.dtos.NewProductDTO;
 import com.multi.shop.api.multi_shop_api.products.dtos.UpdateProductDTO;
 import com.multi.shop.api.multi_shop_api.products.services.ProductService;
-import com.multi.shop.api.multi_shop_api.common.validation.FileSizeValidation;
+import com.multi.shop.api.multi_shop_api.common.validation.validators.FileSizeValidation;
 import com.multi.shop.api.multi_shop_api.products.validation.IfExistsCategoriesValidation;
 import com.multi.shop.api.multi_shop_api.products.validation.MultipleFilesValidation;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.validation.BindingResult;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
 @RequestMapping("/app/products")
@@ -73,31 +60,23 @@ public class ProductController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> create(@Valid @ModelAttribute NewProductDTO product, BindingResult result, 
-    @RequestPart(required = false) List<MultipartFile> images) {
-        handleValidations(images, product.categoriesList(), result);
-
-        if (result.hasErrors())
-            return validate(result);
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.save(product, images));
+    public ResponseEntity<?> create(@ModelAttribute @Valid NewProductDTO product) {
+        NewProductDTO newProduct = service.save(product);
+        return ResponseEntity.ok().body(newProduct);
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> update(@Valid @ModelAttribute UpdateProductDTO product, BindingResult result, 
+    public ResponseEntity<?> update(@ModelAttribute @Valid UpdateProductDTO product, BindingResult result,
     @PathVariable String id, @RequestPart(required = false) List<MultipartFile> images) {
         handleValidations(images, product.categoriesList(), result);
         handleObjectError(product, id, result);
-
-        if (result.hasErrors())
-            return validate(result);
 
         Optional<UpdateProductDTO> productDb = service.update(id, product, images);
 
         if (productDb.isPresent())
             return ResponseEntity.status(HttpStatus.CREATED).body(productDb.get());
-        
+
         return ResponseEntity.notFound().build();
     }
 
@@ -112,8 +91,8 @@ public class ProductController {
         return ResponseEntity.notFound().build();
     }
 
-    public ResponseEntity<?> validate(BindingResult result) {
-        Map<String, String> errors = new HashMap<> ();
+    public ResponseEntity<Map<String, String>> validate(BindingResult result) {
+        Map<String, String> errors = new HashMap<>();
 
         result.getFieldErrors().forEach(err -> {
             errors.put(err.getField(), "El campo " + err.getField() + " " + err.getDefaultMessage());

@@ -17,7 +17,7 @@ import com.multi.shop.api.multi_shop_api.users.entities.User;
 import com.multi.shop.api.multi_shop_api.users.dtos.UserInfoRequestDTO;
 import com.multi.shop.api.multi_shop_api.users.repository.UserRepository;
 import com.multi.shop.api.multi_shop_api.users.services.UserService;
-import com.multi.shop.api.multi_shop_api.common.validation.FileSizeValidation;
+import com.multi.shop.api.multi_shop_api.common.validation.validators.FileSizeValidation;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;

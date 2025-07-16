@@ -1,6 +1,8 @@
-package com.multi.shop.api.multi_shop_api.products.services;
+package com.multi.shop.api.multi_shop_api.products.services.impl;
 
 import com.multi.shop.api.multi_shop_api.images.services.ImageService;
+import com.multi.shop.api.multi_shop_api.products.services.ProductCategoryService;
+import com.multi.shop.api.multi_shop_api.products.services.ProductService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,13 +52,13 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    public NewProductDTO save(NewProductDTO dto, List<MultipartFile> files) {
+    public NewProductDTO save(NewProductDTO dto) {
         Product product = ProductMapper.MAPPER.productCreateDTOtoProduct(dto);
 
         List<ProductCategory> categoryList =  categoryService.findCategoriesByName(dto.categoriesList());
         product.setCategories(categoryList);
 
-        files.forEach(img -> {
+        dto.images().forEach(img -> {
             Image image = uploadProductImage(img);
             product.getProductImages().add(image);
         });

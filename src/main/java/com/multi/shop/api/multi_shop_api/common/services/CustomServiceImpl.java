@@ -13,7 +13,12 @@ public class CustomServiceImpl implements CustomService {
     }
 
     @Override
-    public Long ifExistsCustomField(String entity, String fieldName, Object value) {
-        return repository.ifExistsCustomField(entity, fieldName, value);
+    public Long ifExists(Object value, String entity, String fieldName) {
+        return repository.ifExists(value, entity, fieldName);
+    }
+
+    @Override
+    public Long ifExistsUpdate(String value, String id, String entity, String fieldName) {
+        return repository.ifExistsUpdate(value, id, entity, fieldName);
     }
 }

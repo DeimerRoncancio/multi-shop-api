@@ -4,10 +4,10 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.multi.shop.api.multi_shop_api.common.validation.IfExistsValid;
 import com.multi.shop.api.multi_shop_api.images.entities.Image;
 import com.multi.shop.api.multi_shop_api.users.entities.Role;
 import com.multi.shop.api.multi_shop_api.users.entities.User;
-import com.multi.shop.api.multi_shop_api.common.validation.IfExists;
 import com.multi.shop.api.multi_shop_api.auth.validation.SizeConstraint;
 
 import jakarta.validation.constraints.Email;
@@ -22,12 +22,12 @@ public record RegisterRequestDTO(
     String secondName,
     String lastnames,
 
-    @IfExists(entity = User.class, field = "phoneNumber", message = "{IfExists.user.phone}")
+    @IfExistsValid(entity = User.class, field = "phoneNumber", message = "{IfExistsValid.user.phone}")
     Long phoneNumber,
     String gender,
 
     @Email
-    @IfExists(entity = User.class, field = "email")
+    @IfExistsValid(entity = User.class, field = "email")
     @NotBlank(message = "{NotBlank.validation.text}")
     String email,
 

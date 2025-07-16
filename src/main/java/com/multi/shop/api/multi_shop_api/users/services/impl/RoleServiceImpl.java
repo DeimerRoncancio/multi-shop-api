@@ -1,5 +1,6 @@
-package com.multi.shop.api.multi_shop_api.users.services;
+package com.multi.shop.api.multi_shop_api.users.services.impl;
 
+import com.multi.shop.api.multi_shop_api.users.services.RoleService;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.multi.shop.api.multi_shop_api.users.entities.Role;

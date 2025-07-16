@@ -1,9 +1,10 @@
-package com.multi.shop.api.multi_shop_api.users.services;
+package com.multi.shop.api.multi_shop_api.users.services.impl;
 
 import com.multi.shop.api.multi_shop_api.auth.dtos.RegisterRequestDTO;
 import com.multi.shop.api.multi_shop_api.images.services.ImageService;
 import com.multi.shop.api.multi_shop_api.users.dtos.UpdatePasswordRequestDTO;
 import com.multi.shop.api.multi_shop_api.users.dtos.UserUpdateRequestDTO;
+import com.multi.shop.api.multi_shop_api.users.services.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;

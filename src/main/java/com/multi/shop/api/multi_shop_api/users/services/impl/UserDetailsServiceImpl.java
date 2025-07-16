@@ -1,4 +1,4 @@
-package com.multi.shop.api.multi_shop_api.users.services;
+package com.multi.shop.api.multi_shop_api.users.services.impl;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,7 +35,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             identifier, 
             userInfo.user().getPassword(),
             userInfo.user().isEnabled(),
-            getAuthorities(userInfo.user()));
+            getAuthorities(userInfo.user())
+        );
     }
     
     public UserInfo getUserInfo(String identifier) {

@@ -12,12 +12,26 @@ public class CustomRepository {
         this.entityManager = entityManager;
     }
     
-    public Long ifExistsCustomField(String entity, String fieldName, Object value) {
-        String EXISTS_JPQL = String.format("SELECT COUNT(e) FROM %s e WHERE e.%s = :value", entity, fieldName);
+    public Long ifExists(Object value, String entity, String fieldName) {
+        String EXISTS_JPQL = String.format(
+            "SELECT COUNT(e) FROM %s e WHERE e.%s = :value",
+            entity, fieldName
+        );
 
         return entityManager.createQuery(EXISTS_JPQL, Long.class)
             .setParameter("value", value)
             .getSingleResult();
     }
-}
 
+    public Long ifExistsUpdate(String value, String id, String entity, String fieldName) {
+        String jpql = String.format(
+            "SELECT COUNT(e) FROM %s e WHERE e.%s = :value AND e.id != :id",
+            entity, fieldName
+        );
+
+        return entityManager.createQuery(jpql, Long.class)
+            .setParameter("value", value)
+            .setParameter("id", id)
+            .getSingleResult();
+    }
+}
