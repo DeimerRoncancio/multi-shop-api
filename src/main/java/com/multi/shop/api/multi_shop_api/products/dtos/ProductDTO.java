@@ -18,7 +18,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.springframework.web.multipart.MultipartFile;
 
-public record NewProductDTO(
+public record ProductDTO(
     @NotBlank(message = "{NotBlank.validation.text}")
     @IfExists(message = "{IfExists.validation}", entity = "Product", field = "productName")
     String productName,

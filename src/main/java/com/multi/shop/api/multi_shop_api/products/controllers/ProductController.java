@@ -1,6 +1,6 @@
 package com.multi.shop.api.multi_shop_api.products.controllers;
 
-import com.multi.shop.api.multi_shop_api.products.repositories.ProductRepository;
+import com.multi.shop.api.multi_shop_api.products.dtos.ProductDTO;
 import jakarta.validation.Valid;
 
 import org.springframework.data.domain.Page;
@@ -10,8 +10,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import com.multi.shop.api.multi_shop_api.products.entities.Product;
-import com.multi.shop.api.multi_shop_api.products.dtos.NewProductDTO;
-import com.multi.shop.api.multi_shop_api.products.dtos.UpdateProductDTO;
 import com.multi.shop.api.multi_shop_api.products.services.ProductService;
 
 import org.springframework.http.ResponseEntity;
@@ -45,15 +43,15 @@ public class ProductController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> create(@ModelAttribute @Valid NewProductDTO product) {
-        NewProductDTO newProduct = service.save(product);
+    public ResponseEntity<?> create(@ModelAttribute @Valid ProductDTO product) {
+        ProductDTO newProduct = service.save(product);
         return ResponseEntity.ok().body(newProduct);
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> update(@ModelAttribute @Valid UpdateProductDTO product, @PathVariable String id) {
-        Optional<UpdateProductDTO> productDb = service.update(id, product);
+    public ResponseEntity<?> update(@ModelAttribute @Valid ProductDTO product, @PathVariable String id) {
+        Optional<ProductDTO> productDb = service.update(id, product);
 
         if (productDb.isPresent())
             return ResponseEntity.status(HttpStatus.CREATED).body(productDb.get());

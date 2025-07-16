@@ -1,6 +1,7 @@
 package com.multi.shop.api.multi_shop_api.products.services.impl;
 
 import com.multi.shop.api.multi_shop_api.images.services.ImageService;
+import com.multi.shop.api.multi_shop_api.products.dtos.ProductDTO;
 import com.multi.shop.api.multi_shop_api.products.services.ProductCategoryService;
 import com.multi.shop.api.multi_shop_api.products.services.ProductService;
 import org.springframework.data.domain.Page;
@@ -11,8 +12,6 @@ import org.springframework.web.multipart.MultipartFile;
 import com.multi.shop.api.multi_shop_api.images.entities.Image;
 import com.multi.shop.api.multi_shop_api.products.entities.Product;
 import com.multi.shop.api.multi_shop_api.products.entities.ProductCategory;
-import com.multi.shop.api.multi_shop_api.products.dtos.NewProductDTO;
-import com.multi.shop.api.multi_shop_api.products.dtos.UpdateProductDTO;
 import com.multi.shop.api.multi_shop_api.products.mappers.ProductMapper;
 import com.multi.shop.api.multi_shop_api.products.repositories.ProductRepository;
 
@@ -52,7 +51,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    public NewProductDTO save(NewProductDTO dto) {
+    public ProductDTO save(ProductDTO dto) {
         Product product = ProductMapper.MAPPER.productCreateDTOtoProduct(dto);
 
         List<ProductCategory> categoryList =  categoryService.findCategoriesByName(dto.categoriesList());
@@ -69,7 +68,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    public Optional<UpdateProductDTO> update(String id, UpdateProductDTO dto) {
+    public Optional<ProductDTO> update(String id, ProductDTO dto) {
         Optional<Product> productOptional = repository.findById(id);
 
         if (productOptional.isPresent()) {
@@ -86,7 +85,7 @@ public class ProductServiceImpl implements ProductService {
             ProductMapper.MAPPER.toUpdateProduct(dto, productDb);
 
             repository.save(productDb);
-            return Optional.of(ProductMapper.MAPPER.productToUpdateProductDTO(productDb));
+            return Optional.of(ProductMapper.MAPPER.productToProductDTO(productDb));
         }
 
         return Optional.empty();

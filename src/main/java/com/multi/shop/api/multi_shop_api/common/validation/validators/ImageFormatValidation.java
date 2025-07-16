@@ -29,7 +29,7 @@ public class ImageFormatValidation implements ConstraintValidator<ImageFormat, O
 
             if (sizeValid) {
                 buildMessage(
-                    builderMessage("El tamaño de la imagen debe ser menor a %.2f MB", maxSize),
+                    builderMessage("El tamaño de las imágenes debe ser menor a %.2f MB", maxSize),
                     context
                 );
                 return false;
