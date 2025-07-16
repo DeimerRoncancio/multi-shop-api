@@ -12,7 +12,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.multi.shop.api.multi_shop_api.images.entities.Image;
 import com.multi.shop.api.multi_shop_api.products.entities.ProductCategory;
-
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -21,7 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 public record NewProductDTO(
     @NotBlank(message = "{NotBlank.validation.text}")
-    @IfExists(message = "{IfExists.validation}", field = "productName", entity = "Product")
+    @IfExists(message = "{IfExists.validation}", entity = "Product", field = "productName")
     String productName,
 
     @NotBlank(message = "{NotBlank.validation.text}")

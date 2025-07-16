@@ -4,6 +4,8 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.multi.shop.api.multi_shop_api.common.validation.ImageFormat;
+import com.multi.shop.api.multi_shop_api.common.validation.NotEmptyFile;
 import com.multi.shop.api.multi_shop_api.images.entities.Image;
 import com.multi.shop.api.multi_shop_api.products.entities.ProductCategory;
 
@@ -14,10 +16,11 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import org.springframework.web.multipart.MultipartFile;
 
 public record UpdateProductDTO(
     @NotBlank(message = "{NotBlank.validation.text}")
-    @IfExists(entity = "Product", field = "productName")
+    @IfExists(message = "{IfExists.validation}", entity = "Product", field = "productName")
     String productName,
 
     @NotBlank(message = "{NotBlank.validation.text}")
@@ -32,6 +35,12 @@ public record UpdateProductDTO(
 
     @JsonIgnoreProperties({"id", "products"})
     List<ProductCategory> categories,
+
+    @Transient
+    @NotEmptyFile
+    @ImageFormat(maxSize = 3 * 1024 * 1024)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    List<MultipartFile> images,
 
     @Transient
     @ExistingCategories

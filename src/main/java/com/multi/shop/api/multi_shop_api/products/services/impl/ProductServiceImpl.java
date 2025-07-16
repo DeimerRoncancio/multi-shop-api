@@ -69,7 +69,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    public Optional<UpdateProductDTO> update(String id, UpdateProductDTO dto, List<MultipartFile> files) {
+    public Optional<UpdateProductDTO> update(String id, UpdateProductDTO dto) {
         Optional<Product> productOptional = repository.findById(id);
 
         if (productOptional.isPresent()) {
@@ -79,7 +79,7 @@ public class ProductServiceImpl implements ProductService {
             List<ProductCategory> productCategories = updateProductCategories(
                 productDb.getCategories(), categoriesDb
             );
-            List<Image> productImages = updateProductImages(productDb.getProductImages(), files);
+            List<Image> productImages = updateProductImages(productDb.getProductImages(), dto.images());
 
             productDb.setCategories(productCategories);
             productDb.setProductImages(productImages);
