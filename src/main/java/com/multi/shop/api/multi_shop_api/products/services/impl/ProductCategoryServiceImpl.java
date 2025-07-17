@@ -1,11 +1,10 @@
 package com.multi.shop.api.multi_shop_api.products.services.impl;
 
+import com.multi.shop.api.multi_shop_api.products.dtos.ProductCategoryDTO;
 import com.multi.shop.api.multi_shop_api.products.services.ProductCategoryService;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.multi.shop.api.multi_shop_api.products.entities.ProductCategory;
-import com.multi.shop.api.multi_shop_api.products.dtos.NewProductCategoryDTO;
-import com.multi.shop.api.multi_shop_api.products.dtos.UpdateProductCategoryDTO;
 import com.multi.shop.api.multi_shop_api.products.mappers.ProductCategoryMapper;
 import com.multi.shop.api.multi_shop_api.products.repositories.ProductCategoryRepository;
 
@@ -36,8 +35,8 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
 
     @Override
     @Transactional
-    public NewProductCategoryDTO save(NewProductCategoryDTO dto) {
-        ProductCategory category = ProductCategoryMapper.mapper.categoryCreateDTOtoCategory(dto);
+    public ProductCategoryDTO save(ProductCategoryDTO dto) {
+        ProductCategory category = ProductCategoryMapper.mapper.categoryDTOtoCategory(dto);
         
         repository.save(category);
         return dto;
@@ -45,7 +44,7 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
 
     @Override
     @Transactional
-    public Optional<ProductCategory> update(String id, UpdateProductCategoryDTO dto) {
+    public Optional<ProductCategory> update(String id, ProductCategoryDTO dto) {
         Optional<ProductCategory> optionalCategory = repository.findById(id);
         
         optionalCategory.ifPresent(categoryDb -> {

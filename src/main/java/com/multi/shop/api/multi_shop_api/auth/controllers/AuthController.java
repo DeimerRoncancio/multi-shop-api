@@ -1,23 +1,18 @@
 package com.multi.shop.api.multi_shop_api.auth.controllers;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 import com.multi.shop.api.multi_shop_api.auth.dtos.RegisterRequestDTO;
+import com.multi.shop.api.multi_shop_api.auth.mappers.AuthMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.multi.shop.api.multi_shop_api.users.entities.User;
-import com.multi.shop.api.multi_shop_api.users.dtos.UserInfoRequestDTO;
+import com.multi.shop.api.multi_shop_api.users.dtos.UserResponseDTO;
 import com.multi.shop.api.multi_shop_api.users.repository.UserRepository;
 import com.multi.shop.api.multi_shop_api.users.services.UserService;
-import com.multi.shop.api.multi_shop_api.common.validation.validators.FileSizeValidation;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -32,31 +27,23 @@ import static com.multi.shop.api.multi_shop_api.security.JwtConfig.*;
 public class AuthController {
     private final UserService service;
     private final UserRepository repository;
-    private final FileSizeValidation fileSizeValidation;
 
-    public AuthController(UserService service, UserRepository repository, FileSizeValidation fileSizeValidation) {
+    public AuthController(UserService service, UserRepository repository) {
         this.service = service;
         this.repository = repository;
-        this.fileSizeValidation = fileSizeValidation;
     }
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> create(@Valid @ModelAttribute RegisterRequestDTO user, BindingResult result,
-    @RequestPart MultipartFile profileImage) {
-        final String key = "imageUser";
-        fileSizeValidation.validate(Arrays.asList(key, profileImage), result);
-
-        if (result.hasFieldErrors())
-            return validate(result);
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.save(user, profileImage));
+    public ResponseEntity<RegisterRequestDTO> create(@Valid @ModelAttribute RegisterRequestDTO user) {
+        RegisterRequestDTO newUser = service.save(user);
+        return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @ModelAttribute RegisterRequestDTO user, BindingResult result,
-    @RequestPart MultipartFile profileImage) {
-        return create(RegisterRequestDTO.onlyUser(user), result, profileImage);
+    public ResponseEntity<RegisterRequestDTO> register(@Valid @ModelAttribute RegisterRequestDTO user) {
+        RegisterRequestDTO userUpdated = AuthMapper.MAPPER.requestDTOtoNotAdmin(user, false);
+        return create(userUpdated);
     }
 
     @GetMapping("/me")
@@ -79,7 +66,7 @@ public class AuthController {
         }
 
         if (optionalUser.isPresent()) {
-            UserInfoRequestDTO user = getUser(optionalUser.get());
+            UserResponseDTO user = getUser(optionalUser.get());
             return ResponseEntity.ok().body(user);
         }
 
@@ -97,18 +84,8 @@ public class AuthController {
         return ResponseEntity.ok().build();
     }
 
-    public ResponseEntity<?> validate(BindingResult result) {
-        Map<String, String> errors = new HashMap<> ();
-
-        result.getFieldErrors().forEach(err -> {
-            errors.put(err.getField(), "El campo " + err.getField() + " " + err.getDefaultMessage());
-        });
-
-        return ResponseEntity.badRequest().body(errors);
-    }
-
-    public UserInfoRequestDTO getUser(User user) {
-        return new UserInfoRequestDTO(
+    public UserResponseDTO getUser(User user) {
+        return new UserResponseDTO(
             user.getId(),
             user.getName(),
             user.getImageUser(),

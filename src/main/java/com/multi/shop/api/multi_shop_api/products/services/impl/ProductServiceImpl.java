@@ -52,7 +52,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public ProductDTO save(ProductDTO dto) {
-        Product product = ProductMapper.MAPPER.productCreateDTOtoProduct(dto);
+        Product product = ProductMapper.MAPPER.productDTOtoProduct(dto);
 
         List<ProductCategory> categoryList =  categoryService.findCategoriesByName(dto.categoriesList());
         product.setCategories(categoryList);
@@ -165,7 +165,7 @@ public class ProductServiceImpl implements ProductService {
             try {
                 image = imageService.uploadImage(file);
             } catch (IOException e) {
-                logger.error("Exception to try add the image: {}", String.valueOf(e));
+                logger.error("Exception trying add image: {}", String.valueOf(e));
             }
         }
 

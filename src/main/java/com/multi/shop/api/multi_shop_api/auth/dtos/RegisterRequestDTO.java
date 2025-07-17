@@ -4,14 +4,19 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.multi.shop.api.multi_shop_api.common.validation.IfExists;
 import com.multi.shop.api.multi_shop_api.common.validation.IfExistsValid;
+import com.multi.shop.api.multi_shop_api.common.validation.ImageFormat;
+import com.multi.shop.api.multi_shop_api.common.validation.NotEmptyFile;
 import com.multi.shop.api.multi_shop_api.images.entities.Image;
 import com.multi.shop.api.multi_shop_api.users.entities.Role;
 import com.multi.shop.api.multi_shop_api.users.entities.User;
 import com.multi.shop.api.multi_shop_api.auth.validation.SizeConstraint;
 
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import org.springframework.web.multipart.MultipartFile;
 
 public record RegisterRequestDTO(
     @NotBlank(message = "{NotBlank.validation.text}")
@@ -22,12 +27,18 @@ public record RegisterRequestDTO(
     String secondName,
     String lastnames,
 
-    @IfExistsValid(entity = User.class, field = "phoneNumber", message = "{IfExistsValid.user.phone}")
+    @Transient
+    @NotEmptyFile
+    @ImageFormat(maxSize = 1024 * 1024)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    MultipartFile profileImage,
+
+    @IfExists(message = "{IfExists.validation}", field = "phoneNumber", entity = "User")
     Long phoneNumber,
     String gender,
 
     @Email
-    @IfExistsValid(entity = User.class, field = "email")
+    @IfExists(message = "{IfExists.validation}", field ="email", entity = "User")
     @NotBlank(message = "{NotBlank.validation.text}")
     String email,
 
@@ -42,18 +53,4 @@ public record RegisterRequestDTO(
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     boolean admin
 ) {
-    public static RegisterRequestDTO onlyUser(RegisterRequestDTO user){
-        return new RegisterRequestDTO(
-            user.name(),
-            user.imageUser(),
-            user.secondName(),
-            user.lastnames(),
-            user.phoneNumber(),
-            user.gender(),
-            user.email(),
-            user.password(),
-            user.roles(),
-            false
-        );
-    }
 }

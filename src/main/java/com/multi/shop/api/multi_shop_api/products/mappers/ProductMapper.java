@@ -13,7 +13,7 @@ public interface ProductMapper {
     ProductMapper MAPPER = Mappers.getMapper(ProductMapper.class);
 
     @Mapping(target = "id", ignore = true)
-    Product productCreateDTOtoProduct(ProductDTO dto);
+    Product productDTOtoProduct(ProductDTO dto);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "productImages", ignore = true)

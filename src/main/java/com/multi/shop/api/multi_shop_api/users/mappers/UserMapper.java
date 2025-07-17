@@ -1,6 +1,6 @@
 package com.multi.shop.api.multi_shop_api.users.mappers;
 
-import com.multi.shop.api.multi_shop_api.users.dtos.UserUpdateRequestDTO;
+import com.multi.shop.api.multi_shop_api.users.dtos.UserDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -16,17 +16,20 @@ public interface UserMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "orders", ignore = true)
     @Mapping(target = "enabled", ignore = true)
-    User userDTOtoUser(RegisterRequestDTO dto);
-    
+    User registerDTOtoUser(RegisterRequestDTO dto);
+
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "orders", ignore = true)
     @Mapping(target = "roles", ignore = true)
     @Mapping(target = "enabled", ignore = true)
     @Mapping(target = "imageUser", ignore = true)
     @Mapping(target = "password", ignore = true)
-    void toUpdateUser(UserUpdateRequestDTO dto, @MappingTarget User user);
+    void toUpdateUser(UserDTO dto, @MappingTarget User user);
 
-    RegisterRequestDTO userToUserDTO(User user);
+    @Mapping(target = "admin", expression = "java(isAdmin)")
+    UserDTO userDTOtoNotAdmin(UserDTO user, boolean isAdmin);
 
-    UserUpdateRequestDTO userUpdateToUserDTO(User user);
+    RegisterRequestDTO userToRegisterDTO(User user);
+
+    UserDTO userToUserDTO(User user);
 }

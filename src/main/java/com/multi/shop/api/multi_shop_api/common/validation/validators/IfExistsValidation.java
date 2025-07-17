@@ -8,7 +8,7 @@ import jakarta.validation.ConstraintValidatorContext;
 
 import java.util.UUID;
 
-public class IfExistsValidation implements ConstraintValidator<IfExists, String> {
+public class IfExistsValidation implements ConstraintValidator<IfExists, Object> {
     private final CustomService customService;
     private final HttpServletRequest request;
     private String entity;
@@ -26,7 +26,12 @@ public class IfExistsValidation implements ConstraintValidator<IfExists, String>
     }
 
     @Override
-    public boolean isValid(String value, ConstraintValidatorContext context) {
+    public boolean isValid(Object target, ConstraintValidatorContext context) {
+        String value = "";
+
+        if (target instanceof Long number) value = number.toString();
+        else value = target.toString();
+
         if (value == null || value.isBlank()) return true;
 
         String id = getIdFromPath();

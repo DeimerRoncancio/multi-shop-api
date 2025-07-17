@@ -2,8 +2,8 @@ package com.multi.shop.api.multi_shop_api.users.services;
 
 import java.util.Optional;
 
-import com.multi.shop.api.multi_shop_api.users.dtos.UpdatePasswordRequestDTO;
-import com.multi.shop.api.multi_shop_api.users.dtos.UserUpdateRequestDTO;
+import com.multi.shop.api.multi_shop_api.users.dtos.PasswordDTO;
+import com.multi.shop.api.multi_shop_api.users.dtos.UserDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,11 +16,11 @@ public interface UserService {
 
     Optional<User> findOne(String id);
 
-    RegisterRequestDTO save(RegisterRequestDTO user, MultipartFile file);
+    RegisterRequestDTO save(RegisterRequestDTO user);
 
-    Optional<UserUpdateRequestDTO> update(String id, UserUpdateRequestDTO user);
+    Optional<UserDTO> update(String id, UserDTO user);
 
-    Optional<?> updatePassword(String id, UpdatePasswordRequestDTO passwordInfo) throws Exception;
+    Optional<?> updatePassword(String id, PasswordDTO passwordInfo) throws Exception;
 
     User updateProfileImage(User user, MultipartFile file);
 

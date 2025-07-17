@@ -1,7 +1,8 @@
 package com.multi.shop.api.multi_shop_api.users.controllers;
 
-import com.multi.shop.api.multi_shop_api.users.dtos.UpdatePasswordRequestDTO;
-import com.multi.shop.api.multi_shop_api.users.dtos.UserUpdateRequestDTO;
+import com.multi.shop.api.multi_shop_api.users.dtos.PasswordDTO;
+import com.multi.shop.api.multi_shop_api.users.dtos.UserDTO;
+import com.multi.shop.api.multi_shop_api.users.mappers.UserMapper;
 import com.multi.shop.api.multi_shop_api.users.repository.UserRepository;
 import jakarta.validation.Valid;
 
@@ -28,7 +29,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -62,14 +62,9 @@ public class UserController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> update(@Valid @RequestBody UserUpdateRequestDTO user, BindingResult result,
+    public ResponseEntity<?> update(@Valid @RequestBody UserDTO user,
     @PathVariable String id) {
-        handleObjectError(user, id, result);
-
-        if (result.hasErrors())
-            return validate(result);
-        
-        Optional<UserUpdateRequestDTO> userOptional = service.update(id, user);
+        Optional<UserDTO> userOptional = service.update(id, user);
 
         if (userOptional.isPresent())
             return ResponseEntity.status(HttpStatus.CREATED).body(userOptional.get());
@@ -79,16 +74,15 @@ public class UserController {
 
     @PutMapping("/update/{id}")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<?> updateUser(@Valid @RequestBody UserUpdateRequestDTO user, BindingResult result,
+    public ResponseEntity<?> updateUser(@Valid @RequestBody UserDTO user,
     @PathVariable String id) {
-//        user.setAdmin(false);
-
-        return update(user, result, id);
+        UserDTO userUpdated = UserMapper.MAPPER.userDTOtoNotAdmin(user, false);
+        return update(userUpdated, id);
     }
 
     @PutMapping("/update/password/{id}")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<?> updatePassword(@Valid @RequestBody UpdatePasswordRequestDTO passwordRequest,
+    public ResponseEntity<?> updatePassword(@Valid @RequestBody PasswordDTO passwordRequest,
     BindingResult result, @PathVariable String id) throws Exception {
         if (result.hasErrors())
             return validate(result);
@@ -145,7 +139,7 @@ public class UserController {
         return ResponseEntity.badRequest().body(errors);
     }
 
-    public void handleObjectError(UserUpdateRequestDTO userDto, String id, BindingResult result) {
+    public void handleObjectError(UserDTO userDto, String id, BindingResult result) {
         Optional<User> user = repository.findById(id);
 
         user.ifPresent(a -> {

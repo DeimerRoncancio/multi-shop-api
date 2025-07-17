@@ -7,8 +7,7 @@ import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.multi.shop.api.multi_shop_api.products.entities.ProductCategory;
-import com.multi.shop.api.multi_shop_api.products.dtos.NewProductCategoryDTO;
-import com.multi.shop.api.multi_shop_api.products.dtos.UpdateProductCategoryDTO;
+import com.multi.shop.api.multi_shop_api.products.dtos.ProductCategoryDTO;
 import com.multi.shop.api.multi_shop_api.products.services.ProductCategoryService;
 
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,11 +33,9 @@ import java.util.Optional;
 @CrossOrigin(originPatterns = "*")
 public class ProductCategoryController {
     private final ProductCategoryService service;
-    private final ProductCategoryRepository repository;
 
-    public ProductCategoryController(ProductCategoryService service, ProductCategoryRepository repository) {
+    public ProductCategoryController(ProductCategoryService service) {
         this.service = service;
-        this.repository = repository;
     }
 
     @GetMapping
@@ -57,22 +54,14 @@ public class ProductCategoryController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> create(@Valid @RequestBody NewProductCategoryDTO category, BindingResult result) {
-        if (result.hasFieldErrors())
-            return validate(result);
-        
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.save(category));
+    public ResponseEntity<?> create(@Valid @RequestBody ProductCategoryDTO category) {
+        ProductCategoryDTO newCategory = service.save(category);
+        return ResponseEntity.status(HttpStatus.CREATED).body(newCategory);
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> update(@Valid @RequestBody UpdateProductCategoryDTO category, BindingResult result, 
-    @PathVariable String id) {
-        handleObjectError(category, result, id);
-
-        if (result.hasErrors())
-            return validate(result);
-
+    public ResponseEntity<?> update(@Valid @RequestBody ProductCategoryDTO category, @PathVariable String id) {
         Optional<ProductCategory> categoryDb = service.update(id, category);
 
         if (categoryDb.isPresent())
@@ -90,28 +79,5 @@ public class ProductCategoryController {
             return ResponseEntity.ok().build();
         
         return ResponseEntity.notFound().build();
-    }
-
-    public ResponseEntity<?> validate(BindingResult result) {
-        Map<String, String> errors = new HashMap<> ();
-
-        result.getFieldErrors().forEach(err -> {
-            errors.put(err.getField(), "El campo " + err.getField() + " " + err.getDefaultMessage());
-        });
-
-        result.getGlobalErrors().forEach(err -> {
-            errors.put(err.getObjectName(), "El campo " + err.getObjectName() + " " + err.getDefaultMessage());
-        });
-
-        return ResponseEntity.badRequest().body(errors);
-    }
-
-    public void handleObjectError(UpdateProductCategoryDTO category, BindingResult result, String id) {
-        repository.findById(id).ifPresent(cat -> {
-            if (cat.getCategoryName().equals(category.categoryName())) {
-                String messageError = "ya tiene este valor";
-                result.addError(new ObjectError("categoryName", messageError));
-            }
-        });
     }
 }

@@ -2,8 +2,8 @@ package com.multi.shop.api.multi_shop_api.users.services.impl;
 
 import com.multi.shop.api.multi_shop_api.auth.dtos.RegisterRequestDTO;
 import com.multi.shop.api.multi_shop_api.images.services.ImageService;
-import com.multi.shop.api.multi_shop_api.users.dtos.UpdatePasswordRequestDTO;
-import com.multi.shop.api.multi_shop_api.users.dtos.UserUpdateRequestDTO;
+import com.multi.shop.api.multi_shop_api.users.dtos.PasswordDTO;
+import com.multi.shop.api.multi_shop_api.users.dtos.UserDTO;
 import com.multi.shop.api.multi_shop_api.users.services.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,8 +56,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public RegisterRequestDTO save(RegisterRequestDTO userDTO, MultipartFile file) {
-        User user = UserMapper.MAPPER.userDTOtoUser(userDTO);
+    public RegisterRequestDTO save(RegisterRequestDTO userDTO) {
+        User user = UserMapper.MAPPER.registerDTOtoUser(userDTO);
+        MultipartFile file = userDTO.profileImage();
 
         List<Role> roles = new ArrayList<>();
         roleRepository.findByRole("ROLE_USER").ifPresent(roles::add);
@@ -73,12 +74,12 @@ public class UserServiceImpl implements UserService {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setRoles(roles);
         repository.save(user);
-        return UserMapper.MAPPER.userToUserDTO(user);
+        return UserMapper.MAPPER.userToRegisterDTO(user);
     }
 
     @Override
     @Transactional
-    public Optional<UserUpdateRequestDTO> update(String id, UserUpdateRequestDTO userDTO) {
+    public Optional<UserDTO> update(String id, UserDTO userDTO) {
         Optional<User> optionalUser = repository.findById(id);
 
         if (optionalUser.isPresent()) {
@@ -94,7 +95,7 @@ public class UserServiceImpl implements UserService {
             UserMapper.MAPPER.toUpdateUser(userDTO, user);
 
             repository.save(user);
-            return Optional.of(UserMapper.MAPPER.userUpdateToUserDTO(user));
+            return Optional.of(UserMapper.MAPPER.userToUserDTO(user));
         }
 
         return Optional.empty();
@@ -102,7 +103,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public Optional<?> updatePassword(String id, UpdatePasswordRequestDTO passwordInfo) {
+    public Optional<?> updatePassword(String id, PasswordDTO passwordInfo) {
         String currentPassword = passwordInfo.currentPassword();
         String newPassword = passwordInfo.newPassword();
         Optional<User> userDb = repository.findById(id);
