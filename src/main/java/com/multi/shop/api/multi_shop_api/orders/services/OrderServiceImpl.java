@@ -8,7 +8,7 @@ import com.multi.shop.api.multi_shop_api.orders.dtos.NewOrderDTO;
 import com.multi.shop.api.multi_shop_api.orders.dtos.UpdateOrderDTO;
 import com.multi.shop.api.multi_shop_api.orders.mappers.OrderMapper;
 import com.multi.shop.api.multi_shop_api.orders.repositories.OrderRepository;
-import com.multi.shop.api.multi_shop_api.users.repository.UserRepository;
+import com.multi.shop.api.multi_shop_api.users.repositories.UserRepository;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;

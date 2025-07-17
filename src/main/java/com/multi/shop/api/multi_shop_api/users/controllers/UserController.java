@@ -3,12 +3,10 @@ package com.multi.shop.api.multi_shop_api.users.controllers;
 import com.multi.shop.api.multi_shop_api.users.dtos.PasswordDTO;
 import com.multi.shop.api.multi_shop_api.users.dtos.UserDTO;
 import com.multi.shop.api.multi_shop_api.users.mappers.UserMapper;
-import com.multi.shop.api.multi_shop_api.users.repository.UserRepository;
 import jakarta.validation.Valid;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,10 +24,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.validation.BindingResult;
-
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -37,11 +31,9 @@ import java.util.Optional;
 @CrossOrigin(originPatterns = "*")
 public class UserController {
     private final UserService service;
-    private final UserRepository repository;
 
-    public UserController(UserService service, UserRepository repository) {
+    public UserController(UserService service) {
         this.service = service;
-        this.repository = repository;
     }
 
     @GetMapping

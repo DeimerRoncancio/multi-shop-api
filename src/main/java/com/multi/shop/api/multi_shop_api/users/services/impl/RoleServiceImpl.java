@@ -4,7 +4,7 @@ import com.multi.shop.api.multi_shop_api.users.services.RoleService;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.multi.shop.api.multi_shop_api.users.entities.Role;
-import com.multi.shop.api.multi_shop_api.users.repository.RoleRepository;
+import com.multi.shop.api.multi_shop_api.users.repositories.RoleRepository;
 
 import org.springframework.stereotype.Service;
 

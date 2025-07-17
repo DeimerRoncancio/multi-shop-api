@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.multi.shop.api.multi_shop_api.users.entities.User;
 import com.multi.shop.api.multi_shop_api.users.dtos.UserResponseDTO;
-import com.multi.shop.api.multi_shop_api.users.repository.UserRepository;
+import com.multi.shop.api.multi_shop_api.users.repositories.UserRepository;
 import com.multi.shop.api.multi_shop_api.users.services.UserService;
 
 import io.jsonwebtoken.Claims;

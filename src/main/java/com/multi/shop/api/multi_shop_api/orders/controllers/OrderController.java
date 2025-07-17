@@ -34,11 +34,9 @@ import java.util.Optional;
 @CrossOrigin(originPatterns = "*")
 public class OrderController {
     private final OrderService service;
-    private final OrderRepository repository;
 
-    public OrderController(OrderService service, OrderRepository repository) {
+    public OrderController(OrderService service) {
         this.service = service;
-        this.repository = repository;
     }
 
     @GetMapping
@@ -59,22 +57,14 @@ public class OrderController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<?> create(@Valid @RequestBody NewOrderDTO order, BindingResult result) {
-        if (result.hasFieldErrors())
-            return validate(result);
-        
+    public ResponseEntity<?> create(@Valid @RequestBody NewOrderDTO order) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.save(order));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<?> update(@Valid @RequestBody UpdateOrderDTO order, BindingResult result,
+    public ResponseEntity<?> update(@Valid @RequestBody UpdateOrderDTO order,
     @PathVariable String id) {
-        handleObjectError(order, id, result);
-
-        if (result.hasErrors())
-            return validate(result);
-
         Optional<Order> orderDb = service.update(id, order);
 
         if (orderDb.isPresent())
@@ -92,30 +82,5 @@ public class OrderController {
             return ResponseEntity.ok().build();
 
         return ResponseEntity.notFound().build();
-    }
-
-    public ResponseEntity<?> validate(BindingResult result) {
-        Map<String, String> errors = new HashMap<> ();
-
-        result.getFieldErrors().forEach(err -> {
-            errors.put(err.getField(), "El campo " + err.getField() + " " + err.getDefaultMessage());
-        });
-
-        result.getGlobalErrors().forEach(err -> {
-            errors.put(err.getObjectName(), "El campo " + err.getObjectName() + " " + err.getDefaultMessage());
-        });
-
-        return ResponseEntity.badRequest().body(errors);
-    }
-
-    public void handleObjectError(UpdateOrderDTO order, String id, BindingResult result) {
-        repository.findById(id).ifPresent(cat -> {
-            if (cat.getOrderName().equals(order.orderName())) return;
-
-            repository.findByOrderName(order.orderName()).ifPresent(o -> {
-                String messageError = "tiene un valor existente";
-                result.addError(new ObjectError("orderName", messageError));
-            });
-        });
     }
 }

@@ -1,7 +1,6 @@
 package com.multi.shop.api.multi_shop_api.common.services;
 
 import org.springframework.stereotype.Service;
-
 import com.multi.shop.api.multi_shop_api.common.repositories.CustomRepository;
 
 @Service

@@ -17,8 +17,8 @@ import com.multi.shop.api.multi_shop_api.images.entities.Image;
 import com.multi.shop.api.multi_shop_api.users.entities.Role;
 import com.multi.shop.api.multi_shop_api.users.entities.User;
 import com.multi.shop.api.multi_shop_api.users.mappers.UserMapper;
-import com.multi.shop.api.multi_shop_api.users.repository.RoleRepository;
-import com.multi.shop.api.multi_shop_api.users.repository.UserRepository;
+import com.multi.shop.api.multi_shop_api.users.repositories.RoleRepository;
+import com.multi.shop.api.multi_shop_api.users.repositories.UserRepository;
 
 import org.springframework.stereotype.Service;
 

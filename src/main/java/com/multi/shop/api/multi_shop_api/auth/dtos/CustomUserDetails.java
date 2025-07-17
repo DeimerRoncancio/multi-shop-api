@@ -6,8 +6,6 @@ import java.util.List;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import com.multi.shop.api.multi_shop_api.users.entities.User;
-
 public record CustomUserDetails(
     String identity,
     String password,

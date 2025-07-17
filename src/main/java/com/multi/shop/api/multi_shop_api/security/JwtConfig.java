@@ -1,7 +1,6 @@
 package com.multi.shop.api.multi_shop_api.security;
 
 import javax.crypto.SecretKey;
-
 import io.jsonwebtoken.Jwts;
 
 public class JwtConfig {

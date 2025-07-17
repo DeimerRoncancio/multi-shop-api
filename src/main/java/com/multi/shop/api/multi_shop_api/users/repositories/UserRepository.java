@@ -1,4 +1,4 @@
-package com.multi.shop.api.multi_shop_api.users.repository;
+package com.multi.shop.api.multi_shop_api.users.repositories;
 
 import java.util.Optional;
 

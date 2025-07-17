@@ -3,8 +3,7 @@ package com.multi.shop.api.multi_shop_api.orders.dtos;
 import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.multi.shop.api.multi_shop_api.common.validation.IfExistsValid;
-import com.multi.shop.api.multi_shop_api.orders.entities.Order;
+import com.multi.shop.api.multi_shop_api.common.validation.IfExists;
 import com.multi.shop.api.multi_shop_api.users.entities.User;
 
 import jakarta.persistence.JoinColumn;
@@ -14,7 +13,7 @@ import jakarta.validation.constraints.NotNull;
 
 public record NewOrderDTO(
     @NotBlank(message = "{NotBlank.validation.text}")
-    @IfExistsValid(entity = Order.class, field = "orderName", message = "{IfExistsValid.order.name}")
+    @IfExists(message = "{IfExists.validation}", field = "orderName", entity = "Order")
     String orderName,
     String notes,
 

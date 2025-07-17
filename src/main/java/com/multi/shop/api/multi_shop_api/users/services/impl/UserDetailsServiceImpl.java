@@ -6,7 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.multi.shop.api.multi_shop_api.users.entities.User;
 import com.multi.shop.api.multi_shop_api.auth.dtos.CustomUserDetails;
 import com.multi.shop.api.multi_shop_api.auth.dtos.UserInfo;
-import com.multi.shop.api.multi_shop_api.users.repository.UserRepository;
+import com.multi.shop.api.multi_shop_api.users.repositories.UserRepository;
 
 import java.util.List;
 import java.util.Optional;
