@@ -83,10 +83,7 @@ public class UserController {
     @PutMapping("/update/password/{id}")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<?> updatePassword(@Valid @RequestBody PasswordDTO passwordRequest,
-    BindingResult result, @PathVariable String id) throws Exception {
-        if (result.hasErrors())
-            return validate(result);
-
+    @PathVariable String id) throws Exception {
         Optional<?> newUser = service.updatePassword(id, passwordRequest);
 
         if (newUser.isPresent()) {
@@ -123,42 +120,5 @@ public class UserController {
             return ResponseEntity.ok().build();
         
         return ResponseEntity.notFound().build();
-    }
-
-    public ResponseEntity<?> validate(BindingResult result) {
-        Map<String, String> errors = new HashMap<> ();
-
-        result.getFieldErrors().forEach(err -> {
-            errors.put(err.getField(), "El campo " + err.getField() + " " + err.getDefaultMessage());
-        });
-
-        result.getGlobalErrors().forEach(err -> {
-           errors.put(err.getObjectName(), "El campo " + err.getObjectName() + " " + err.getDefaultMessage());
-        });
-
-        return ResponseEntity.badRequest().body(errors);
-    }
-
-    public void handleObjectError(UserDTO userDto, String id, BindingResult result) {
-        Optional<User> user = repository.findById(id);
-
-        user.ifPresent(a -> {
-            if (user.get().getPhoneNumber() == null || user.get().getPhoneNumber().equals(userDto.phoneNumber()))
-                return;
-
-            repository.findByPhoneNumber(userDto.phoneNumber()).ifPresent(u -> {
-                String defaultMessage = "tiene un valor existente";
-                result.addError(new ObjectError("phoneNumber", defaultMessage));
-            });
-        });
-
-        user.ifPresent(a -> {
-            if (user.get().getEmail().equals(userDto.email())) return;
-
-            repository.findByEmail(userDto.email()).ifPresent(u -> {
-                String defaultMessage = "tiene un valor existente";
-                result.addError(new ObjectError("email", defaultMessage));
-            });
-        });
     }
 }
