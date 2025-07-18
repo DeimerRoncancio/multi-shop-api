@@ -1,5 +1,6 @@
 package com.multi.shop.api.multi_shop_api.products.controllers;
 
+import com.multi.shop.api.multi_shop_api.common.exceptions.NotFoundException;
 import com.multi.shop.api.multi_shop_api.products.dtos.ProductDTO;
 import jakarta.validation.Valid;
 
@@ -36,37 +37,31 @@ public class ProductController {
     public ResponseEntity<Product> view(@PathVariable String id) {
         Optional<Product> productDb = service.findOne(id);
 
-        return productDb.map(product ->
-            ResponseEntity.ok().body(product)
-        ).orElseGet(() -> ResponseEntity.notFound().build());
+        return productDb.map(product -> ResponseEntity.ok().body(product))
+            .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> create(@ModelAttribute @Valid ProductDTO product) {
+    public ResponseEntity<ProductDTO> create(@ModelAttribute @Valid ProductDTO product) {
         ProductDTO newProduct = service.save(product);
         return ResponseEntity.ok().body(newProduct);
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> update(@ModelAttribute @Valid ProductDTO product, @PathVariable String id) {
-        Optional<ProductDTO> productDb = service.update(id, product);
-
-        if (productDb.isPresent())
-            return ResponseEntity.status(HttpStatus.CREATED).body(productDb.get());
-
-        return ResponseEntity.notFound().build();
+    public ResponseEntity<ProductDTO> update(@ModelAttribute @Valid ProductDTO productDTO,
+    @PathVariable String id) {
+        Optional<ProductDTO> productDb = service.update(id, productDTO);
+        ProductDTO product = productDb.orElseThrow(() -> new NotFoundException("Product not found"));
+        return ResponseEntity.status(HttpStatus.CREATED).body(product);
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> delete(@PathVariable String id) {
+    public ResponseEntity<Void> delete(@PathVariable String id) {
         Optional<Product> productDb = service.delete(id);
-
-        if (productDb.isPresent())
-            return ResponseEntity.ok().build();
-        
-        return ResponseEntity.notFound().build();
+        productDb.orElseThrow(() -> new NotFoundException("Product not found"));
+        return ResponseEntity.ok().build();
     }
 }

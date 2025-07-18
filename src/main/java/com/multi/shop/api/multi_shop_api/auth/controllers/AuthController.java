@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import com.multi.shop.api.multi_shop_api.auth.dtos.RegisterRequestDTO;
 import com.multi.shop.api.multi_shop_api.auth.mappers.AuthMapper;
+import com.multi.shop.api.multi_shop_api.common.exceptions.NotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -48,7 +49,7 @@ public class AuthController {
 
     @GetMapping("/me")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<?> getUser(@RequestHeader("Token") String token) {
+    public ResponseEntity<UserResponseDTO> getUser(@RequestHeader("Token") String token) {
         Optional<User> optionalUser;
         String identifier = null;
 
@@ -59,22 +60,20 @@ public class AuthController {
             return ResponseEntity.badRequest().build();
         }
 
-        if (isNumeric(identifier)) {
+        if (isNumeric(identifier))
             optionalUser = repository.findByPhoneNumber(Long.parseLong(identifier));
-        } else {
+        else
             optionalUser = repository.findByEmail(identifier);
-        }
 
-        if (optionalUser.isPresent()) {
-            UserResponseDTO user = getUser(optionalUser.get());
-            return ResponseEntity.ok().body(user);
-        }
+        UserResponseDTO user = AuthMapper.MAPPER.userToUserResponse(
+            optionalUser.orElseThrow(() -> new NotFoundException("User not found"))
+        );
 
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.ok().body(user);
     }
 
     @GetMapping("/token-validation")
-    public ResponseEntity<?> tokenValidation(@RequestHeader("Token") String token) {
+    public ResponseEntity<Void> tokenValidation(@RequestHeader("Token") String token) {
         try {
             Jwts.parser().verifyWith(SECRET_KEY).build().parseSignedClaims(token).getPayload();
         } catch(JwtException e) {
@@ -82,21 +81,6 @@ public class AuthController {
         }
 
         return ResponseEntity.ok().build();
-    }
-
-    public UserResponseDTO getUser(User user) {
-        return new UserResponseDTO(
-            user.getId(),
-            user.getName(),
-            user.getImageUser(),
-            user.getSecondName(),
-            user.getLastnames(),
-            user.getPhoneNumber(),
-            user.getGender(),
-            user.getEmail(),
-            user.isAdmin(),
-            user.isEnabled()
-        );
     }
 
     public boolean isNumeric(String str) {

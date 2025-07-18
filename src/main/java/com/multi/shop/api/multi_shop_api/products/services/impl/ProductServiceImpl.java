@@ -71,24 +71,22 @@ public class ProductServiceImpl implements ProductService {
     public Optional<ProductDTO> update(String id, ProductDTO dto) {
         Optional<Product> productOptional = repository.findById(id);
 
-        if (productOptional.isPresent()) {
-            Product productDb = productOptional.get();
+        if (productOptional.isEmpty()) return Optional.empty();
 
-            List<ProductCategory> categoriesDb = categoryService.findCategoriesByName(dto.categoriesList());
-            List<ProductCategory> productCategories = updateProductCategories(
-                productDb.getCategories(), categoriesDb
-            );
-            List<Image> productImages = updateProductImages(productDb.getProductImages(), dto.images());
+        Product productDb = productOptional.get();
 
-            productDb.setCategories(productCategories);
-            productDb.setProductImages(productImages);
-            ProductMapper.MAPPER.toUpdateProduct(dto, productDb);
+        List<ProductCategory> categoriesDb = categoryService.findCategoriesByName(dto.categoriesList());
+        List<ProductCategory> productCategories = updateProductCategories(
+            productDb.getCategories(), categoriesDb
+        );
+        List<Image> productImages = updateProductImages(productDb.getProductImages(), dto.images());
 
-            repository.save(productDb);
-            return Optional.of(ProductMapper.MAPPER.productToProductDTO(productDb));
-        }
+        productDb.setCategories(productCategories);
+        productDb.setProductImages(productImages);
+        ProductMapper.MAPPER.toUpdateProduct(dto, productDb);
 
-        return Optional.empty();
+        repository.save(productDb);
+        return Optional.of(ProductMapper.MAPPER.productToProductDTO(productDb));
     }
 
     @Override
@@ -97,9 +95,8 @@ public class ProductServiceImpl implements ProductService {
         Optional<Product> productOptional = repository.findById(id);
 
         productOptional.ifPresent(product -> {
-            if (!product.getProductImages().isEmpty()) {
+            if (!product.getProductImages().isEmpty())
                 product.getProductImages().forEach(this::deleteProductImage);
-            }
 
             repository.delete(productOptional.get());
         });
@@ -154,7 +151,7 @@ public class ProductServiceImpl implements ProductService {
         try {
             imageService.deleteImage(image);
         } catch(IOException e) {
-            logger.error("Exception to try delete image: {}", String.valueOf(e));
+            logger.warn("Exception to try delete image: {}", String.valueOf(e));
         }
     }
 
