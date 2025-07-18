@@ -42,8 +42,8 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<RegisterRequestDTO> register(@Valid @ModelAttribute RegisterRequestDTO user) {
-        RegisterRequestDTO userUpdated = AuthMapper.MAPPER.requestDTOtoNotAdmin(user, false);
-        return create(userUpdated);
+        RegisterRequestDTO newUser = AuthMapper.MAPPER.requestDTOtoNotAdmin(user, false);
+        return create(newUser);
     }
 
     @GetMapping("/me")

@@ -1,5 +1,7 @@
 package com.multi.shop.api.multi_shop_api.users.controllers;
 
+import com.multi.shop.api.multi_shop_api.common.exceptions.NotFoundException;
+import com.multi.shop.api.multi_shop_api.images.entities.Image;
 import com.multi.shop.api.multi_shop_api.users.dtos.PasswordDTO;
 import com.multi.shop.api.multi_shop_api.users.dtos.UserDTO;
 import com.multi.shop.api.multi_shop_api.users.mappers.UserMapper;
@@ -54,22 +56,17 @@ public class UserController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> update(@Valid @RequestBody UserDTO user,
-    @PathVariable String id) {
-        Optional<UserDTO> userOptional = service.update(id, user);
-
-        if (userOptional.isPresent())
-            return ResponseEntity.status(HttpStatus.CREATED).body(userOptional.get());
-
-        return ResponseEntity.notFound().build();
+    public ResponseEntity<UserDTO> update(@Valid @RequestBody UserDTO userDTO, @PathVariable String id) {
+        Optional<UserDTO> userOptional = service.update(id, userDTO);
+        UserDTO user = userOptional.orElseThrow(() -> new NotFoundException("User not found"));
+        return ResponseEntity.status(HttpStatus.CREATED).body(user);
     }
 
     @PutMapping("/update/{id}")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<?> updateUser(@Valid @RequestBody UserDTO user,
-    @PathVariable String id) {
-        UserDTO userUpdated = UserMapper.MAPPER.userDTOtoNotAdmin(user, false);
-        return update(userUpdated, id);
+    public ResponseEntity<UserDTO> updateUser(@Valid @RequestBody UserDTO userDTO, @PathVariable String id) {
+        UserDTO user = UserMapper.MAPPER.userDTOtoNotAdmin(userDTO, false);
+        return update(user, id);
     }
 
     @PutMapping("/update/password/{id}")
@@ -92,25 +89,17 @@ public class UserController {
 
     @PutMapping("/update/profile-image/{id}")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<?> updateProfileImage(@PathVariable String id, @RequestPart MultipartFile file) {
+    public ResponseEntity<Image> updateProfileImage(@PathVariable String id, @RequestPart MultipartFile file) {
         Optional<User> optionalUser = service.findOne(id);
-
-        if (optionalUser.isPresent()) {
-            User user = service.updateProfileImage(optionalUser.get(), file);
-            return ResponseEntity.status(HttpStatus.CREATED).body(user.getImageUser());
-        }
-
-        return ResponseEntity.notFound().build();
+        User user = optionalUser.orElseThrow(() -> new NotFoundException("User not found"));
+        return ResponseEntity.status(HttpStatus.CREATED).body(user.getImageUser());
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
-    public ResponseEntity<?> delete(@PathVariable String id) {
+    public ResponseEntity<Void> delete(@PathVariable String id) {
         Optional<User> optionalUser = service.delete(id);
-
-        if (optionalUser.isPresent())
-            return ResponseEntity.ok().build();
-        
-        return ResponseEntity.notFound().build();
+        optionalUser.orElseThrow(() -> new NotFoundException("User not found"));
+        return ResponseEntity.ok().build();
     }
 }
