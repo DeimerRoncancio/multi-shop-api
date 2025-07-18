@@ -20,7 +20,7 @@ public interface UserService {
 
     Optional<UserDTO> update(String id, UserDTO user);
 
-    Optional<?> updatePassword(String id, PasswordDTO passwordInfo) throws Exception;
+    Optional<User> updatePassword(String id, PasswordDTO passwordInfo);
 
     User updateProfileImage(User user, MultipartFile file);
 

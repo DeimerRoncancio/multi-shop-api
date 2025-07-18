@@ -71,19 +71,9 @@ public class UserController {
 
     @PutMapping("/update/password/{id}")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<?> updatePassword(@Valid @RequestBody PasswordDTO passwordRequest,
-    @PathVariable String id) throws Exception {
-        Optional<?> newUser = service.updatePassword(id, passwordRequest);
-
-        if (newUser.isPresent()) {
-            if (newUser.get().equals("PASSWORD_UNAUTHORIZED")) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(newUser.get());
-            }
-
-            if (newUser.get().equals("SAME_PASSWORD"))
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(newUser.get());
-        }
-
+    public ResponseEntity<Void> updatePassword(@Valid @RequestBody PasswordDTO newPassword,
+    @PathVariable String id) {
+        service.updatePassword(id, newPassword).orElseThrow(() -> new NotFoundException("User nor found"));
         return ResponseEntity.ok().build();
     }
 

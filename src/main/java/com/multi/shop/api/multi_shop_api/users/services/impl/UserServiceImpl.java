@@ -1,6 +1,8 @@
 package com.multi.shop.api.multi_shop_api.users.services.impl;
 
 import com.multi.shop.api.multi_shop_api.auth.dtos.RegisterRequestDTO;
+import com.multi.shop.api.multi_shop_api.common.exceptions.InvalidPasswordException;
+import com.multi.shop.api.multi_shop_api.common.exceptions.PasswordMatchException;
 import com.multi.shop.api.multi_shop_api.images.services.ImageService;
 import com.multi.shop.api.multi_shop_api.users.dtos.PasswordDTO;
 import com.multi.shop.api.multi_shop_api.users.dtos.UserDTO;
@@ -82,37 +84,35 @@ public class UserServiceImpl implements UserService {
     public Optional<UserDTO> update(String id, UserDTO userDTO) {
         Optional<User> optionalUser = repository.findById(id);
 
-        if (optionalUser.isPresent()) {
-            User user = optionalUser.get();
-            List<Role> roles = user.getRoles();
+        if (optionalUser.isEmpty()) return Optional.empty();
 
-            if (userDTO.admin() && !user.isAdmin())
-                roleRepository.findByRole("ROLE_ADMIN").ifPresent(roles::add);
-            if (!userDTO.admin() && user.isAdmin())
-                roleRepository.findByRole("ROLE_ADMIN").ifPresent(roles::remove);
+        User user = optionalUser.get();
+        List<Role> roles = user.getRoles();
 
-            user.setRoles(roles);
-            UserMapper.MAPPER.toUpdateUser(userDTO, user);
+        if (userDTO.admin() && !user.isAdmin())
+            roleRepository.findByRole("ROLE_ADMIN").ifPresent(roles::add);
+        if (!userDTO.admin() && user.isAdmin())
+            roleRepository.findByRole("ROLE_ADMIN").ifPresent(roles::remove);
 
-            repository.save(user);
-            return Optional.of(UserMapper.MAPPER.userToUserDTO(user));
-        }
+        user.setRoles(roles);
+        UserMapper.MAPPER.toUpdateUser(userDTO, user);
 
-        return Optional.empty();
+        repository.save(user);
+        return Optional.of(UserMapper.MAPPER.userToUserDTO(user));
     }
 
     @Override
     @Transactional
-    public Optional<?> updatePassword(String id, PasswordDTO passwordInfo) {
+    public Optional<User> updatePassword(String id, PasswordDTO passwordInfo) {
         String currentPassword = passwordInfo.currentPassword();
         String newPassword = passwordInfo.newPassword();
         Optional<User> userDb = repository.findById(id);
 
         if (userDb.isPresent()) {
             if (!passwordEncoder.matches(currentPassword, userDb.get().getPassword()))
-                return Optional.of("PASSWORD_UNAUTHORIZED");
+                throw new InvalidPasswordException("Invalid password");
             if (currentPassword.equals(newPassword))
-                return Optional.of("SAME_PASSWORD");
+                throw new PasswordMatchException("Both passwords match");
 
             userDb.get().setPassword(passwordEncoder.encode(newPassword));
             repository.save(userDb.get());
