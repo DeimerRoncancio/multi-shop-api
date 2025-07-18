@@ -1,5 +1,6 @@
 package com.multi.shop.api.multi_shop_api.common.controllers;
 
+import com.multi.shop.api.multi_shop_api.common.dtos.PasswordErrorDTO;
 import com.multi.shop.api.multi_shop_api.common.exceptions.InvalidPasswordException;
 import com.multi.shop.api.multi_shop_api.common.exceptions.NotFoundException;
 import com.multi.shop.api.multi_shop_api.common.exceptions.PasswordMatchException;
@@ -35,14 +36,16 @@ public class ControllerAdvice {
     }
 
     @ExceptionHandler(InvalidPasswordException.class)
-    public ResponseEntity<Void> invalidPasswordExceptionHandler(InvalidPasswordException ex) {
+    public ResponseEntity<PasswordErrorDTO> invalidPasswordExceptionHandler(InvalidPasswordException ex) {
         logger.warn(ex.getMessage());
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        PasswordErrorDTO error = new PasswordErrorDTO(ex.getErrorCode());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 
     @ExceptionHandler(PasswordMatchException.class)
-    public ResponseEntity<Void> passwordMatchExceptionHandler(PasswordMatchException ex) {
+    public ResponseEntity<PasswordErrorDTO> passwordMatchExceptionHandler(PasswordMatchException ex) {
         logger.warn(ex.getMessage());
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        PasswordErrorDTO error = new PasswordErrorDTO(ex.getErrorCode());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 }

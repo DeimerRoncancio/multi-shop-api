@@ -49,9 +49,8 @@ public class UserController {
     public ResponseEntity<User> view(@PathVariable String id) {
         Optional<User> opProduct = service.findOne(id);
 
-        return opProduct.map(product ->
-            ResponseEntity.ok().body(product)
-        ).orElseGet(() -> ResponseEntity.notFound().build());
+        return opProduct.map(product -> ResponseEntity.ok().body(product))
+            .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}")
@@ -59,6 +58,7 @@ public class UserController {
     public ResponseEntity<UserDTO> update(@Valid @RequestBody UserDTO userDTO, @PathVariable String id) {
         Optional<UserDTO> userOptional = service.update(id, userDTO);
         UserDTO user = userOptional.orElseThrow(() -> new NotFoundException("User not found"));
+
         return ResponseEntity.status(HttpStatus.CREATED).body(user);
     }
 
@@ -82,6 +82,7 @@ public class UserController {
     public ResponseEntity<Image> updateProfileImage(@PathVariable String id, @RequestPart MultipartFile file) {
         Optional<User> optionalUser = service.findOne(id);
         User user = optionalUser.orElseThrow(() -> new NotFoundException("User not found"));
+
         return ResponseEntity.status(HttpStatus.CREATED).body(user.getImageUser());
     }
 
@@ -90,6 +91,7 @@ public class UserController {
     public ResponseEntity<Void> delete(@PathVariable String id) {
         Optional<User> optionalUser = service.delete(id);
         optionalUser.orElseThrow(() -> new NotFoundException("User not found"));
+
         return ResponseEntity.ok().build();
     }
 }
