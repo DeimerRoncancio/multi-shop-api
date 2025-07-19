@@ -1,9 +1,8 @@
 package com.multi.shop.api.multi_shop_api.orders.controllers;
 
-import com.multi.shop.api.multi_shop_api.orders.repositories.OrderRepository;
 import jakarta.validation.Valid;
+import com.multi.shop.api.multi_shop_api.common.exceptions.NotFoundException;
 
-import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -22,11 +21,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.validation.BindingResult;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -50,37 +46,32 @@ public class OrderController {
     public ResponseEntity<Order> view(@PathVariable String id) {
         Optional<Order> orderDb = service.findOne(id);
 
-        return orderDb.map(order ->
-            ResponseEntity.ok().body(order)).orElseGet(() -> ResponseEntity.notFound().build()
-        );
+        return orderDb.map(order -> ResponseEntity.ok().body(order))
+            .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<?> create(@Valid @RequestBody NewOrderDTO order) {
+    public ResponseEntity<NewOrderDTO> create(@Valid @RequestBody NewOrderDTO order) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.save(order));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<?> update(@Valid @RequestBody UpdateOrderDTO order,
+    public ResponseEntity<UpdateOrderDTO> update(@Valid @RequestBody UpdateOrderDTO order,
     @PathVariable String id) {
         Optional<Order> orderDb = service.update(id, order);
+        orderDb.orElseThrow(() -> new NotFoundException("Order not found"));
 
-        if (orderDb.isPresent())
-            return ResponseEntity.status(HttpStatus.CREATED).body(order);
-
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.status(HttpStatus.CREATED).body(order);
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<?> delete(@PathVariable String id) {
+    public ResponseEntity<Void> delete(@PathVariable String id) {
         Optional<Order> orderDb = service.delete(id);
+        orderDb.orElseThrow(() -> new NotFoundException("Order not found"));
 
-        if (orderDb.isPresent())
-            return ResponseEntity.ok().build();
-
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.ok().build();
     }
 }
