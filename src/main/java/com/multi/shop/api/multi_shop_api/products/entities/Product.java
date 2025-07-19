@@ -37,7 +37,6 @@ public class Product {
         name = "images_to_products",
         joinColumns = @JoinColumn(name = "id_product"),
         inverseJoinColumns = @JoinColumn(name = "id_image"))
-    @JsonIgnoreProperties("id")
     private List<Image> productImages;
     
     @ManyToMany
@@ -46,7 +45,6 @@ public class Product {
         joinColumns = @JoinColumn(name = "id_product"),
         inverseJoinColumns = @JoinColumn(name = "id_category"),
         uniqueConstraints = @UniqueConstraint(columnNames = {"id_product", "id_category"}))
-    @JsonIgnoreProperties({"id", "products"})
     private List<ProductCategory> categories;
 
     public Product() {

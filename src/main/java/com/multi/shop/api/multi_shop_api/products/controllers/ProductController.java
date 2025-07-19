@@ -29,16 +29,16 @@ public class ProductController {
     }
 
     @GetMapping
-    public Page<Product> viewAll(@PageableDefault Pageable pageable) {
+    public Page<ProductDTO> viewAll(@PageableDefault Pageable pageable) {
         return service.findAll(pageable);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Product> view(@PathVariable String id) {
-        Optional<Product> productDb = service.findOne(id);
+    public ResponseEntity<ProductDTO> view(@PathVariable String id) {
+        Optional<ProductDTO> productDb = service.findOne(id);
+        ProductDTO product = productDb.orElseThrow(() -> new NotFoundException("Product not found"));
 
-        return productDb.map(product -> ResponseEntity.ok().body(product))
-            .orElseGet(() -> ResponseEntity.notFound().build());
+        return ResponseEntity.ok().body(product);
     }
 
     @PostMapping

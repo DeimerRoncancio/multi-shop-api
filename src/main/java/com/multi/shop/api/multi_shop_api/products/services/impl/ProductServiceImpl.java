@@ -6,6 +6,7 @@ import com.multi.shop.api.multi_shop_api.products.services.ProductCategoryServic
 import com.multi.shop.api.multi_shop_api.products.services.ProductService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -39,14 +40,16 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<Product> findAll(Pageable pageable) {
-        return repository.findAll(pageable);
+    public Page<ProductDTO> findAll(Pageable pageable) {
+        Page<Product> products = repository.findAll(pageable);
+        return products.map(ProductMapper.MAPPER::productToProductDTO);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<Product> findOne(String id) {
-        return repository.findById(id);
+    public Optional<ProductDTO> findOne(String id) {
+        Optional<Product> product = repository.findById(id);
+        return product.map(ProductMapper.MAPPER::productToProductDTO);
     }
 
     @Override

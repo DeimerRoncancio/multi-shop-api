@@ -9,9 +9,9 @@ import org.springframework.data.domain.Pageable;
 import com.multi.shop.api.multi_shop_api.products.entities.Product;
 
 public interface ProductService {
-    Page<Product> findAll(Pageable pageable);
+    Page<ProductDTO> findAll(Pageable pageable);
 
-    Optional<Product> findOne(String id);
+    Optional<ProductDTO> findOne(String id);
 
     ProductDTO save(ProductDTO product);
 
