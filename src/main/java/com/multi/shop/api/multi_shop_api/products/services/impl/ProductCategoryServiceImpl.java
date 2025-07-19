@@ -44,25 +44,23 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
 
     @Override
     @Transactional
-    public Optional<ProductCategory> update(String id, ProductCategoryDTO dto) {
+    public Optional<ProductCategoryDTO> update(String id, ProductCategoryDTO dto) {
         Optional<ProductCategory> optionalCategory = repository.findById(id);
-        
-        optionalCategory.ifPresent(categoryDb -> {
-            ProductCategoryMapper.mapper.toUpdateCategory(dto, categoryDb);
 
-            repository.save(categoryDb);
-        });
+        if (optionalCategory.isEmpty()) return Optional.empty();
 
-        return optionalCategory;
+        ProductCategory categoryDb = optionalCategory.get();
+        ProductCategoryMapper.mapper.toUpdateCategory(dto, categoryDb);
+        repository.save(categoryDb);
+
+        return Optional.of(dto);
     }
 
     @Override
     @Transactional
     public Optional<ProductCategory> delete(String id) {
         Optional<ProductCategory> optionalCategory = repository.findById(id);
-
         optionalCategory.ifPresent(repository::delete);
-        
         return optionalCategory;
     }
 

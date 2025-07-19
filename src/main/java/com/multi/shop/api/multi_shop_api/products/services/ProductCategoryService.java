@@ -13,7 +13,7 @@ public interface ProductCategoryService {
 
     ProductCategoryDTO save(ProductCategoryDTO categoty);
 
-    Optional<ProductCategory> update(String id, ProductCategoryDTO category);
+    Optional<ProductCategoryDTO> update(String id, ProductCategoryDTO category);
 
     Optional<ProductCategory> delete(String id);
 

@@ -1,7 +1,7 @@
 package com.multi.shop.api.multi_shop_api.products.controllers;
 
 import jakarta.validation.Valid;
-
+import com.multi.shop.api.multi_shop_api.common.exceptions.NotFoundException;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.multi.shop.api.multi_shop_api.products.entities.ProductCategory;
@@ -42,9 +42,8 @@ public class ProductCategoryController {
     public ResponseEntity<ProductCategory> view(@PathVariable String id) {
         Optional<ProductCategory> opCategory = service.findOne(id);
 
-        return opCategory.map(category ->
-            ResponseEntity.ok().body(category)
-        ).orElseGet(() ->ResponseEntity.notFound().build());
+        return opCategory.map(category ->ResponseEntity.ok().body(category))
+            .orElseGet(() ->ResponseEntity.notFound().build());
     }
 
     @PostMapping
@@ -56,23 +55,20 @@ public class ProductCategoryController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> update(@Valid @RequestBody ProductCategoryDTO category, @PathVariable String id) {
-        Optional<ProductCategory> categoryDb = service.update(id, category);
+    public ResponseEntity<ProductCategoryDTO> update(@Valid @RequestBody ProductCategoryDTO categoryDTO,
+    @PathVariable String id) {
+        Optional<ProductCategoryDTO> categoryDb = service.update(id, categoryDTO);
+        ProductCategoryDTO category = categoryDb.orElseThrow(() -> new NotFoundException("Category not found"));
 
-        if (categoryDb.isPresent())
-            return ResponseEntity.status(HttpStatus.CREATED).body(category);
-        
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.status(HttpStatus.CREATED).body(category);
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> delete(@PathVariable String id) {
+    public ResponseEntity<Void> delete(@PathVariable String id) {
         Optional<ProductCategory> categoryDb = service.delete(id);
+        categoryDb.orElseThrow(() -> new NotFoundException("Category not found"));
 
-        if (categoryDb.isPresent())
-            return ResponseEntity.ok().build();
-        
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.ok().build();
     }
 }

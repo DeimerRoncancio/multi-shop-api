@@ -54,6 +54,7 @@ public class ProductController {
     @PathVariable String id) {
         Optional<ProductDTO> productDb = service.update(id, productDTO);
         ProductDTO product = productDb.orElseThrow(() -> new NotFoundException("Product not found"));
+
         return ResponseEntity.status(HttpStatus.CREATED).body(product);
     }
 
@@ -62,6 +63,7 @@ public class ProductController {
     public ResponseEntity<Void> delete(@PathVariable String id) {
         Optional<Product> productDb = service.delete(id);
         productDb.orElseThrow(() -> new NotFoundException("Product not found"));
+
         return ResponseEntity.ok().build();
     }
 }
