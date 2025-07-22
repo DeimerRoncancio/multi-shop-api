@@ -15,7 +15,7 @@ import com.multi.shop.api.multi_shop_api.users.entities.User;
 public interface UserService {
     Page<UserResponseDTO> findAll(Pageable pageable);
 
-    Page<UserResponseDTO> findAdmins(Pageable pageable);
+    Page<UserResponseDTO> findByRole(Pageable pageable, boolean isAdmin);
 
     Optional<UserResponseDTO> findOne(String id);
 

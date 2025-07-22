@@ -55,8 +55,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<UserResponseDTO> findAdmins(Pageable pageable) {
-        Page<User> admins = repository.findByAdminTrue(pageable);
+    public Page<UserResponseDTO> findByRole(Pageable pageable, boolean isAdmin) {
+        Page<User> admins = null;
+
+        if (isAdmin) admins = repository.findByAdminTrue(pageable);
+        else admins = repository.findByAdminFalse(pageable);
+
         return admins.map(UserMapper.MAPPER::userToResponseDTO);
     }
 
