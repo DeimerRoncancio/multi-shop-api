@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+
 import java.util.Optional;
 
 @RestController
@@ -43,6 +44,12 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     public Page<UserResponseDTO> viewAll(Pageable pageable) {
         return service.findAll(pageable);
+    }
+
+    @GetMapping("/admins")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    public Page<UserResponseDTO> viewAdmins(Pageable pageable) {
+        return service.findAdmins(pageable);
     }
 
     @GetMapping("/{id}")

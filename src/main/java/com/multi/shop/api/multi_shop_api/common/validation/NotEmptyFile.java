@@ -13,7 +13,7 @@ import java.lang.annotation.Target;
 @Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface NotEmptyFile {
-    String message() default "Debe tener almenos una imagen";
+    String message() default "Debe tener al menos una imagen";
 
     Class<?>[] groups() default {};
 

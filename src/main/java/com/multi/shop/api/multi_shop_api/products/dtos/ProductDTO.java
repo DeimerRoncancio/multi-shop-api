@@ -43,7 +43,7 @@ public record ProductDTO(
     List<MultipartFile> images,
 
     @Transient
-    @ExistingCategories
+    @ExistingCategories(message = "{IfExists.category.name}")
     @NotEmpty(message = "{NotEmpty.validation.list}")
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     List<String> categoriesList
