@@ -1,7 +1,10 @@
 package com.multi.shop.api.multi_shop_api.products.services.impl;
 
 import com.multi.shop.api.multi_shop_api.products.dtos.ProductCategoryDTO;
+import com.multi.shop.api.multi_shop_api.products.dtos.CategoryResponseDTO;
 import com.multi.shop.api.multi_shop_api.products.services.ProductCategoryService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.multi.shop.api.multi_shop_api.products.entities.ProductCategory;
@@ -23,21 +26,23 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
     
     @Override
     @Transactional(readOnly = true)
-    public List<ProductCategory> findAll() {
-        return repository.findAll();
+    public Page<CategoryResponseDTO> findAll(Pageable pageable) {
+        Page<ProductCategory> categories = repository.findAll(pageable);
+
+        return categories.map(ProductCategoryMapper.mapper::categoryToResponseDTO);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<ProductCategory> findOne(String id) {
-        return repository.findById(id);
+    public Optional<CategoryResponseDTO> findOne(String id) {
+        Optional<ProductCategory> category = repository.findById(id);
+        return category.map(ProductCategoryMapper.mapper::categoryToResponseDTO);
     }
 
     @Override
     @Transactional
     public ProductCategoryDTO save(ProductCategoryDTO dto) {
         ProductCategory category = ProductCategoryMapper.mapper.categoryDTOtoCategory(dto);
-        
         repository.save(category);
         return dto;
     }
@@ -73,6 +78,6 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
     @Override
     @Transactional(readOnly = true)
     public int categoriesSize() {
-        return findAll().size();
+        return findAll(Pageable.unpaged()).getContent().size();
     }
 }

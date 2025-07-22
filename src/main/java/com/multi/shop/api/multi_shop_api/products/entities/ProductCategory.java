@@ -1,13 +1,8 @@
 package com.multi.shop.api.multi_shop_api.products.entities;
 
-import java.util.List;
-
 import org.hibernate.annotations.UuidGenerator;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import jakarta.persistence.Id;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import jakarta.persistence.Column;
@@ -22,10 +17,6 @@ public class ProductCategory {
 
     @Column(unique = true)
     private String categoryName;
-
-    @ManyToMany(mappedBy = "categories")
-    @JsonIgnoreProperties("categories")
-    private List<Product> products;
 
     public ProductCategory() {
     }
@@ -48,13 +39,5 @@ public class ProductCategory {
 
     public void setCategoryName(String categoryName) {
         this.categoryName = categoryName;
-    }
-
-    public List<Product> getProducts() {
-        return products;
-    }
-
-    public void setProducts(List<Product> products) {
-        this.products = products;
     }
 }

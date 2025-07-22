@@ -4,12 +4,15 @@ import java.util.List;
 import java.util.Optional;
 
 import com.multi.shop.api.multi_shop_api.products.dtos.ProductCategoryDTO;
+import com.multi.shop.api.multi_shop_api.products.dtos.CategoryResponseDTO;
 import com.multi.shop.api.multi_shop_api.products.entities.ProductCategory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface ProductCategoryService {
-    List<ProductCategory> findAll();
+    Page<CategoryResponseDTO> findAll(Pageable pageable);
 
-    Optional<ProductCategory> findOne(String id);
+    Optional<CategoryResponseDTO> findOne(String id);
 
     ProductCategoryDTO save(ProductCategoryDTO categoty);
 

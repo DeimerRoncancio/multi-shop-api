@@ -1,11 +1,15 @@
 package com.multi.shop.api.multi_shop_api.products.controllers;
 
+import com.multi.shop.api.multi_shop_api.products.dtos.ProductCategoryDTO;
 import jakarta.validation.Valid;
 import com.multi.shop.api.multi_shop_api.common.exceptions.NotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.multi.shop.api.multi_shop_api.products.entities.ProductCategory;
-import com.multi.shop.api.multi_shop_api.products.dtos.ProductCategoryDTO;
+import com.multi.shop.api.multi_shop_api.products.dtos.CategoryResponseDTO;
 import com.multi.shop.api.multi_shop_api.products.services.ProductCategoryService;
 
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,21 +38,21 @@ public class ProductCategoryController {
     }
 
     @GetMapping
-    public List<ProductCategory> viewAll() {
-        return service.findAll();
+    public Page<CategoryResponseDTO> viewAll(@PageableDefault Pageable pageable) {
+        return service.findAll(pageable);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProductCategory> view(@PathVariable String id) {
-        Optional<ProductCategory> opCategory = service.findOne(id);
+    public ResponseEntity<CategoryResponseDTO> view(@PathVariable String id) {
+        Optional<CategoryResponseDTO> opCategory = service.findOne(id);
+        CategoryResponseDTO category = opCategory.orElseThrow(() -> new NotFoundException("Category nod fount"));
 
-        return opCategory.map(category ->ResponseEntity.ok().body(category))
-            .orElseGet(() ->ResponseEntity.notFound().build());
+        return ResponseEntity.ok().body(category);
     }
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> create(@Valid @RequestBody ProductCategoryDTO category) {
+    public ResponseEntity<ProductCategoryDTO> create(@Valid @RequestBody ProductCategoryDTO category) {
         ProductCategoryDTO newCategory = service.save(category);
         return ResponseEntity.status(HttpStatus.CREATED).body(newCategory);
     }
