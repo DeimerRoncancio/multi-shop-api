@@ -18,7 +18,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.multi.shop.api.multi_shop_api.auth.dtos.LoginRequestDTO;
+import com.multi.shop.api.multi_shop_api.auth.dtos.LoginAccountDTO;
 import com.multi.shop.api.multi_shop_api.auth.dtos.CustomUserDetails;
 
 import io.jsonwebtoken.Claims;
@@ -43,7 +43,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         String password = null;
 
         try {
-            LoginRequestDTO credentials = new ObjectMapper().readValue(request.getInputStream(), LoginRequestDTO.class);
+            LoginAccountDTO credentials = new ObjectMapper().readValue(request.getInputStream(), LoginAccountDTO.class);
             identifier = credentials.identifier();
             password = credentials.password();
         } catch(IOException e) {

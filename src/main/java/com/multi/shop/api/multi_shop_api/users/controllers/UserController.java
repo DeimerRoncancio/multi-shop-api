@@ -4,6 +4,7 @@ import com.multi.shop.api.multi_shop_api.common.exceptions.NotFoundException;
 import com.multi.shop.api.multi_shop_api.images.entities.Image;
 import com.multi.shop.api.multi_shop_api.users.dtos.PasswordDTO;
 import com.multi.shop.api.multi_shop_api.users.dtos.UserDTO;
+import com.multi.shop.api.multi_shop_api.users.dtos.UserResponseDTO;
 import com.multi.shop.api.multi_shop_api.users.mappers.UserMapper;
 import jakarta.validation.Valid;
 
@@ -40,14 +41,14 @@ public class UserController {
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public Page<User> viewAll(Pageable pageable) {
+    public Page<UserResponseDTO> viewAll(Pageable pageable) {
         return service.findAll(pageable);
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<User> view(@PathVariable String id) {
-        Optional<User> opProduct = service.findOne(id);
+    public ResponseEntity<UserResponseDTO> view(@PathVariable String id) {
+        Optional<UserResponseDTO> opProduct = service.findOne(id);
 
         return opProduct.map(product -> ResponseEntity.ok().body(product))
             .orElseGet(() -> ResponseEntity.notFound().build());
@@ -65,7 +66,7 @@ public class UserController {
     @PutMapping("/update/{id}")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<UserDTO> updateUser(@Valid @RequestBody UserDTO userDTO, @PathVariable String id) {
-        UserDTO user = UserMapper.MAPPER.userDTOtoNotAdmin(userDTO, false);
+        UserDTO user = UserMapper.MAPPER.userDTOtoOrAdmin(userDTO, false);
         return update(user, id);
     }
 
@@ -80,9 +81,7 @@ public class UserController {
     @PutMapping("/update/profile-image/{id}")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<Image> updateProfileImage(@PathVariable String id, @RequestPart MultipartFile file) {
-        Optional<User> optionalUser = service.findOne(id);
-        User user = optionalUser.orElseThrow(() -> new NotFoundException("User not found"));
-
+        User user = service.updateProfileImage(id, file);
         return ResponseEntity.status(HttpStatus.CREATED).body(user.getImageUser());
     }
 

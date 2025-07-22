@@ -8,7 +8,7 @@ public record UserResponseDTO(
     String name,
 
     @JsonIgnoreProperties("id")
-    Image profileImage,
+    Image imageUser,
     String secondName,
     String lastnames,
     Long phoneNumber,

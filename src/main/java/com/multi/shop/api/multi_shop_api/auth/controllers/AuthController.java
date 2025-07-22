@@ -2,7 +2,7 @@ package com.multi.shop.api.multi_shop_api.auth.controllers;
 
 import java.util.Optional;
 
-import com.multi.shop.api.multi_shop_api.auth.dtos.RegisterRequestDTO;
+import com.multi.shop.api.multi_shop_api.auth.dtos.RegisterUserDTO;
 import com.multi.shop.api.multi_shop_api.auth.mappers.AuthMapper;
 import com.multi.shop.api.multi_shop_api.common.exceptions.NotFoundException;
 import org.springframework.http.HttpStatus;
@@ -36,14 +36,14 @@ public class AuthController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<RegisterRequestDTO> create(@Valid @ModelAttribute RegisterRequestDTO user) {
-        RegisterRequestDTO newUser = service.save(user);
+    public ResponseEntity<RegisterUserDTO> create(@Valid @ModelAttribute RegisterUserDTO user) {
+        RegisterUserDTO newUser = service.save(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
     }
 
     @PostMapping("/register")
-    public ResponseEntity<RegisterRequestDTO> register(@Valid @ModelAttribute RegisterRequestDTO user) {
-        RegisterRequestDTO newUser = AuthMapper.MAPPER.requestDTOtoNotAdmin(user, false);
+    public ResponseEntity<RegisterUserDTO> register(@Valid @ModelAttribute RegisterUserDTO user) {
+        RegisterUserDTO newUser = AuthMapper.MAPPER.requestDTOtoNotAdmin(user, false);
         return create(newUser);
     }
 

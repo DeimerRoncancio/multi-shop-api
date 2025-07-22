@@ -1,11 +1,13 @@
 package com.multi.shop.api.multi_shop_api.users.services.impl;
 
-import com.multi.shop.api.multi_shop_api.auth.dtos.RegisterRequestDTO;
+import com.multi.shop.api.multi_shop_api.auth.dtos.RegisterUserDTO;
 import com.multi.shop.api.multi_shop_api.common.exceptions.InvalidPasswordException;
+import com.multi.shop.api.multi_shop_api.common.exceptions.NotFoundException;
 import com.multi.shop.api.multi_shop_api.common.exceptions.PasswordMatchException;
 import com.multi.shop.api.multi_shop_api.images.services.ImageService;
 import com.multi.shop.api.multi_shop_api.users.dtos.PasswordDTO;
 import com.multi.shop.api.multi_shop_api.users.dtos.UserDTO;
+import com.multi.shop.api.multi_shop_api.users.dtos.UserResponseDTO;
 import com.multi.shop.api.multi_shop_api.users.services.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,19 +48,21 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<User> findAll(Pageable pageable) {
-        return repository.findAll(pageable);
+    public Page<UserResponseDTO> findAll(Pageable pageable) {
+        Page<User> users = repository.findAll(pageable);
+        return users.map(UserMapper.MAPPER::userToResponseDTO);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<User> findOne(String id){ 
-        return repository.findById(id);
+    public Optional<UserResponseDTO> findOne(String id){
+        Optional<User> user = repository.findById(id);
+        return user.map(UserMapper.MAPPER::userToResponseDTO);
     }
 
     @Override
     @Transactional
-    public RegisterRequestDTO save(RegisterRequestDTO userDTO) {
+    public RegisterUserDTO save(RegisterUserDTO userDTO) {
         User user = UserMapper.MAPPER.registerDTOtoUser(userDTO);
         MultipartFile file = userDTO.profileImage();
 
@@ -123,7 +127,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public User updateProfileImage(User user, MultipartFile file) {
+    public User updateProfileImage(String id, MultipartFile file) {
+        Optional<User> userOp = repository.findById(id);
+        User user = userOp.orElseThrow(() -> new NotFoundException("User not found"));
+
         if (user.getImageUser() != null)
             deleteProfileImage(user);
         
