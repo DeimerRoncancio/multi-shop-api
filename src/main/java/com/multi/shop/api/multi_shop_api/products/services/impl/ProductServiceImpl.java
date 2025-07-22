@@ -2,6 +2,7 @@ package com.multi.shop.api.multi_shop_api.products.services.impl;
 
 import com.multi.shop.api.multi_shop_api.images.services.ImageService;
 import com.multi.shop.api.multi_shop_api.products.dtos.ProductDTO;
+import com.multi.shop.api.multi_shop_api.products.dtos.ProductResponseDTO;
 import com.multi.shop.api.multi_shop_api.products.services.ProductCategoryService;
 import com.multi.shop.api.multi_shop_api.products.services.ProductService;
 import org.springframework.data.domain.Page;
@@ -40,16 +41,16 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<ProductDTO> findAll(Pageable pageable) {
+    public Page<ProductResponseDTO> findAll(Pageable pageable) {
         Page<Product> products = repository.findAll(pageable);
-        return products.map(ProductMapper.MAPPER::productToProductDTO);
+        return products.map(ProductMapper.MAPPER::productToResponseDTO);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<ProductDTO> findOne(String id) {
+    public Optional<ProductResponseDTO> findOne(String id) {
         Optional<Product> product = repository.findById(id);
-        return product.map(ProductMapper.MAPPER::productToProductDTO);
+        return product.map(ProductMapper.MAPPER::productToResponseDTO);
     }
 
     @Override

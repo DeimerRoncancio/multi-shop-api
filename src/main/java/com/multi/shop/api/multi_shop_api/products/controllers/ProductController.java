@@ -2,6 +2,7 @@ package com.multi.shop.api.multi_shop_api.products.controllers;
 
 import com.multi.shop.api.multi_shop_api.common.exceptions.NotFoundException;
 import com.multi.shop.api.multi_shop_api.products.dtos.ProductDTO;
+import com.multi.shop.api.multi_shop_api.products.dtos.ProductResponseDTO;
 import jakarta.validation.Valid;
 
 import org.springframework.data.domain.Page;
@@ -29,14 +30,14 @@ public class ProductController {
     }
 
     @GetMapping
-    public Page<ProductDTO> viewAll(@PageableDefault Pageable pageable) {
+    public Page<ProductResponseDTO> viewAll(@PageableDefault Pageable pageable) {
         return service.findAll(pageable);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProductDTO> view(@PathVariable String id) {
-        Optional<ProductDTO> productDb = service.findOne(id);
-        ProductDTO product = productDb.orElseThrow(() -> new NotFoundException("Product not found"));
+    public ResponseEntity<ProductResponseDTO> view(@PathVariable String id) {
+        Optional<ProductResponseDTO> productDb = service.findOne(id);
+        ProductResponseDTO product = productDb.orElseThrow(() -> new NotFoundException("Product not found"));
 
         return ResponseEntity.ok().body(product);
     }

@@ -1,6 +1,7 @@
 package com.multi.shop.api.multi_shop_api.products.mappers;
 
 import com.multi.shop.api.multi_shop_api.products.dtos.ProductDTO;
+import com.multi.shop.api.multi_shop_api.products.dtos.ProductResponseDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -22,4 +23,7 @@ public interface ProductMapper {
 
     @Mapping(target = "categoriesList", ignore = true)
     ProductDTO productToProductDTO(Product product);
+
+    @Mapping(target = "categoriesList", ignore = true)
+    ProductResponseDTO productToResponseDTO(Product product);
 }
