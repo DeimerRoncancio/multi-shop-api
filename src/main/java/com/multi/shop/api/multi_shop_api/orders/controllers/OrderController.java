@@ -1,8 +1,12 @@
 package com.multi.shop.api.multi_shop_api.orders.controllers;
 
+import com.multi.shop.api.multi_shop_api.orders.dtos.OrderResponseDTO;
 import jakarta.validation.Valid;
 import com.multi.shop.api.multi_shop_api.common.exceptions.NotFoundException;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -22,7 +26,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 
-import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -37,14 +40,14 @@ public class OrderController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public List<Order> viewAll() {
-        return service.findAll();
+    public Page<OrderResponseDTO> viewAll(@PageableDefault Pageable pageable) {
+        return service.findAll(pageable);
     }
-    
+
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<Order> view(@PathVariable String id) {
-        Optional<Order> orderDb = service.findOne(id);
+    public ResponseEntity<OrderResponseDTO> view(@PathVariable String id) {
+        Optional<OrderResponseDTO> orderDb = service.findOne(id);
 
         return orderDb.map(order -> ResponseEntity.ok().body(order))
             .orElseGet(() -> ResponseEntity.notFound().build());

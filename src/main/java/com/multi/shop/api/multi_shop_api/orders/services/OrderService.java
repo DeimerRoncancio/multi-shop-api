@@ -3,14 +3,17 @@ package com.multi.shop.api.multi_shop_api.orders.services;
 import java.util.List;
 import java.util.Optional;
 
+import com.multi.shop.api.multi_shop_api.orders.dtos.OrderResponseDTO;
 import com.multi.shop.api.multi_shop_api.orders.entities.Order;
 import com.multi.shop.api.multi_shop_api.orders.dtos.NewOrderDTO;
 import com.multi.shop.api.multi_shop_api.orders.dtos.UpdateOrderDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface OrderService {
-    List<Order> findAll();
+    Page<OrderResponseDTO> findAll(Pageable pageable);
 
-    Optional<Order> findOne(String id);
+    Optional<OrderResponseDTO> findOne(String id);
 
     NewOrderDTO save(NewOrderDTO user);
 

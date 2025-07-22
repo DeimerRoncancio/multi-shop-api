@@ -1,5 +1,8 @@
 package com.multi.shop.api.multi_shop_api.orders.services;
 
+import com.multi.shop.api.multi_shop_api.orders.dtos.OrderResponseDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.multi.shop.api.multi_shop_api.orders.entities.Order;
@@ -14,7 +17,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -29,14 +31,16 @@ public class OrderServiceImpl implements OrderService {
     
     @Override
     @Transactional(readOnly = true)
-    public List<Order> findAll() {
-        return repository.findAll();
+    public Page<OrderResponseDTO> findAll(Pageable pageable) {
+        Page<Order> orders = repository.findAll(pageable);
+        return orders.map(OrderMapper.MAPPER::orderToResponseDTO);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<Order> findOne(String id) {
-        return repository.findById(id);
+    public Optional<OrderResponseDTO> findOne(String id) {
+        Optional<Order> order = repository.findById(id);
+        return order.map(OrderMapper.MAPPER::orderToResponseDTO);
     }
 
     @Override
