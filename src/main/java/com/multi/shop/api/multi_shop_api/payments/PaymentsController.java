@@ -45,7 +45,7 @@ public class PaymentsController {
         return response;
     }
 
-    @PostMapping("webhook")
+    @PostMapping("webhoo")
     public String webhook(){
         return "stripeWebhook";
     }
