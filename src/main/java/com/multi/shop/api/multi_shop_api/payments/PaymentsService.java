@@ -18,6 +18,12 @@ public class PaymentsService {
     @Value("${stripe.key.secret}")
     private String stripeKey;
 
+    @Value("${stripe.success.url}")
+    private String stripeSuccessUrl;
+
+    @Value("${stripe.cancel.url}")
+    private String stripeCancelUrl;
+
     @PostConstruct
     public void init() {
         Stripe.apiKey = stripeKey;
@@ -51,8 +57,8 @@ public class PaymentsService {
 
         SessionCreateParams params = SessionCreateParams.builder()
                 .setMode(SessionCreateParams.Mode.PAYMENT)
-                .setSuccessUrl("http://localhost:5000/app/payments/success")
-                .setCancelUrl("http://localhost:5000/app/payments/cancel")
+                .setSuccessUrl(stripeSuccessUrl)
+                .setCancelUrl(stripeCancelUrl)
                 .addAllLineItem(list)
                 .build();
 
