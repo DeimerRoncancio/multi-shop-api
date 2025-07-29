@@ -2,8 +2,10 @@ package com.multi.shop.api.multi_shop_api.payments;
 
 import com.multi.shop.api.multi_shop_api.payments.dtos.StripeRequestDTO;
 import com.multi.shop.api.multi_shop_api.payments.dtos.StripeResponseDTO;
+import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
 import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -14,6 +16,8 @@ import java.util.Map;
 @CrossOrigin(originPatterns = "*")
 public class PaymentsController {
     private final PaymentsService service;
+
+    private String webhookSecret;
 
     public PaymentsController(PaymentsService service) {
         this.service = service;
@@ -46,8 +50,9 @@ public class PaymentsController {
     }
 
     @PostMapping("/webhook")
-    public String webhook(@RequestBody String payload, @RequestHeader("Stripe-Signature") String sigHeader){
-        System.out.println(sigHeader);
-        return "stripeWebhook";
+    public ResponseEntity<String> webhook(@RequestBody String payload, @RequestHeader("Stripe-Signature") String sigHeader)
+    throws SignatureVerificationException {
+        service.webhookEvent(payload, sigHeader, webhookSecret);
+        return ResponseEntity.ok().body("Success");
     }
 }
