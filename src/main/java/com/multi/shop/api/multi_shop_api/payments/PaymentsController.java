@@ -5,6 +5,7 @@ import com.multi.shop.api.multi_shop_api.payments.dtos.StripeResponseDTO;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,6 +18,7 @@ import java.util.Map;
 public class PaymentsController {
     private final PaymentsService service;
 
+    @Value("${stripe.webhook.secret}")
     private String webhookSecret;
 
     public PaymentsController(PaymentsService service) {
