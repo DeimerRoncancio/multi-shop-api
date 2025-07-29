@@ -45,8 +45,9 @@ public class PaymentsController {
         return response;
     }
 
-    @PostMapping("webhoo")
-    public String webhook(){
+    @PostMapping("/webhook")
+    public String webhook(@RequestBody String payload, @RequestHeader("Stripe-signature") String sigHeader){
+        System.out.println(sigHeader);
         return "stripeWebhook";
     }
 }
