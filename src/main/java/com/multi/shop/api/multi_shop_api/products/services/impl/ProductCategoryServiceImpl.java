@@ -77,7 +77,7 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
 
     @Override
     @Transactional(readOnly = true)
-    public int categoriesSize() {
-        return findAll(Pageable.unpaged()).getContent().size();
+    public Long categoriesSize() {
+        return repository.count();
     }
 }

@@ -27,9 +27,7 @@ import com.multi.shop.api.multi_shop_api.users.repositories.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -168,8 +166,26 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public int usersSize() {
-        return findAll(Pageable.unpaged()).getContent().size();
+    public Long usersSize() {
+        return repository.count();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<String, Long> usersStats(boolean isAdmin) {
+        Map<String, Long> userStats = new HashMap<>();
+
+        if (isAdmin) {
+            userStats.put("totalUsers", repository.countByAdminTrue());
+            userStats.put("enabledUsers", repository.countByAdminTrueAndEnabledTrue());
+            userStats.put("disabledUsers", repository.countByAdminTrueAndEnabledFalse());
+            return userStats;
+        }
+
+        userStats.put("totalUsers", repository.countByAdminFalse());
+        userStats.put("enabledUsers", repository.countByAdminFalseAndEnabledTrue());
+        userStats.put("disabledUsers", repository.countByAdminFalseAndEnabledFalse());
+        return userStats;
     }
 
     public Image uploadProfileImage(MultipartFile file) {

@@ -1,5 +1,6 @@
 package com.multi.shop.api.multi_shop_api.users.services;
 
+import java.util.Map;
 import java.util.Optional;
 
 import com.multi.shop.api.multi_shop_api.users.dtos.PasswordDTO;
@@ -29,5 +30,7 @@ public interface UserService {
 
     Optional<User> delete(String id);
 
-    int usersSize();
+    Long usersSize();
+
+    Map<String, Long> usersStats(boolean isAdmin);
 }

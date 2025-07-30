@@ -22,5 +22,5 @@ public interface ProductCategoryService {
 
     List<ProductCategory> findCategoriesByName(List<String> categoryNames);
 
-    int categoriesSize();
+    Long categoriesSize();
 }

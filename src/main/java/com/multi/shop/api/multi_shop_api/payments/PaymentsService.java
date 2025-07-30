@@ -88,7 +88,5 @@ public class PaymentsService {
             log.warn("Signature verification failed: {}", String.valueOf(e));
             throw new SignatureVerificationException("Error", webhookKey);
         }
-
-        System.out.println(event);
     }
 }

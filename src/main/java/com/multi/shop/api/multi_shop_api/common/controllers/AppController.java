@@ -28,8 +28,8 @@ public class AppController {
 
     @GetMapping("/quantity")
     @PreAuthorize("hasRole('ADMIN')")
-    public Map<String, Integer> appStats() {
-        Map<String, Integer> appStats = new HashMap<>();
+    public Map<String, Long> appStats() {
+        Map<String, Long> appStats = new HashMap<>();
 
         appStats.put("users", userService.usersSize());
         appStats.put("products", productService.productsSize());

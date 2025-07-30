@@ -21,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -92,5 +93,11 @@ public class UserController {
         optionalUser.orElseThrow(() -> new NotFoundException("User not found"));
 
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/stats")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ResponseEntity<Map<String, Long>> usersStats(@RequestParam boolean isAdmin) {
+        return ResponseEntity.ok().body(service.usersStats(isAdmin));
     }
 }

@@ -110,8 +110,8 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
-    public int productsSize() {
-        return findAll(Pageable.unpaged()).getContent().size();
+    public Long productsSize() {
+        return repository.count();
     }
 
     public List<Image> updateProductImages(List<Image> productImages, List<MultipartFile> files) {

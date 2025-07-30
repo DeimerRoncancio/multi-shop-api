@@ -20,5 +20,5 @@ public interface ProductService {
 
     Optional<Product> delete(String id);
 
-    int productsSize();
+    Long productsSize();
 }

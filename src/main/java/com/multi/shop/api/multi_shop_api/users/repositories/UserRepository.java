@@ -1,6 +1,5 @@
 package com.multi.shop.api.multi_shop_api.users.repositories;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -14,4 +13,11 @@ public interface UserRepository extends JpaRepository<User, String> {
     Optional<User> findByPhoneNumber(Long number);
     Page<User> findByAdminTrue(Pageable pageable);
     Page<User> findByAdminFalse(Pageable pageable);
+
+    Long countByAdminFalse();
+    Long countByAdminTrue();
+    Long countByAdminFalseAndEnabledTrue();
+    Long countByAdminFalseAndEnabledFalse();
+    Long countByAdminTrueAndEnabledTrue();
+    Long countByAdminTrueAndEnabledFalse();
 }
