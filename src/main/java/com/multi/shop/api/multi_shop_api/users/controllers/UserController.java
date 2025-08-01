@@ -5,6 +5,7 @@ import com.multi.shop.api.multi_shop_api.images.entities.Image;
 import com.multi.shop.api.multi_shop_api.users.dtos.PasswordDTO;
 import com.multi.shop.api.multi_shop_api.users.dtos.UserDTO;
 import com.multi.shop.api.multi_shop_api.users.dtos.UserResponseDTO;
+import com.multi.shop.api.multi_shop_api.users.enums.Field;
 import com.multi.shop.api.multi_shop_api.users.mappers.UserMapper;
 import jakarta.validation.Valid;
 
@@ -97,7 +98,15 @@ public class UserController {
 
     @GetMapping("/stats")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<Map<String, Long>> usersStats(@RequestParam boolean isAdmin) {
-        return ResponseEntity.ok().body(service.usersStats(isAdmin));
+    public ResponseEntity<Map<String, Long>> userStats(@RequestParam boolean isAdmin) {
+        return ResponseEntity.ok().body(service.userStats(isAdmin));
+    }
+
+    @GetMapping("/search")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ResponseEntity<Page<UserResponseDTO>> userSearch(@PageableDefault Pageable pageable, @RequestParam String identifier,
+    @RequestParam boolean isAdmin, @RequestParam(required = false) Boolean isEnabled,
+    @RequestParam(required = false, defaultValue = "NAME") Field field) {
+        return ResponseEntity.ok().body(service.userSearch(pageable, identifier, isAdmin, isEnabled, field));
     }
 }

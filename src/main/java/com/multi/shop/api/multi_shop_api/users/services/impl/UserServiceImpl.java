@@ -8,6 +8,7 @@ import com.multi.shop.api.multi_shop_api.images.services.ImageService;
 import com.multi.shop.api.multi_shop_api.users.dtos.PasswordDTO;
 import com.multi.shop.api.multi_shop_api.users.dtos.UserDTO;
 import com.multi.shop.api.multi_shop_api.users.dtos.UserResponseDTO;
+import com.multi.shop.api.multi_shop_api.users.enums.Field;
 import com.multi.shop.api.multi_shop_api.users.services.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,13 +32,15 @@ import java.util.*;
 
 @Service
 public class UserServiceImpl implements UserService {
-    private final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(UserServiceImpl.class);
+
     private final UserRepository repository;
     private final RoleRepository roleRepository;
     private final ImageService imageService;
     private final PasswordEncoder passwordEncoder;
 
-    public UserServiceImpl(UserRepository repository, RoleRepository roleRepository, ImageService imageService, PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepository repository,
+    RoleRepository roleRepository, ImageService imageService, PasswordEncoder passwordEncoder) {
         this.repository = repository;
         this.roleRepository = roleRepository;
         this.imageService = imageService;
@@ -166,26 +169,44 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public Long usersSize() {
-        return repository.count();
+    public Map<String, Long> userStats(boolean isAdmin) {
+        Map<String, Long> userStats = new HashMap<>();
+
+        userStats.put("totalUsers", isAdmin
+                ? repository.countByAdminTrue()
+                : repository.countByAdminFalse());
+        userStats.put("enabledUsers", isAdmin
+                ? repository.countByAdminTrueAndEnabledTrue()
+                : repository.countByAdminFalseAndEnabledTrue());
+        userStats.put("disabledUsers", isAdmin
+                ? repository.countByAdminTrueAndEnabledFalse()
+                : repository.countByAdminFalseAndEnabledFalse());
+
+        return userStats;
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Map<String, Long> usersStats(boolean isAdmin) {
-        Map<String, Long> userStats = new HashMap<>();
+    public Page<UserResponseDTO> userSearch(Pageable pageable, String identifier, boolean isAdmin, Boolean isEnabled,Field field) {
+        Page<User> users = switch (field) {
+            case EMAIL -> isEnabled != null
+                ? repository.findByEmailEnabled(identifier, isAdmin, isEnabled, pageable)
+                : repository.findByEmail(identifier, isAdmin, pageable);
+            case NUMBER -> isEnabled != null
+                ? repository.findByPhoneEnabled(identifier, isAdmin, isEnabled, pageable)
+                : repository.findByPhone(identifier, isAdmin, pageable);
+            default -> isEnabled != null
+                ? repository.findByNameEnabled(identifier, isAdmin, isEnabled, pageable)
+                : repository.findByName(identifier, isAdmin, pageable);
+        };
 
-        if (isAdmin) {
-            userStats.put("totalUsers", repository.countByAdminTrue());
-            userStats.put("enabledUsers", repository.countByAdminTrueAndEnabledTrue());
-            userStats.put("disabledUsers", repository.countByAdminTrueAndEnabledFalse());
-            return userStats;
-        }
+        return users.map(UserMapper.MAPPER::userToResponseDTO);
+    }
 
-        userStats.put("totalUsers", repository.countByAdminFalse());
-        userStats.put("enabledUsers", repository.countByAdminFalseAndEnabledTrue());
-        userStats.put("disabledUsers", repository.countByAdminFalseAndEnabledFalse());
-        return userStats;
+    @Override
+    @Transactional(readOnly = true)
+    public Long usersSize() {
+        return repository.count();
     }
 
     public Image uploadProfileImage(MultipartFile file) {
@@ -195,7 +216,7 @@ public class UserServiceImpl implements UserService {
             try {
                 image = imageService.uploadImage(file);
             } catch (IOException e) {
-                logger.error("Exception to try upload image: {}", String.valueOf(e));
+                LOGGER.error("Exception to try upload image: {}", String.valueOf(e));
             }
         }
 
@@ -206,7 +227,7 @@ public class UserServiceImpl implements UserService {
         try {
             imageService.deleteImage(user.getImageUser());
         } catch(IOException e) {
-            logger.error("Exception to try delete the image: {}", String.valueOf(e));
+            LOGGER.error("Exception to try delete the image: {}", String.valueOf(e));
         }
     }
 }

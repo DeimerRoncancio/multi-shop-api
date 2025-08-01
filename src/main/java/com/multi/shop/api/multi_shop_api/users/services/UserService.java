@@ -6,6 +6,7 @@ import java.util.Optional;
 import com.multi.shop.api.multi_shop_api.users.dtos.PasswordDTO;
 import com.multi.shop.api.multi_shop_api.users.dtos.UserDTO;
 import com.multi.shop.api.multi_shop_api.users.dtos.UserResponseDTO;
+import com.multi.shop.api.multi_shop_api.users.enums.Field;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
@@ -32,5 +33,7 @@ public interface UserService {
 
     Long usersSize();
 
-    Map<String, Long> usersStats(boolean isAdmin);
+    Page<UserResponseDTO> userSearch(Pageable pageable, String name, boolean isAdmin, Boolean isEnabled, Field field);
+
+    Map<String, Long> userStats(boolean isAdmin);
 }

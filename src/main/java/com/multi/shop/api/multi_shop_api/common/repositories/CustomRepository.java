@@ -1,5 +1,7 @@
 package com.multi.shop.api.multi_shop_api.common.repositories;
 
+import com.multi.shop.api.multi_shop_api.users.entities.User;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 import jakarta.persistence.EntityManager;
@@ -33,5 +35,12 @@ public class CustomRepository {
             .setParameter("value", value)
             .setParameter("id", id)
             .getSingleResult();
+    }
+
+    public Page<User> getUserByIdentifier(String fieldName, String value) {
+        String jpql = String.format("select u from User u where u.%s=:value", fieldName);
+
+        return (Page<User>) entityManager.createQuery(jpql)
+            .setParameter("value", value);
     }
 }
