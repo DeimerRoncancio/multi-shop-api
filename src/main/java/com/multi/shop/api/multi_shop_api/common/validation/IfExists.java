@@ -10,7 +10,7 @@ import java.lang.annotation.*;
 @Target({ ElementType.FIELD })
 @Retention(RetentionPolicy.RUNTIME)
 public @interface IfExists {
-    String message() default "El valor del campo {field} ya está en uso";
+    String message() default "El valor del campo {field} ya esta en uso";
 
     Class<?>[] groups() default {};
 

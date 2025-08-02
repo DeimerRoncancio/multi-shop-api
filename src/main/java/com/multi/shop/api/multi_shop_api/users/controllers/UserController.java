@@ -58,7 +58,7 @@ public class UserController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserDTO> update(@Valid @RequestBody UserDTO userDTO, @PathVariable String id) {
+    public ResponseEntity<UserDTO> update(@PathVariable String id, @Valid @RequestBody UserDTO userDTO) {
         Optional<UserDTO> userOptional = service.update(id, userDTO);
         UserDTO user = userOptional.orElseThrow(() -> new NotFoundException("User not found"));
 
@@ -69,7 +69,7 @@ public class UserController {
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<UserDTO> updateUser(@Valid @RequestBody UserDTO userDTO, @PathVariable String id) {
         UserDTO user = UserMapper.MAPPER.userDTOtoOrAdmin(userDTO, false);
-        return update(user, id);
+        return update(id, user);
     }
 
     @PutMapping("/update/password/{id}")

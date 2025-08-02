@@ -37,12 +37,11 @@ public class IfExistsValidation implements ConstraintValidator<IfExists, Object>
         String id = getIdFromPath();
 
         if (id != null) {
-            Long count = customService.ifExistsUpdate(value, id, entity, field);
-            return count == 0;
+            if (customService.ifExistsById(id, entity)) return true;
+            return customService.ifExistsUpdate(value, id, entity, field);
         }
 
-        Long count = customService.ifExists(value, entity, field);
-        return count == 0;
+        return customService.ifExists(value, entity, field);
     }
 
     private String getIdFromPath() {

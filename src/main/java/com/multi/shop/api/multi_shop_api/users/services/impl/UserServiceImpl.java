@@ -120,28 +120,26 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public Optional<User> updatePassword(String id, PasswordDTO passwordInfo) {
-        String currentPassword = passwordInfo.currentPassword();
-        String newPassword = passwordInfo.newPassword();
-        Optional<User> userDb = repository.findById(id);
+        return repository.findById(id).map(userDb -> {
+            String currentPassword = passwordInfo.currentPassword();
+            String newPassword = passwordInfo.newPassword();
 
-        if (userDb.isPresent()) {
-            if (!passwordEncoder.matches(currentPassword, userDb.get().getPassword()))
+            if (!passwordEncoder.matches(currentPassword, userDb.getPassword()))
                 throw new InvalidPasswordException("Invalid password");
             if (currentPassword.equals(newPassword))
                 throw new PasswordMatchException("Both passwords match");
 
-            userDb.get().setPassword(passwordEncoder.encode(newPassword));
-            repository.save(userDb.get());
-        }
+            userDb.setPassword(passwordEncoder.encode(newPassword));
+            repository.save(userDb);
 
-        return userDb;
+            return userDb;
+        });
     }
 
     @Override
     @Transactional
     public User updateProfileImage(String id, MultipartFile file) {
-        Optional<User> userOp = repository.findById(id);
-        User user = userOp.orElseThrow(() -> new NotFoundException("User not found"));
+        User user = repository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
 
         if (user.getImageUser() != null)
             deleteProfileImage(user);
@@ -155,16 +153,13 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public Optional<User> delete(String id) {
-        Optional<User> optionalUser = repository.findById(id);
-
-        optionalUser.ifPresent(user -> {
+        return repository.findById(id).map(user -> {
             if (user.getImageUser() != null)
                 deleteProfileImage(user);
-            
+
             repository.delete(user);
+            return user;
         });
-        
-        return optionalUser;
     }
 
     @Override

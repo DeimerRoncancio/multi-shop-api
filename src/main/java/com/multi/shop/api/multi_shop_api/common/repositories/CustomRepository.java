@@ -37,10 +37,8 @@ public class CustomRepository {
             .getSingleResult();
     }
 
-    public Page<User> getUserByIdentifier(String fieldName, String value) {
-        String jpql = String.format("select u from User u where u.%s=:value", fieldName);
-
-        return (Page<User>) entityManager.createQuery(jpql)
-            .setParameter("value", value);
+    public Long ifExistsById(String id, String entity) {
+        String jpql = String.format("select count(e) from %s e where e.id=:id", entity);
+        return entityManager.createQuery(jpql, Long.class).setParameter("id", id).getSingleResult();
     }
 }
