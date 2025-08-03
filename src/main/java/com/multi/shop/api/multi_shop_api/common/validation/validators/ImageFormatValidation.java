@@ -18,7 +18,7 @@ public class ImageFormatValidation implements ConstraintValidator<ImageFormat, O
 
     @Override
     public boolean isValid(Object target, ConstraintValidatorContext context) {
-        if (target == null) return false;
+        if (target == null) return true;
 
         if (target instanceof List<?> list) {
             List<MultipartFile> files = list.stream()

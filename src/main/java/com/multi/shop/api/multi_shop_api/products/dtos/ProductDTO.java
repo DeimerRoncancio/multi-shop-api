@@ -37,7 +37,6 @@ public record ProductDTO(
     List<ProductCategory> categories,
 
     @Transient
-    @NotEmptyFile
     @ImageFormat(maxSize = 3 * 1024 * 1024)
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     List<MultipartFile> images,

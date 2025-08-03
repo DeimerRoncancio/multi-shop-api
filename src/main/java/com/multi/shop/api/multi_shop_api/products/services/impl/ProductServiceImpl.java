@@ -22,8 +22,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductServiceImpl implements ProductService {
@@ -117,36 +117,40 @@ public class ProductServiceImpl implements ProductService {
 
     public List<Image> updateProductImages(List<Image> productImages, List<MultipartFile> files,
     List<String> removeImagesId) {
-        List<Image> imagesToRemove = productImages.stream()
-            .filter(img -> removeImagesId.stream()
-            .anyMatch(imageId -> imageId.equals(img.getImageId())))
-            .toList();
+        if (removeImagesId != null && !removeImagesId.isEmpty()){
+            Set<String> idsToRemove = new HashSet<>(removeImagesId);
+            List<Image> imagesToRemove = productImages.stream()
+                .filter(img -> idsToRemove.contains(img.getImageId()))
+                .toList();
 
-        productImages.removeAll(imagesToRemove);
-        imagesToRemove.forEach(this::deleteProductImage);
+            productImages.removeAll(imagesToRemove);
+            imagesToRemove.forEach(this::deleteProductImage);
+        }
 
-        files.stream()
-            .filter(file -> productImages.stream()
-            .noneMatch(img -> img.getName()
-            .equals(Optional.ofNullable(file.getOriginalFilename()).orElse(""))))
-            .forEach(file -> productImages.add(uploadProductImage(file)));
-        
+        if (files != null) {
+            Set<String> imageNames = productImages.stream()
+                .map(Image::getName)
+                .map(String::toLowerCase)
+                .collect(Collectors.toSet());
+
+            files.stream()
+                .filter(file -> Optional.ofNullable(file.getOriginalFilename())
+                    .map(String::toLowerCase)
+                    .map(name -> !imageNames.contains(name))
+                    .orElse(false))
+                .map(this::uploadProductImage)
+                .forEach(productImages::add);
+        }
+
         return productImages;
     }
 
     public List<ProductCategory> updateProductCategories(List<ProductCategory> productCategories, 
     List<ProductCategory> categories) {
-        List<ProductCategory> categoriesToRemove = productCategories.stream()
-            .filter(cat -> categories.stream()
-            .noneMatch(cats -> cats.getCategoryName()
-            .equals(cat.getCategoryName())))
-            .toList();
-        
-        productCategories.removeAll(categoriesToRemove);
+        productCategories.removeIf(cat -> !categories.contains(cat));
 
         categories.stream()
-            .filter(cats -> productCategories.stream()
-            .noneMatch(cat -> cat.getCategoryName().equals(cats.getCategoryName())))
+            .filter(productCategories::contains)
             .forEach(productCategories::add);
         
         return productCategories;
