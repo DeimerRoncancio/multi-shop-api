@@ -73,40 +73,36 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public Optional<ProductDTO> update(String id, ProductDTO dto) {
-        Optional<Product> productOptional = repository.findById(id);
+        return repository.findById(id).map(productDb -> {
+            List<ProductCategory> categoriesDb = categoryService.findCategoriesByName(dto.categoriesList());
+            List<ProductCategory> productCategories = updateProductCategories(
+                productDb.getCategories(), categoriesDb
+            );
 
-        if (productOptional.isEmpty()) return Optional.empty();
+            List<Image> productImages = updateProductImages(
+                productDb.getProductImages(), dto.images(), dto.imagesToRemove()
+            );
 
-        Product productDb = productOptional.get();
+            productDb.setCategories(productCategories);
+            productDb.setProductImages(productImages);
+            ProductMapper.MAPPER.toUpdateProduct(dto, productDb);
 
-        List<ProductCategory> categoriesDb = categoryService.findCategoriesByName(dto.categoriesList());
-        List<ProductCategory> productCategories = updateProductCategories(
-            productDb.getCategories(), categoriesDb
-        );
+            repository.save(productDb);
 
-        List<Image> productImages = updateProductImages(productDb.getProductImages(), dto.images(), dto.imagesToRemove());
-
-        productDb.setCategories(productCategories);
-        productDb.setProductImages(productImages);
-        ProductMapper.MAPPER.toUpdateProduct(dto, productDb);
-
-        repository.save(productDb);
-        return Optional.of(ProductMapper.MAPPER.productToProductDTO(productDb));
+            return ProductMapper.MAPPER.productToProductDTO(productDb);
+        });
     }
 
     @Override
     @Transactional
     public Optional<Product> delete(String id) {
-        Optional<Product> productOptional = repository.findById(id);
-
-        productOptional.ifPresent(product -> {
+        return repository.findById(id).map(product -> {
             if (!product.getProductImages().isEmpty())
                 product.getProductImages().forEach(this::deleteProductImage);
 
-            repository.delete(productOptional.get());
+            repository.delete(product);
+            return product;
         });
-
-        return productOptional;
     }
 
     @Override
@@ -150,9 +146,9 @@ public class ProductServiceImpl implements ProductService {
         productCategories.removeIf(cat -> !categories.contains(cat));
 
         categories.stream()
-            .filter(productCategories::contains)
+            .filter(cats -> !productCategories.contains(cats))
             .forEach(productCategories::add);
-        
+
         return productCategories;
     }
     
