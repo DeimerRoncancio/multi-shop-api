@@ -83,7 +83,8 @@ public class ProductServiceImpl implements ProductService {
         List<ProductCategory> productCategories = updateProductCategories(
             productDb.getCategories(), categoriesDb
         );
-        List<Image> productImages = updateProductImages(productDb.getProductImages(), dto.images());
+
+        List<Image> productImages = updateProductImages(productDb.getProductImages(), dto.images(), dto.imagesToRemove());
 
         productDb.setCategories(productCategories);
         productDb.setProductImages(productImages);
@@ -114,11 +115,11 @@ public class ProductServiceImpl implements ProductService {
         return repository.count();
     }
 
-    public List<Image> updateProductImages(List<Image> productImages, List<MultipartFile> files) {
+    public List<Image> updateProductImages(List<Image> productImages, List<MultipartFile> files,
+    List<String> removeImagesId) {
         List<Image> imagesToRemove = productImages.stream()
-            .filter(img -> files.stream()
-            .noneMatch(file -> Optional.ofNullable(file.getOriginalFilename())
-            .orElse("").equals(img.getName())))
+            .filter(img -> removeImagesId.stream()
+            .anyMatch(imageId -> imageId.equals(img.getImageId())))
             .toList();
 
         productImages.removeAll(imagesToRemove);

@@ -1,5 +1,6 @@
 package com.multi.shop.api.multi_shop_api.images.entities;
 
+import com.multi.shop.api.multi_shop_api.common.validation.IfExists;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
