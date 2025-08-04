@@ -5,10 +5,13 @@ import com.multi.shop.api.multi_shop_api.common.validation.IfExists;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.UUID;
 
 public class IfExistsValidation implements ConstraintValidator<IfExists, Object> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(IfExistsValidation.class);
     private final CustomService customService;
     private final HttpServletRequest request;
     private String entity;
@@ -27,12 +30,11 @@ public class IfExistsValidation implements ConstraintValidator<IfExists, Object>
 
     @Override
     public boolean isValid(Object target, ConstraintValidatorContext context) {
-        String value = "";
+        String value = (target instanceof Long number)
+            ? number.toString()
+            : target.toString();
 
-        if (target instanceof Long number) value = number.toString();
-        else value = target.toString();
-
-        if (value == null || value.isBlank()) return true;
+        if (value.isBlank()) return true;
 
         String id = getIdFromPath();
 
@@ -45,13 +47,15 @@ public class IfExistsValidation implements ConstraintValidator<IfExists, Object>
     }
 
     private String getIdFromPath() {
+        String uri = request.getRequestURI();
+        String[] segments = uri.split("/");
+        String id = segments[segments.length - 1];
+
         try {
-            String uri = request.getRequestURI();
-            String[] segments = uri.split("/");
-            String id = segments[segments.length - 1];
             UUID.fromString(id);
             return id;
         } catch (IllegalArgumentException e) {
+            LOGGER.warn("Invalid UUID in request path: {}", id);
             return null;
         }
     }

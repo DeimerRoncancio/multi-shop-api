@@ -5,6 +5,8 @@ import java.util.Optional;
 import com.multi.shop.api.multi_shop_api.auth.dtos.RegisterUserDTO;
 import com.multi.shop.api.multi_shop_api.auth.mappers.AuthMapper;
 import com.multi.shop.api.multi_shop_api.common.exceptions.NotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,6 +28,7 @@ import static com.multi.shop.api.multi_shop_api.security.JwtConfig.*;
 @RequestMapping("/app/users")
 @CrossOrigin(originPatterns = "*")
 public class AuthController {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AuthController.class);
     private final UserService service;
     private final UserRepository repository;
 
@@ -50,37 +53,34 @@ public class AuthController {
     @GetMapping("/me")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<UserResponseDTO> getUser(@RequestHeader("Token") String token) {
-        Optional<User> optionalUser;
-        String identifier = null;
+        String identifier;
 
         try {
             Claims claims = Jwts.parser().verifyWith(SECRET_KEY).build().parseSignedClaims(token).getPayload();
             identifier = claims.getSubject();
         } catch(JwtException e) {
+            LOGGER.warn("Invalid JWT token: {}", e.getMessage());
             return ResponseEntity.badRequest().build();
         }
 
-        if (isNumeric(identifier))
-            optionalUser = repository.findByPhoneNumber(Long.parseLong(identifier));
-        else
-            optionalUser = repository.findByEmail(identifier);
+        Optional<User> optionalUser = isNumeric(identifier)
+            ? repository.findByPhoneNumber(Long.parseLong(identifier))
+            : repository.findByEmail(identifier);
 
-        UserResponseDTO user = AuthMapper.MAPPER.userToUserResponse(
-            optionalUser.orElseThrow(() -> new NotFoundException("User not found"))
-        );
-
-        return ResponseEntity.ok().body(user);
+        return optionalUser
+            .map(AuthMapper.MAPPER::userToUserResponse)
+            .map(ResponseEntity::ok)
+            .orElseThrow(() -> new NotFoundException("User Not found"));
     }
 
     @GetMapping("/token-validation")
     public ResponseEntity<Void> tokenValidation(@RequestHeader("Token") String token) {
         try {
             Jwts.parser().verifyWith(SECRET_KEY).build().parseSignedClaims(token).getPayload();
+            return ResponseEntity.ok().build();
         } catch(JwtException e) {
             return ResponseEntity.badRequest().build();
         }
-
-        return ResponseEntity.ok().build();
     }
 
     public boolean isNumeric(String str) {

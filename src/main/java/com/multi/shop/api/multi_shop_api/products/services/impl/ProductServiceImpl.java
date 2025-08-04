@@ -61,10 +61,10 @@ public class ProductServiceImpl implements ProductService {
         List<ProductCategory> categoryList =  categoryService.findCategoriesByName(dto.categoriesList());
         product.setCategories(categoryList);
 
-        dto.images().forEach(img -> {
-            Image image = uploadProductImage(img);
-            product.getProductImages().add(image);
-        });
+        dto.images().stream()
+            .filter(Objects::nonNull)
+            .map(this::uploadProductImage)
+            .forEach(product.getProductImages()::add);
 
         repository.save(product);
         return ProductMapper.MAPPER.productToProductDTO(product);
@@ -156,21 +156,21 @@ public class ProductServiceImpl implements ProductService {
         try {
             imageService.deleteImage(image);
         } catch(IOException e) {
-            logger.warn("Exception to try delete image: {}", String.valueOf(e));
+            logger.warn("Exception to try delete image {}: {}", image.getImageId(), e.getMessage());
         }
     }
 
     public Image uploadProductImage(MultipartFile file) {
-        Image image = null;
-
-        if (file != null && !file.isEmpty()) {
-            try {
-                image = imageService.uploadImage(file);
-            } catch (IOException e) {
-                logger.error("Exception trying add image: {}", String.valueOf(e));
-            }
+        if (file == null || file.isEmpty()) {
+            logger.warn("File is null or empty");
+            return null;
         }
 
-        return image;
+        try {
+            return imageService.uploadImage(file);
+        } catch (IOException e) {
+            logger.warn("Exception trying add image: {}", String.valueOf(e));
+            return null;
+        }
     }
 }
