@@ -57,10 +57,9 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public Page<UserResponseDTO> findByRole(Pageable pageable, boolean isAdmin) {
-        Page<User> admins = null;
-
-        if (isAdmin) admins = repository.findByAdminTrue(pageable);
-        else admins = repository.findByAdminFalse(pageable);
+        Page<User> admins = isAdmin
+                ? repository.findByAdminTrue(pageable)
+                : repository.findByAdminFalse(pageable);
 
         return admins.map(UserMapper.MAPPER::userToResponseDTO);
     }
@@ -76,18 +75,18 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public RegisterUserDTO save(RegisterUserDTO userDTO) {
         User user = UserMapper.MAPPER.registerDTOtoUser(userDTO);
+
         MultipartFile file = userDTO.profileImage();
+        if (file != null && !file.isEmpty()) {
+            Image image = uploadProfileImage(file);
+            user.setImageUser(image);
+        }
 
         List<Role> roles = new ArrayList<>();
         roleRepository.findByRole("ROLE_USER").ifPresent(roles::add);
 
         if (user.isAdmin())
             roleRepository.findByRole("ROLE_ADMIN").ifPresent(roles::add);
-
-        if (file != null && !file.isEmpty()) {
-            Image image = uploadProfileImage(file);
-            user.setImageUser(image);
-        }
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setRoles(roles);
@@ -98,23 +97,20 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public Optional<UserDTO> update(String id, UserDTO userDTO) {
-        Optional<User> optionalUser = repository.findById(id);
+        return repository.findById(id).map(user -> {
+            List<Role> roles = user.getRoles();
 
-        if (optionalUser.isEmpty()) return Optional.empty();
+            if (userDTO.admin() && !user.isAdmin())
+                roleRepository.findByRole("ROLE_ADMIN").ifPresent(roles::add);
+            if (!userDTO.admin() && user.isAdmin())
+                roleRepository.findByRole("ROLE_ADMIN").ifPresent(roles::remove);
 
-        User user = optionalUser.get();
-        List<Role> roles = user.getRoles();
+            user.setRoles(roles);
+            UserMapper.MAPPER.toUpdateUser(userDTO, user);
 
-        if (userDTO.admin() && !user.isAdmin())
-            roleRepository.findByRole("ROLE_ADMIN").ifPresent(roles::add);
-        if (!userDTO.admin() && user.isAdmin())
-            roleRepository.findByRole("ROLE_ADMIN").ifPresent(roles::remove);
-
-        user.setRoles(roles);
-        UserMapper.MAPPER.toUpdateUser(userDTO, user);
-
-        repository.save(user);
-        return Optional.of(UserMapper.MAPPER.userToUserDTO(user));
+            repository.save(user);
+            return UserMapper.MAPPER.userToUserDTO(user);
+        });
     }
 
     @Override
@@ -205,17 +201,17 @@ public class UserServiceImpl implements UserService {
     }
 
     public Image uploadProfileImage(MultipartFile file) {
-        Image image = null;
-        
         if (file != null && !file.isEmpty()) {
-            try {
-                image = imageService.uploadImage(file);
-            } catch (IOException e) {
-                LOGGER.error("Exception to try upload image: {}", String.valueOf(e));
-            }
+            LOGGER.warn("File is null or empty");
+            return null;
         }
 
-        return image;
+        try {
+            return imageService.uploadImage(file);
+        } catch (IOException e) {
+            LOGGER.error("Exception to try upload image: {}", String.valueOf(e));
+            return null;
+        }
     }
 
     public void deleteProfileImage(User user) {
