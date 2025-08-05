@@ -22,12 +22,11 @@ public class ImageFormatValidation implements ConstraintValidator<ImageFormat, O
 
         if (target instanceof List<?> list) {
             List<MultipartFile> files = list.stream()
-                .map(item -> (MultipartFile) item)
+                .filter(Objects::nonNull)
+                .map(MultipartFile.class::cast)
                 .toList();
 
-            boolean sizeValid = files.stream().anyMatch(file -> file.getSize() > maxSize);
-
-            if (sizeValid) {
+            if (files.stream().anyMatch(file -> file.getSize() > maxSize)) {
                 buildMessage(
                     builderMessage("El tamaño de las imágenes debe ser menor a %.2f MB", maxSize),
                     context
@@ -36,9 +35,8 @@ public class ImageFormatValidation implements ConstraintValidator<ImageFormat, O
             };
 
             return files.stream()
-                .allMatch(file ->
-                    Objects.requireNonNull(file.getContentType()).startsWith("image/")
-                );
+                .allMatch(file -> Objects
+                    .requireNonNull(file.getContentType()).startsWith("image/"));
         }
 
         MultipartFile file = (MultipartFile) target;
@@ -62,8 +60,6 @@ public class ImageFormatValidation implements ConstraintValidator<ImageFormat, O
     }
 
     public String builderMessage(String message, int size) {
-        return String.format(
-            message, size / 1024.0 / 1024.0
-        );
+        return String.format(message, size / 1024.0 / 1024.0);
     }
 }

@@ -24,10 +24,8 @@ public class PaymentsService {
 
     @Value("${stripe.key.secret}")
     private String stripeKey;
-
     @Value("${stripe.success.url}")
     private String stripeSuccessUrl;
-
     @Value("${stripe.cancel.url}")
     private String stripeCancelUrl;
 

@@ -6,6 +6,7 @@ import jakarta.validation.ConstraintValidatorContext;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Objects;
 
 public class NotEmptyFileValidation implements ConstraintValidator<NotEmptyFile, Object> {
     @Override
@@ -14,7 +15,8 @@ public class NotEmptyFileValidation implements ConstraintValidator<NotEmptyFile,
 
         if (target instanceof List<?> files) {
             return files.stream()
-                .map(item -> (MultipartFile) item)
+                .filter(Objects::nonNull)
+                .map(MultipartFile.class::cast)
                 .noneMatch(MultipartFile::isEmpty);
         };
 

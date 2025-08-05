@@ -17,14 +17,8 @@ public class Image {
     @UuidGenerator
     @Column(name = "id", updatable = false, nullable = false)
     private String id;
-
-    @NotBlank
     private String name;
-
-    @NotBlank
     private String imageUrl;
-
-    @NotBlank
     private String imageId;
 
     public Image() {

@@ -9,6 +9,7 @@ import java.util.List;
 public record ProductCategoryDTO(
     @IfExists(message = "{IfExists.validation}", field = "categoryName", entity = "ProductCategory")
     @NotBlank(message = "{NotBlank.validation.text}")
-    String categoryName
+    String categoryName,
+    List<String> productList
 ) {
 }

@@ -7,7 +7,6 @@ import com.multi.shop.api.multi_shop_api.products.services.ProductCategoryServic
 import com.multi.shop.api.multi_shop_api.products.services.ProductService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -63,7 +62,7 @@ public class ProductServiceImpl implements ProductService {
 
         dto.images().stream()
             .filter(Objects::nonNull)
-            .map(this::uploadProductImage)
+            .map(this::uploadImage)
             .forEach(product.getProductImages()::add);
 
         repository.save(product);
@@ -75,11 +74,12 @@ public class ProductServiceImpl implements ProductService {
     public Optional<ProductDTO> update(String id, ProductDTO dto) {
         return repository.findById(id).map(productDb -> {
             List<ProductCategory> categoriesDb = categoryService.findCategoriesByName(dto.categoriesList());
-            List<ProductCategory> productCategories = updateProductCategories(
+
+            List<ProductCategory> productCategories = updateCategories(
                 productDb.getCategories(), categoriesDb
             );
 
-            List<Image> productImages = updateProductImages(
+            List<Image> productImages = updateImages(
                 productDb.getProductImages(), dto.images(), dto.imagesToRemove()
             );
 
@@ -88,7 +88,6 @@ public class ProductServiceImpl implements ProductService {
             ProductMapper.MAPPER.toUpdateProduct(dto, productDb);
 
             repository.save(productDb);
-
             return ProductMapper.MAPPER.productToProductDTO(productDb);
         });
     }
@@ -98,7 +97,7 @@ public class ProductServiceImpl implements ProductService {
     public Optional<Product> delete(String id) {
         return repository.findById(id).map(product -> {
             if (!product.getProductImages().isEmpty())
-                product.getProductImages().forEach(this::deleteProductImage);
+                product.getProductImages().forEach(this::deleteImage);
 
             repository.delete(product);
             return product;
@@ -111,20 +110,19 @@ public class ProductServiceImpl implements ProductService {
         return repository.count();
     }
 
-    public List<Image> updateProductImages(List<Image> productImages, List<MultipartFile> files,
-    List<String> removeImagesId) {
-        if (removeImagesId != null && !removeImagesId.isEmpty()){
-            Set<String> idsToRemove = new HashSet<>(removeImagesId);
-            List<Image> imagesToRemove = productImages.stream()
+    public List<Image> updateImages(List<Image> currentImages, List<MultipartFile> files, List<String> removeImageIds) {
+        if (removeImageIds != null && !removeImageIds.isEmpty()){
+            Set<String> idsToRemove = new HashSet<>(removeImageIds);
+            List<Image> imagesToRemove = currentImages.stream()
                 .filter(img -> idsToRemove.contains(img.getImageId()))
                 .toList();
 
-            productImages.removeAll(imagesToRemove);
-            imagesToRemove.forEach(this::deleteProductImage);
+            currentImages.removeAll(imagesToRemove);
+            imagesToRemove.forEach(this::deleteImage);
         }
 
-        if (files != null) {
-            Set<String> imageNames = productImages.stream()
+        if (files != null && !files.isEmpty()) {
+            Set<String> imageNames = currentImages.stream()
                 .map(Image::getName)
                 .map(String::toLowerCase)
                 .collect(Collectors.toSet());
@@ -134,25 +132,24 @@ public class ProductServiceImpl implements ProductService {
                     .map(String::toLowerCase)
                     .map(name -> !imageNames.contains(name))
                     .orElse(false))
-                .map(this::uploadProductImage)
-                .forEach(productImages::add);
+                .map(this::uploadImage)
+                .forEach(currentImages::add);
         }
 
-        return productImages;
+        return currentImages;
     }
 
-    public List<ProductCategory> updateProductCategories(List<ProductCategory> productCategories, 
-    List<ProductCategory> categories) {
-        productCategories.removeIf(cat -> !categories.contains(cat));
+    public List<ProductCategory> updateCategories(List<ProductCategory> currentCategories, List<ProductCategory> categories) {
+        currentCategories.removeIf(cat -> !categories.contains(cat));
 
         categories.stream()
-            .filter(cats -> !productCategories.contains(cats))
-            .forEach(productCategories::add);
+            .filter(cats -> !currentCategories.contains(cats))
+            .forEach(currentCategories::add);
 
-        return productCategories;
+        return currentCategories;
     }
     
-    public void deleteProductImage(Image image) {
+    public void deleteImage(Image image) {
         try {
             imageService.deleteImage(image);
         } catch(IOException e) {
@@ -160,7 +157,7 @@ public class ProductServiceImpl implements ProductService {
         }
     }
 
-    public Image uploadProductImage(MultipartFile file) {
+    public Image uploadImage(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             logger.warn("File is null or empty");
             return null;

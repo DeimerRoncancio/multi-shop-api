@@ -2,6 +2,7 @@ package com.multi.shop.api.multi_shop_api.products.services.impl;
 
 import com.multi.shop.api.multi_shop_api.products.dtos.ProductCategoryDTO;
 import com.multi.shop.api.multi_shop_api.products.dtos.CategoryResponseDTO;
+import com.multi.shop.api.multi_shop_api.products.dtos.ProductItemDTO;
 import com.multi.shop.api.multi_shop_api.products.services.ProductCategoryService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,14 +30,35 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
     public Page<CategoryResponseDTO> findAll(Pageable pageable) {
         Page<ProductCategory> categories = repository.findAll(pageable);
 
-        return categories.map(ProductCategoryMapper.mapper::categoryToResponseDTO);
+        return categories.map(category -> {
+            List<ProductItemDTO> items = category.getProducts().stream()
+                .map(product -> new ProductItemDTO(
+                    product.getId(),
+                    product.getProductName(),
+                    product.getPrice(),
+                    product.getProductImages().get(0))
+                ).toList();
+
+            return ProductCategoryMapper.mapper.categoryToResponseDTO(category, items);
+        });
     }
 
     @Override
     @Transactional(readOnly = true)
     public Optional<CategoryResponseDTO> findOne(String id) {
-        Optional<ProductCategory> category = repository.findById(id);
-        return category.map(ProductCategoryMapper.mapper::categoryToResponseDTO);
+        Optional<ProductCategory> categoryOptional = repository.findById(id);
+
+        return categoryOptional.map(category -> {
+            List<ProductItemDTO> items = category.getProducts().stream()
+                .map(product -> new ProductItemDTO(
+                    product.getId(),
+                    product.getProductName(),
+                    product.getPrice(),
+                    product.getProductImages().get(0)))
+                .toList();
+
+            return ProductCategoryMapper.mapper.categoryToResponseDTO(category, items);
+        });
     }
 
     @Override
@@ -50,15 +72,12 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
     @Override
     @Transactional
     public Optional<ProductCategoryDTO> update(String id, ProductCategoryDTO dto) {
-        Optional<ProductCategory> optionalCategory = repository.findById(id);
+        return repository.findById(id).map(categoryDb -> {
+            ProductCategoryMapper.mapper.toUpdateCategory(dto, categoryDb);
+            repository.save(categoryDb);
 
-        if (optionalCategory.isEmpty()) return Optional.empty();
-
-        ProductCategory categoryDb = optionalCategory.get();
-        ProductCategoryMapper.mapper.toUpdateCategory(dto, categoryDb);
-        repository.save(categoryDb);
-
-        return Optional.of(dto);
+            return dto;
+        });
     }
 
     @Override
