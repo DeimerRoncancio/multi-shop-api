@@ -3,6 +3,7 @@ package com.multi.shop.api.multi_shop_api.products.controllers;
 import com.multi.shop.api.multi_shop_api.common.exceptions.NotFoundException;
 import com.multi.shop.api.multi_shop_api.products.dtos.VariantDTO;
 import com.multi.shop.api.multi_shop_api.products.dtos.VariantResponseDTO;
+import com.multi.shop.api.multi_shop_api.products.entities.Variant;
 import com.multi.shop.api.multi_shop_api.products.services.VariantService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -44,5 +45,11 @@ public class VariantController {
          VariantDTO variant = service.updateVariant(id, dto)
             .orElseThrow(() -> new NotFoundException("Variant not found"));
         return ResponseEntity.ok().body(variant);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteVariant(@PathVariable String id) {
+        service.deleteVariant(id).orElseThrow(() -> new NotFoundException("Variant not found"));
+        return ResponseEntity.ok().build();
     }
 }

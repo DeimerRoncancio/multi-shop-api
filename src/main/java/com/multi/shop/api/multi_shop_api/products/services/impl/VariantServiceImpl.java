@@ -65,4 +65,13 @@ public class VariantServiceImpl implements VariantService {
             return variantDTO;
         });
     }
+
+    @Override
+    @Transactional
+    public Optional<Variant> deleteVariant(String id) {
+        return repository.findById(id).map(variantDb -> {
+            repository.delete(variantDb);
+            return variantDb;
+        });
+    }
 }
