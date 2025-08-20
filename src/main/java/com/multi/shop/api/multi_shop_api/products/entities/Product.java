@@ -38,7 +38,14 @@ public class Product {
         joinColumns = @JoinColumn(name = "id_product"),
         inverseJoinColumns = @JoinColumn(name = "id_image"))
     private List<Image> productImages;
-    
+
+    @ManyToMany(cascade = CascadeType.ALL)
+    @JoinTable(
+        name = "variants_to_products",
+        joinColumns = @JoinColumn(name = "id_product"),
+        inverseJoinColumns = @JoinColumn(name = "id_variant"))
+    private List<Variant> variants;
+
     @ManyToMany
     @JoinTable(
         name = "categories_to_products",
@@ -104,5 +111,13 @@ public class Product {
 
     public void setProductImages(List<Image> images) {
         this.productImages = images;
+    }
+
+    public List<Variant> getVariants() {
+        return variants;
+    }
+
+    public void setVariants(List<Variant> variants) {
+        this.variants = variants;
     }
 }

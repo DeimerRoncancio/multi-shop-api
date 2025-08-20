@@ -2,18 +2,10 @@ package com.multi.shop.api.multi_shop_api.orders.entities;
 
 import com.multi.shop.api.multi_shop_api.products.entities.Product;
 import com.multi.shop.api.multi_shop_api.users.entities.User;
+import jakarta.persistence.*;
 import org.hibernate.annotations.UuidGenerator;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import jakarta.persistence.Column;
 
 import java.util.Date;
 import java.util.List;
@@ -25,17 +17,16 @@ public class Order {
     @UuidGenerator
     @Column(name = "id", nullable = false, updatable = false)
     private String id;
-
     private String orderName;
     private String notes;
-
     private Date orderDate;
 
     @ManyToMany
     @JoinTable(
         name = "products_to_orders",
         joinColumns = @JoinColumn(name = "id_order"),
-        inverseJoinColumns = @JoinColumn(name = "id_product"))
+        inverseJoinColumns = @JoinColumn(name = "id_product"),
+        uniqueConstraints = @UniqueConstraint(columnNames = {"id_order"}))
     private List<Product> product;
 
     @ManyToOne

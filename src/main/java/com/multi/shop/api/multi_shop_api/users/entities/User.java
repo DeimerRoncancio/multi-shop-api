@@ -53,8 +53,7 @@ public class User {
     @JoinTable(
         name = "roles_to_users",
         joinColumns = @JoinColumn(name = "id_user"),
-        inverseJoinColumns = @JoinColumn(name = "id_role"),
-        uniqueConstraints = @UniqueConstraint(columnNames = {"id_user", "id_role"}))
+        inverseJoinColumns = @JoinColumn(name = "id_role"))
     @JsonIgnoreProperties("users")
     private List<Role> roles;
     private boolean admin;
