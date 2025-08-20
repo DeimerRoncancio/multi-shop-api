@@ -5,6 +5,7 @@ import com.multi.shop.api.multi_shop_api.products.dtos.VariantDTO;
 import com.multi.shop.api.multi_shop_api.products.dtos.VariantResponseDTO;
 import com.multi.shop.api.multi_shop_api.products.entities.Variant;
 import com.multi.shop.api.multi_shop_api.products.services.VariantService;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -35,13 +36,13 @@ public class VariantController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<VariantDTO> addVariant(@RequestBody VariantDTO dto) {
+    public ResponseEntity<VariantDTO> addVariant(@Valid @RequestBody VariantDTO dto) {
         return ResponseEntity.ok().body(service.addVariant(dto));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<VariantDTO> updateVariant(@PathVariable String id, @RequestBody VariantDTO dto) {
+    public ResponseEntity<VariantDTO> updateVariant(@PathVariable String id, @Valid @RequestBody VariantDTO dto) {
          VariantDTO variant = service.updateVariant(id, dto)
             .orElseThrow(() -> new NotFoundException("Variant not found"));
         return ResponseEntity.ok().body(variant);

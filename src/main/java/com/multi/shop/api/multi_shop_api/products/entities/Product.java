@@ -58,11 +58,12 @@ public class Product {
         productImages = new ArrayList<>();
     }
 
-    public Product(String productName, String description, Long price, List<ProductCategory> categories) {
+    public Product(String productName, String description, Long price, List<ProductCategory> categories, List<Variant> variants) {
         this.productName = productName;
         this.description = description;
         this.price = price;
         this.categories = categories;
+        this.variants = variants;
     }
 
     public String getId() {
