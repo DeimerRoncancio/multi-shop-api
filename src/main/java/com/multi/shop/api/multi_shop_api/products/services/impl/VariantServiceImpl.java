@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class VariantServiceImpl implements VariantService {
@@ -48,5 +49,20 @@ public class VariantServiceImpl implements VariantService {
         String values = String.join("|", newVariant.listValues());
         repository.save(VariantMapper.MAPPER.dtoToVariant(newVariant, values));
         return newVariant;
+    }
+
+    @Override
+    @Transactional
+    public Optional<VariantDTO> updateVariant(String id, VariantDTO variantDTO){
+        return repository.findById(id).map(variantDb -> {
+            String values = String.join("|", variantDTO.listValues());
+
+            variantDb.setName(variantDTO.name());
+            variantDb.setTag(variantDTO.tag());
+            variantDb.setValues(values);
+            repository.save(variantDb);
+
+            return variantDTO;
+        });
     }
 }

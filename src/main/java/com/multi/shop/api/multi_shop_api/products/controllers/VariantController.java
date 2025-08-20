@@ -1,5 +1,6 @@
 package com.multi.shop.api.multi_shop_api.products.controllers;
 
+import com.multi.shop.api.multi_shop_api.common.exceptions.NotFoundException;
 import com.multi.shop.api.multi_shop_api.products.dtos.VariantDTO;
 import com.multi.shop.api.multi_shop_api.products.dtos.VariantResponseDTO;
 import com.multi.shop.api.multi_shop_api.products.services.VariantService;
@@ -37,5 +38,11 @@ public class VariantController {
         return ResponseEntity.ok().body(service.addVariant(dto));
     }
 
-
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<VariantDTO> updateVariant(@PathVariable String id, @RequestBody VariantDTO dto) {
+         VariantDTO variant = service.updateVariant(id, dto)
+            .orElseThrow(() -> new NotFoundException("Variant not found"));
+        return ResponseEntity.ok().body(variant);
+    }
 }

@@ -11,4 +11,5 @@ public interface VariantService {
     Page<VariantResponseDTO> findAll(Pageable pageable);
     VariantResponseDTO findOne(String id);
     VariantDTO addVariant(VariantDTO newVariant);
+    Optional<VariantDTO> updateVariant(String id, VariantDTO variant);
 }
