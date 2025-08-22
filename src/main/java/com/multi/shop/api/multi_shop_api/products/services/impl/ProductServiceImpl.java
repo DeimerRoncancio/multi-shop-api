@@ -3,8 +3,10 @@ package com.multi.shop.api.multi_shop_api.products.services.impl;
 import com.multi.shop.api.multi_shop_api.images.services.ImageService;
 import com.multi.shop.api.multi_shop_api.products.dtos.ProductDTO;
 import com.multi.shop.api.multi_shop_api.products.dtos.ProductResponseDTO;
+import com.multi.shop.api.multi_shop_api.products.entities.Variant;
 import com.multi.shop.api.multi_shop_api.products.services.ProductCategoryService;
 import com.multi.shop.api.multi_shop_api.products.services.ProductService;
+import com.multi.shop.api.multi_shop_api.products.services.VariantService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,12 +31,14 @@ public class ProductServiceImpl implements ProductService {
     private final Logger logger = LoggerFactory.getLogger(ProductServiceImpl.class);
     private final ProductRepository repository;
     private final ProductCategoryService categoryService;
+    private final VariantService variantService;
     private final ImageService imageService;
 
     public ProductServiceImpl(ProductRepository repository, ProductCategoryService categoryService, 
-    ImageService imageService) {
+    VariantService variantService, ImageService imageService) {
         this.repository = repository;
         this.categoryService = categoryService;
+        this.variantService = variantService;
         this.imageService = imageService;
     }
 
@@ -57,6 +61,9 @@ public class ProductServiceImpl implements ProductService {
     public ProductDTO save(ProductDTO dto) {
         Product product = ProductMapper.MAPPER.productDTOtoProduct(dto);
 
+        List<Variant> variantList = variantService.findVariantsByName(dto.variantsList());
+        product.setVariants(variantList);
+
         List<ProductCategory> categoryList =  categoryService.findCategoriesByName(dto.categoriesList());
         product.setCategories(categoryList);
 
@@ -74,16 +81,19 @@ public class ProductServiceImpl implements ProductService {
     public Optional<ProductDTO> update(String id, ProductDTO dto) {
         return repository.findById(id).map(productDb -> {
             List<ProductCategory> categoriesDb = categoryService.findCategoriesByName(dto.categoriesList());
+            List<Variant> variantsDb = variantService.findVariantsByName(dto.variantsList());
 
             List<ProductCategory> productCategories = updateCategories(
-                productDb.getCategories(), categoriesDb
-            );
+                productDb.getCategories(), categoriesDb);
+
+            List<Variant> productVariants = updateVariants(
+                productDb.getVariants(), variantsDb);
 
             List<Image> productImages = updateImages(
-                productDb.getProductImages(), dto.images(), dto.imagesToRemove()
-            );
+                productDb.getProductImages(), dto.images(), dto.imagesToRemove());
 
             productDb.setCategories(productCategories);
+            productDb.setVariants(productVariants);
             productDb.setProductImages(productImages);
             ProductMapper.MAPPER.toUpdateProduct(dto, productDb);
 
@@ -148,7 +158,17 @@ public class ProductServiceImpl implements ProductService {
 
         return currentCategories;
     }
-    
+
+    public List<Variant> updateVariants(List<Variant> currentVariants, List<Variant> variants) {
+        currentVariants.removeIf(var -> !variants.contains(var));
+
+        variants.stream()
+                .filter(var -> !currentVariants.contains(var))
+                .forEach(currentVariants::add);
+
+        return currentVariants;
+    }
+
     public void deleteImage(Image image) {
         try {
             imageService.deleteImage(image);

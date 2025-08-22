@@ -7,6 +7,7 @@ import com.multi.shop.api.multi_shop_api.common.validation.ImageFormat;
 import com.multi.shop.api.multi_shop_api.common.validation.NotEmptyFile;
 import com.multi.shop.api.multi_shop_api.images.entities.Image;
 import com.multi.shop.api.multi_shop_api.products.entities.ProductCategory;
+import com.multi.shop.api.multi_shop_api.products.entities.Variant;
 import com.multi.shop.api.multi_shop_api.products.validation.ExistingCategories;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -28,6 +29,9 @@ public record ProductResponseDTO(
 
     @JsonIgnoreProperties({"id", "products"})
     List<ProductCategory> categories,
+
+    @JsonIgnoreProperties({"id"})
+    List<Variant> variants,
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     List<MultipartFile> images,

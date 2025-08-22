@@ -74,4 +74,10 @@ public class VariantServiceImpl implements VariantService {
             return variantDb;
         });
     }
+
+    @Override
+    @Transactional
+    public List<Variant> findVariantsByName(List<String> variants) {
+        return repository.findByNameIn(variants);
+    }
 }

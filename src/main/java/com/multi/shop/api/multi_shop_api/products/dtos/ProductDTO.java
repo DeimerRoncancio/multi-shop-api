@@ -5,6 +5,7 @@ import java.util.List;
 import com.multi.shop.api.multi_shop_api.common.validation.IfExists;
 import com.multi.shop.api.multi_shop_api.common.validation.ImageFormat;
 import com.multi.shop.api.multi_shop_api.common.validation.NotEmptyFile;
+import com.multi.shop.api.multi_shop_api.products.entities.Variant;
 import com.multi.shop.api.multi_shop_api.products.validation.ExistingCategories;
 import org.springframework.data.annotation.Transient;
 
@@ -36,6 +37,9 @@ public record ProductDTO(
     @JsonIgnoreProperties({"id", "products"})
     List<ProductCategory> categories,
 
+    @JsonIgnoreProperties({"id", "values", "tag"})
+    List<Variant> variants,
+
     @Transient
     @ImageFormat(maxSize = 3 * 1024 * 1024)
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
@@ -49,6 +53,11 @@ public record ProductDTO(
     @ExistingCategories(message = "{IfExists.category.name}")
     @NotEmpty(message = "{NotEmpty.validation.list}")
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    List<String> categoriesList
+    List<String> categoriesList,
+
+    @Transient
+    @NotEmpty
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    List<String> variantsList
 ) {
 }

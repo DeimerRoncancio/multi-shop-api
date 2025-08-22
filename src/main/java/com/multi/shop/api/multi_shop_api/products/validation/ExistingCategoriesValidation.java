@@ -16,6 +16,7 @@ public class ExistingCategoriesValidation implements ConstraintValidator<Existin
 
     @Override
     public boolean isValid(List<String> categories, ConstraintValidatorContext context) {
+        if (categories == null) return true;
         List<ProductCategory> currentCategories = repository.findByCategoryNameIn(categories);
 
         List<String> invalidCategories = categories.stream()

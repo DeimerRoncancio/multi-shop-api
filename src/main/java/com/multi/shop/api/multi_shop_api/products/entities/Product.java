@@ -39,7 +39,7 @@ public class Product {
         inverseJoinColumns = @JoinColumn(name = "id_image"))
     private List<Image> productImages;
 
-    @ManyToMany(cascade = CascadeType.ALL)
+    @ManyToMany
     @JoinTable(
         name = "variants_to_products",
         joinColumns = @JoinColumn(name = "id_product"),

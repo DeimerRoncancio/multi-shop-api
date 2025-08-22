@@ -19,6 +19,7 @@ public interface ProductMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "productImages", ignore = true)
     @Mapping(target = "categories", ignore = true)
+    @Mapping(target = "variants", ignore = true)
     void toUpdateProduct(ProductDTO dto, @MappingTarget Product product);
 
     @Mapping(target = "categoriesList", ignore = true)

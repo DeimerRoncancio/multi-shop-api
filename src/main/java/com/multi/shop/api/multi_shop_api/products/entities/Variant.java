@@ -1,10 +1,9 @@
 package com.multi.shop.api.multi_shop_api.products.entities;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import org.hibernate.annotations.UuidGenerator;
+
+import java.util.List;
 
 @Entity
 @Table(name = "variants")
@@ -18,6 +17,9 @@ public class Variant {
     private String tag;
     @Column(name = "variant_values")
     private String values;
+
+    @ManyToMany(mappedBy = "variants")
+    private List<Product> products;
 
     public Variant() {
     }
