@@ -56,7 +56,6 @@ public record ProductDTO(
     List<String> categoriesList,
 
     @Transient
-    @NotEmpty
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     List<String> variantsList
 ) {

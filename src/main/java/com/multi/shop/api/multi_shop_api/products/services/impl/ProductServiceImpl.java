@@ -160,11 +160,12 @@ public class ProductServiceImpl implements ProductService {
     }
 
     public List<Variant> updateVariants(List<Variant> currentVariants, List<Variant> variants) {
+        System.out.println(currentVariants);
         currentVariants.removeIf(var -> !variants.contains(var));
 
         variants.stream()
-                .filter(var -> !currentVariants.contains(var))
-                .forEach(currentVariants::add);
+            .filter(var -> !currentVariants.contains(var))
+            .forEach(currentVariants::add);
 
         return currentVariants;
     }
