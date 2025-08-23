@@ -3,6 +3,7 @@ package com.multi.shop.api.multi_shop_api.products.services.impl;
 import com.multi.shop.api.multi_shop_api.images.services.ImageService;
 import com.multi.shop.api.multi_shop_api.products.dtos.ProductDTO;
 import com.multi.shop.api.multi_shop_api.products.dtos.ProductResponseDTO;
+import com.multi.shop.api.multi_shop_api.products.dtos.VariantDTO;
 import com.multi.shop.api.multi_shop_api.products.entities.Variant;
 import com.multi.shop.api.multi_shop_api.products.services.ProductCategoryService;
 import com.multi.shop.api.multi_shop_api.products.services.ProductService;
@@ -45,15 +46,28 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public Page<ProductResponseDTO> findAll(Pageable pageable) {
-        Page<Product> products = repository.findAll(pageable);
-        return products.map(ProductMapper.MAPPER::productToResponseDTO);
+        return repository.findAll(pageable).map(product -> {
+            List<VariantDTO> variants = product.getVariants().stream().map(var -> {
+                List<String> values = List.of(var.getValues().split("\\|"));
+                return new VariantDTO(var.getName(), var.getTag(), values);
+            }).toList();
+
+            return ProductMapper.MAPPER.productToResponseDTO(product, variants);
+        });
+
     }
 
     @Override
     @Transactional(readOnly = true)
     public Optional<ProductResponseDTO> findOne(String id) {
-        Optional<Product> product = repository.findById(id);
-        return product.map(ProductMapper.MAPPER::productToResponseDTO);
+        return repository.findById(id).map(product -> {
+            List<VariantDTO> variants = product.getVariants().stream().map(variant -> {
+                List<String> values = List.of(variant.getValues().split("\\|"));
+                return new VariantDTO(variant.getName(), variant.getTag(), values);
+            }).toList();
+
+            return ProductMapper.MAPPER.productToResponseDTO(product, variants);
+        });
     }
 
     @Override
@@ -160,7 +174,6 @@ public class ProductServiceImpl implements ProductService {
     }
 
     public List<Variant> updateVariants(List<Variant> currentVariants, List<Variant> variants) {
-        System.out.println(currentVariants);
         currentVariants.removeIf(var -> !variants.contains(var));
 
         variants.stream()

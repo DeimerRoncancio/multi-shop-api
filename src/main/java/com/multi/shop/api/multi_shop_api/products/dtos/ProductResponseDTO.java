@@ -31,7 +31,7 @@ public record ProductResponseDTO(
     List<ProductCategory> categories,
 
     @JsonIgnoreProperties({"id"})
-    List<Variant> variants,
+    List<VariantDTO> variants,
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     List<MultipartFile> images,

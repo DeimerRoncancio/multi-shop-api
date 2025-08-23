@@ -4,7 +4,6 @@ import java.util.List;
 
 import com.multi.shop.api.multi_shop_api.common.validation.IfExists;
 import com.multi.shop.api.multi_shop_api.common.validation.ImageFormat;
-import com.multi.shop.api.multi_shop_api.common.validation.NotEmptyFile;
 import com.multi.shop.api.multi_shop_api.products.entities.Variant;
 import com.multi.shop.api.multi_shop_api.products.validation.ExistingCategories;
 import org.springframework.data.annotation.Transient;
