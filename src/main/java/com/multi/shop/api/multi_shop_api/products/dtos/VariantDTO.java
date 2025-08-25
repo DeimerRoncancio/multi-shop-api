@@ -12,6 +12,9 @@ public record VariantDTO(
     @IfExists(field = "name", entity = "Variant")
     String name,
 
+    @NotBlank
+    String type,
+
     @NotBlank(message = "{NotBlank.validation.text}")
     String tag,
 

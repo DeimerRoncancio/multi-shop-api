@@ -15,6 +15,7 @@ public class Variant {
     @Column(unique = true)
     private String name;
     private String tag;
+    private String type;
     @Column(name = "variant_values")
     private String values;
 
@@ -61,5 +62,21 @@ public class Variant {
 
     public void setTag(String tag) {
         this.tag = tag;
+    }
+
+    public List<Product> getProducts() {
+        return products;
+    }
+
+    public void setProducts(List<Product> products) {
+        this.products = products;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 }

@@ -8,6 +8,7 @@ public record VariantResponseDTO(
     String id,
     String name,
     String tag,
+    String type,
     @Transient
     List<String> listValues
 ) {
