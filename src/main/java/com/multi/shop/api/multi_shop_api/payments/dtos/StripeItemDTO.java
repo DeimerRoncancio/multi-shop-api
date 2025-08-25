@@ -8,6 +8,9 @@ public record StripeItemDTO(
     @NotBlank
     String name,
 
+    @NotBlank
+    String description,
+
     @NotNull
     @PositiveOrZero
     Long price,

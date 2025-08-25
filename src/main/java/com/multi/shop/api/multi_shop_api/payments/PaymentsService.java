@@ -42,6 +42,7 @@ public class PaymentsService {
             SessionCreateParams.LineItem.PriceData.ProductData productData = SessionCreateParams
                     .LineItem.PriceData.ProductData.builder()
                     .setName(product.name())
+                    .setDescription(product.description())
                     .build();
 
             SessionCreateParams.LineItem.PriceData priceData = SessionCreateParams
