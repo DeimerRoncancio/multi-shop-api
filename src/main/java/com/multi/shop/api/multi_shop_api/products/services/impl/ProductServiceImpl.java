@@ -49,7 +49,7 @@ public class ProductServiceImpl implements ProductService {
         return repository.findAll(pageable).map(product -> {
             List<VariantDTO> variants = product.getVariants().stream().map(var -> {
                 List<String> values = List.of(var.getValues().split("\\|"));
-                return new VariantDTO(var.getName(), var.getTag(), var.getType(), values);
+                return new VariantDTO(var.getName(), var.getType(), var.getTag(), values);
             }).toList();
 
             return ProductMapper.MAPPER.productToResponseDTO(product, variants);
@@ -63,7 +63,7 @@ public class ProductServiceImpl implements ProductService {
         return repository.findById(id).map(product -> {
             List<VariantDTO> variants = product.getVariants().stream().map(variant -> {
                 List<String> values = List.of(variant.getValues().split("\\|"));
-                return new VariantDTO(variant.getName(), variant.getTag(), variant.getType(), values);
+                return new VariantDTO(variant.getName(), variant.getType(), variant.getTag(), values);
             }).toList();
 
             return ProductMapper.MAPPER.productToResponseDTO(product, variants);

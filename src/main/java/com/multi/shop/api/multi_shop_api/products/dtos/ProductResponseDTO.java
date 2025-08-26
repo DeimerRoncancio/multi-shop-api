@@ -30,7 +30,7 @@ public record ProductResponseDTO(
     @JsonIgnoreProperties({"id", "products"})
     List<ProductCategory> categories,
 
-    @JsonIgnoreProperties({"id", "products"})
+    @JsonIgnoreProperties({"id"})
     List<VariantDTO> variants,
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
