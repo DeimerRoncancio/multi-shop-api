@@ -19,9 +19,6 @@ public class Variant {
     @Column(name = "variant_values")
     private String values;
 
-    @ManyToMany(mappedBy = "variants")
-    private List<Product> products;
-
     public Variant() {
     }
 
@@ -62,14 +59,6 @@ public class Variant {
 
     public void setTag(String tag) {
         this.tag = tag;
-    }
-
-    public List<Product> getProducts() {
-        return products;
-    }
-
-    public void setProducts(List<Product> products) {
-        this.products = products;
     }
 
     public String getType() {

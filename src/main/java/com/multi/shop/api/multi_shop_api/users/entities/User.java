@@ -20,6 +20,7 @@ import jakarta.persistence.UniqueConstraint;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import jakarta.persistence.Entity;
 
 @Entity
@@ -51,9 +52,9 @@ public class User {
 
     @ManyToMany
     @JoinTable(
-        name = "roles_to_users",
-        joinColumns = @JoinColumn(name = "id_user"),
-        inverseJoinColumns = @JoinColumn(name = "id_role"))
+            name = "roles_to_users",
+            joinColumns = @JoinColumn(name = "id_user"),
+            inverseJoinColumns = @JoinColumn(name = "id_role"))
     @JsonIgnoreProperties("users")
     private List<Role> roles;
     private boolean admin;
@@ -65,8 +66,8 @@ public class User {
     }
 
     public User() {
-        this.roles = new ArrayList<> ();
-        this.orders = new ArrayList<> ();
+        this.roles = new ArrayList<>();
+        this.orders = new ArrayList<>();
     }
 
     public String getId() {

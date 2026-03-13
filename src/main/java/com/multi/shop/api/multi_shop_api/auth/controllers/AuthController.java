@@ -67,6 +67,8 @@ public class AuthController {
             ? repository.findByPhoneNumber(Long.parseLong(identifier))
             : repository.findByEmail(identifier);
 
+        System.out.println(optionalUser.get().getImageUser());
+
         return optionalUser
             .map(AuthMapper.MAPPER::userToUserResponse)
             .map(ResponseEntity::ok)
