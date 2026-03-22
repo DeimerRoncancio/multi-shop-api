@@ -221,4 +221,11 @@ public class UserServiceImpl implements UserService {
             LOGGER.error("Exception to try delete the image: {}", String.valueOf(e));
         }
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserResponseDTO> latestUsers() {
+        return repository.findTop4ByOrderByCreatedAtDesc().stream()
+                .map(UserMapper.MAPPER::userToResponseDTO).toList();
+    }
 }

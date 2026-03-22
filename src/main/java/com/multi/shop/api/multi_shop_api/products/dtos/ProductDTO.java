@@ -4,9 +4,8 @@ import java.util.List;
 
 import com.multi.shop.api.multi_shop_api.common.validation.IfExists;
 import com.multi.shop.api.multi_shop_api.common.validation.ImageFormat;
-import com.multi.shop.api.multi_shop_api.products.entities.Variant;
 import com.multi.shop.api.multi_shop_api.products.validation.ExistingCategories;
-import org.springframework.data.annotation.Transient;
+import jakarta.validation.Valid;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -19,43 +18,39 @@ import jakarta.validation.constraints.Size;
 import org.springframework.web.multipart.MultipartFile;
 
 public record ProductDTO(
-    @NotBlank(message = "{NotBlank.validation.text}")
-    @IfExists(message = "{IfExists.validation}", entity = "Product", field = "productName")
-    String productName,
+        @NotBlank(message = "{NotBlank.validation.text}")
+        @IfExists(message = "{IfExists.validation}", entity = "Product", field = "productName")
+        String productName,
 
-    @NotBlank(message = "{NotBlank.validation.text}")
-    @Size(max = 140, message = "{Size.product.description}")
-    String description,
+        @NotBlank(message = "{NotBlank.validation.text}")
+        @Size(max = 400, message = "{Size.product.description}")
+        String description,
 
-    @NotNull(message = "{NotBlank.validation.text}")
-    Long price,
+        @NotNull(message = "{NotBlank.validation.text}")
+        Long price,
 
-    @JsonIgnoreProperties("id")
-    List<Image> productImages,
+        @JsonIgnoreProperties("id")
+        List<Image> productImages,
 
-    @JsonIgnoreProperties({"id", "products"})
-    List<ProductCategory> categories,
+        @JsonIgnoreProperties({"id", "products"})
+        List<ProductCategory> categories,
 
-    @JsonIgnoreProperties({"id", "values", "tag"})
-    List<Variant> variants,
+        @Valid
+        List<VariantDTO> variants,
 
-    @Transient
-    @ImageFormat(maxSize = 3 * 1024 * 1024)
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    List<MultipartFile> images,
+        @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+        List<String> variantsToRemove,
 
-    @Transient
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    List<String> imagesToRemove,
+        @ImageFormat(maxSize = 3 * 1024 * 1024)
+        @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+        List<MultipartFile> images,
 
-    @Transient
-    @ExistingCategories(message = "{IfExists.category.name}")
-    @NotEmpty(message = "{NotEmpty.validation.list}")
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    List<String> categoriesList,
+        @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+        List<String> imagesToRemove,
 
-    @Transient
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    List<String> variantsList
+        @ExistingCategories(message = "{IfExists.category.name}")
+        @NotEmpty(message = "{NotEmpty.validation.list}")
+        @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+        List<String> categoriesList
 ) {
 }

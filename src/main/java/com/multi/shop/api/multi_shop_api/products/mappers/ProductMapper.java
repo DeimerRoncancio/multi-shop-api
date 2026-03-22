@@ -3,6 +3,7 @@ package com.multi.shop.api.multi_shop_api.products.mappers;
 import com.multi.shop.api.multi_shop_api.products.dtos.ProductDTO;
 import com.multi.shop.api.multi_shop_api.products.dtos.ProductResponseDTO;
 import com.multi.shop.api.multi_shop_api.products.dtos.VariantDTO;
+import com.multi.shop.api.multi_shop_api.products.entities.Variant;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -17,7 +18,8 @@ public interface ProductMapper {
     ProductMapper MAPPER = Mappers.getMapper(ProductMapper.class);
 
     @Mapping(target = "id", ignore = true)
-    Product productDTOtoProduct(ProductDTO dto);
+    @Mapping(target = "variants", expression = "java(variantsList)")
+    Product productDTOtoProduct(ProductDTO dto, List<Variant> variantsList);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "productImages", ignore = true)

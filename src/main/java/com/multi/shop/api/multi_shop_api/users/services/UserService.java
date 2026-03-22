@@ -1,5 +1,6 @@
 package com.multi.shop.api.multi_shop_api.users.services;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -36,4 +37,6 @@ public interface UserService {
     Page<UserResponseDTO> userSearch(Pageable pageable, String name, boolean isAdmin, Boolean isEnabled, Field field);
 
     Map<String, Long> userStats(boolean isAdmin);
+
+    List<UserResponseDTO> latestUsers();
 }

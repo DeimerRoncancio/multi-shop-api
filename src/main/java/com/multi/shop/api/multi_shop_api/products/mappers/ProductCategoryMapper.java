@@ -19,6 +19,8 @@ public interface ProductCategoryMapper {
     @Mapping(target = "id", ignore = true)
     ProductCategory categoryDTOtoCategory(ProductCategoryDTO dto);
 
+    ProductCategoryDTO categoryDTOtoCategory(ProductCategory category);
+
     @Mapping(target = "products", expression = "java(productsItem)")
     CategoryResponseDTO categoryToResponseDTO(ProductCategory category, List<ProductItemDTO> productsItem);
 

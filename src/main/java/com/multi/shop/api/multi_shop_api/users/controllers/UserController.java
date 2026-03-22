@@ -22,6 +22,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -108,5 +109,11 @@ public class UserController {
     @RequestParam boolean isAdmin, @RequestParam(required = false) Boolean isEnabled,
     @RequestParam(required = false, defaultValue = "NAME") Field field) {
         return ResponseEntity.ok().body(service.userSearch(pageable, identifier, isAdmin, isEnabled, field));
+    }
+
+    @GetMapping("/latest-users")
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<UserResponseDTO> getLatestUsers() {
+        return service.latestUsers();
     }
 }

@@ -1,6 +1,7 @@
 package com.multi.shop.api.multi_shop_api.products.services;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import com.multi.shop.api.multi_shop_api.products.dtos.ProductCategoryDTO;
@@ -23,4 +24,8 @@ public interface ProductCategoryService {
     List<ProductCategory> findCategoriesByName(List<String> categoryNames);
 
     Long categoriesSize();
+
+    List<ProductCategoryDTO> latestCategories();
+
+    Map<String, Long> categoriesStats();
 }

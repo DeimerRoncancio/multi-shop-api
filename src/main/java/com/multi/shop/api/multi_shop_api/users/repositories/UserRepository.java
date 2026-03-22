@@ -1,5 +1,6 @@
 package com.multi.shop.api.multi_shop_api.users.repositories;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -14,6 +15,7 @@ public interface UserRepository extends JpaRepository<User, String> {
     Optional<User> findByPhoneNumber(Long number);
     Page<User> findByAdminTrue(Pageable pageable);
     Page<User> findByAdminFalse(Pageable pageable);
+    List<User> findTop4ByOrderByCreatedAtDesc();
 
     @Query("select u from User u where u.name like CONCAT('%', ?1, '%') and u.admin=?2 and u.enabled=?3")
     Page<User> findByNameEnabled(String name, boolean isAdmin, boolean isEnabled, Pageable pageable);

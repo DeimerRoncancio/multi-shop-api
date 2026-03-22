@@ -14,7 +14,9 @@ import com.multi.shop.api.multi_shop_api.products.repositories.ProductCategoryRe
 
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -98,5 +100,23 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
     @Transactional(readOnly = true)
     public Long categoriesSize() {
         return repository.count();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<String, Long> categoriesStats(){
+        Map<String, Long> categoriesStats = new HashMap<>();
+
+        categoriesStats.put("totalCategories", categoriesSize());
+        categoriesStats.put("obsoleteCategories", repository.countObsoleteCategories());
+
+        return categoriesStats;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProductCategoryDTO> latestCategories(){
+        return repository.findTop3ByOrderByCreatedAtDesc().stream()
+                .map(ProductCategoryMapper.mapper::categoryDTOtoCategory).toList();
     }
 }

@@ -22,11 +22,11 @@ public class Variant {
     public Variant() {
     }
 
-    public Variant(String id, String name, String values, String tag) {
-        this.id = id;
+    public Variant(String name, String tag, String values, String type) {
         this.name = name;
-        this.values = values;
         this.tag = tag;
+        this.values = values;
+        this.type = type;
     }
 
     public String getId() {

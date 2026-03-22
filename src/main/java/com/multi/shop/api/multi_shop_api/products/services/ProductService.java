@@ -1,5 +1,7 @@
 package com.multi.shop.api.multi_shop_api.products.services;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import com.multi.shop.api.multi_shop_api.products.dtos.ProductDTO;
@@ -20,5 +22,11 @@ public interface ProductService {
 
     Optional<Product> delete(String id);
 
+    Page<ProductResponseDTO> search(String query, List<String> category, Pageable pageable);
+
     Long productsSize();
+
+    List<ProductResponseDTO> latestProducts();
+
+    Map<String, Long> productsStats();
 }

@@ -3,6 +3,7 @@ package com.multi.shop.api.multi_shop_api.products.entities;
 import jakarta.persistence.*;
 import org.hibernate.annotations.UuidGenerator;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -18,6 +19,10 @@ public class ProductCategory {
 
     @ManyToMany(mappedBy = "categories")
     private List<Product> products;
+
+    @Column(name = "created_at", insertable = false, updatable = false)
+    private LocalDateTime createdAt;
+
 
     public ProductCategory() {
     }
