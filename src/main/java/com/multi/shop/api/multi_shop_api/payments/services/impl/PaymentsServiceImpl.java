@@ -1,8 +1,14 @@
-package com.multi.shop.api.multi_shop_api.payments;
+package com.multi.shop.api.multi_shop_api.payments.services.impl;
 
+import com.multi.shop.api.multi_shop_api.payments.PaymentsRepository;
+import com.multi.shop.api.multi_shop_api.payments.dtos.NewTransactionDTO;
 import com.multi.shop.api.multi_shop_api.payments.dtos.StripeItemDTO;
 import com.multi.shop.api.multi_shop_api.payments.dtos.StripeRequestDTO;
 import com.multi.shop.api.multi_shop_api.payments.dtos.StripeResponseDTO;
+import com.multi.shop.api.multi_shop_api.payments.entities.ProductItem;
+import com.multi.shop.api.multi_shop_api.payments.entities.Transaction;
+import com.multi.shop.api.multi_shop_api.payments.services.PaymentService;
+import com.multi.shop.api.multi_shop_api.products.repositories.ProductRepository;
 import com.stripe.Stripe;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
@@ -11,6 +17,7 @@ import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
 import com.stripe.param.checkout.SessionCreateParams;
 import jakarta.annotation.PostConstruct;
+import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,8 +26,11 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 
 @Service
-public class PaymentsService {
-    private static final Logger log = LoggerFactory.getLogger(PaymentsService.class);
+public class PaymentsServiceImpl implements PaymentService {
+    private static final Logger log = LoggerFactory.getLogger(PaymentsServiceImpl.class);
+
+    private PaymentsRepository repository;
+    private ProductRepository productRepository;
 
     @Value("${stripe.key.secret}")
     private String stripeKey;
@@ -29,9 +39,32 @@ public class PaymentsService {
     @Value("${stripe.cancel.url}")
     private String stripeCancelUrl;
 
+    public PaymentsServiceImpl (PaymentsRepository repository, ProductRepository productRepository) {
+        this.repository = repository;
+        this.productRepository = productRepository;
+    }
+
     @PostConstruct
     public void init() {
         Stripe.apiKey = stripeKey;
+    }
+
+    @Override
+    @Transactional
+    public String createTransaction(NewTransactionDTO dto) {
+        Transaction transaction = new Transaction();
+
+        dto.productItems().forEach(item -> {
+            ProductItem productItem = new ProductItem();
+            productRepository.findById(item.id()).ifPresent(productItem::setProduct);
+            productItem.setTransaction(transaction);
+            productItem.setQuantity(item.quantity());
+            transaction.getProductItems().add(productItem);
+        });
+
+        transaction.setStatus("Pending");
+        repository.save(transaction);
+        return transaction.getId();
     }
 
     public StripeResponseDTO createPaymentSession(StripeRequestDTO paymentSession) throws StripeException {

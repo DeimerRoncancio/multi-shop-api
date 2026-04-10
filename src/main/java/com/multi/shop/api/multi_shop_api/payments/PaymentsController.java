@@ -1,7 +1,9 @@
 package com.multi.shop.api.multi_shop_api.payments;
 
+import com.multi.shop.api.multi_shop_api.payments.dtos.NewTransactionDTO;
 import com.multi.shop.api.multi_shop_api.payments.dtos.StripeRequestDTO;
 import com.multi.shop.api.multi_shop_api.payments.dtos.StripeResponseDTO;
+import com.multi.shop.api.multi_shop_api.payments.services.impl.PaymentsServiceImpl;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
 import jakarta.validation.Valid;
@@ -16,12 +18,12 @@ import java.util.Map;
 @RequestMapping("/app/payments")
 @CrossOrigin(originPatterns = "*")
 public class PaymentsController {
-    private final PaymentsService service;
+    private final PaymentsServiceImpl service;
 
     @Value("${stripe.webhook.secret}")
     private String webhookSecret;
 
-    public PaymentsController(PaymentsService service) {
+    public PaymentsController(PaymentsServiceImpl service) {
         this.service = service;
     }
 
@@ -29,6 +31,11 @@ public class PaymentsController {
     public StripeResponseDTO createPaymentSession(@RequestBody @Valid StripeRequestDTO paymentSession)
     throws StripeException {
         return service.createPaymentSession(paymentSession);
+    }
+
+    @PostMapping("/create-transaction")
+    public ResponseEntity<String> createTransaction(@RequestBody NewTransactionDTO dto) {
+        return ResponseEntity.ok().body(service.createTransaction(dto));
     }
 
     @GetMapping("/success")

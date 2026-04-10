@@ -55,6 +55,7 @@ public class SpringSecurityConfig {
             .requestMatchers(HttpMethod.GET, "/app/payments/success").permitAll()
             .requestMatchers(HttpMethod.GET, "/app/payments/cancel").permitAll()
             .requestMatchers(HttpMethod.POST, "/app/payments/create-payment-session").permitAll()
+            .requestMatchers(HttpMethod.POST, "/app/payments/create-transaction").permitAll()
             .requestMatchers(HttpMethod.POST, "/app/payments/webhook").permitAll()
             .anyRequest().authenticated())
             .addFilter(new JwtAuthenticationFilter(authenticationManager()))
