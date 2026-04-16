@@ -1,14 +1,14 @@
 package com.multi.shop.api.multi_shop_api.payments.services.impl;
 
 import com.multi.shop.api.multi_shop_api.payments.PaymentsRepository;
-import com.multi.shop.api.multi_shop_api.payments.dtos.NewTransactionDTO;
-import com.multi.shop.api.multi_shop_api.payments.dtos.StripeItemDTO;
-import com.multi.shop.api.multi_shop_api.payments.dtos.StripeRequestDTO;
-import com.multi.shop.api.multi_shop_api.payments.dtos.StripeResponseDTO;
+import com.multi.shop.api.multi_shop_api.payments.dtos.*;
 import com.multi.shop.api.multi_shop_api.payments.entities.ProductItem;
 import com.multi.shop.api.multi_shop_api.payments.entities.Transaction;
+import com.multi.shop.api.multi_shop_api.payments.entities.UserTransaction;
 import com.multi.shop.api.multi_shop_api.payments.services.PaymentService;
 import com.multi.shop.api.multi_shop_api.products.repositories.ProductRepository;
+import com.multi.shop.api.multi_shop_api.users.entities.User;
+import com.multi.shop.api.multi_shop_api.users.repositories.UserRepository;
 import com.stripe.Stripe;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
@@ -31,6 +31,7 @@ public class PaymentsServiceImpl implements PaymentService {
 
     private PaymentsRepository repository;
     private ProductRepository productRepository;
+    private UserRepository userRepository;
 
     @Value("${stripe.key.secret}")
     private String stripeKey;
@@ -39,9 +40,10 @@ public class PaymentsServiceImpl implements PaymentService {
     @Value("${stripe.cancel.url}")
     private String stripeCancelUrl;
 
-    public PaymentsServiceImpl (PaymentsRepository repository, ProductRepository productRepository) {
+    public PaymentsServiceImpl (PaymentsRepository repository, ProductRepository productRepository, UserRepository userRepository) {
         this.repository = repository;
         this.productRepository = productRepository;
+        this.userRepository = userRepository;
     }
 
     @PostConstruct
@@ -65,6 +67,29 @@ public class PaymentsServiceImpl implements PaymentService {
         transaction.setStatus("Pending");
         repository.save(transaction);
         return transaction.getId();
+    }
+
+    @Override
+    @Transactional
+    public Optional<Transaction> addUserToTransaction(UserTransactionDTO dto, String transactionId) {
+        return repository.findById(transactionId).map(transaction -> {
+            Optional<User> user = userRepository.findById(dto.userId());
+
+            if (user.isPresent()) {
+                transaction.setUser(user.get());
+            } else{
+                UserTransaction newUser = new UserTransaction();
+                newUser.setUserNames(dto.userNames());
+                newUser.setUserEmail(dto.userEmail());
+                newUser.setUserPhone(dto.userPhone());
+                newUser.setUserAddress(dto.userAddress());
+
+                transaction.setUserReference(newUser);
+            };
+
+            repository.save(transaction);
+            return transaction;
+        });
     }
 
     public StripeResponseDTO createPaymentSession(StripeRequestDTO paymentSession) throws StripeException {

@@ -3,6 +3,7 @@ package com.multi.shop.api.multi_shop_api.payments;
 import com.multi.shop.api.multi_shop_api.payments.dtos.NewTransactionDTO;
 import com.multi.shop.api.multi_shop_api.payments.dtos.StripeRequestDTO;
 import com.multi.shop.api.multi_shop_api.payments.dtos.StripeResponseDTO;
+import com.multi.shop.api.multi_shop_api.payments.dtos.UserTransactionDTO;
 import com.multi.shop.api.multi_shop_api.payments.services.impl.PaymentsServiceImpl;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
@@ -37,6 +38,9 @@ public class PaymentsController {
     public ResponseEntity<String> createTransaction(@RequestBody NewTransactionDTO dto) {
         return ResponseEntity.ok().body(service.createTransaction(dto));
     }
+
+    @PutMapping("/add-user")
+    public ResponseEntity<String> adddUser(@RequestBody UserTransactionDTO)
 
     @GetMapping("/success")
     public Map<String, String> success() {

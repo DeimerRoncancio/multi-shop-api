@@ -1,5 +1,6 @@
 package com.multi.shop.api.multi_shop_api.payments.entities;
 
+import com.multi.shop.api.multi_shop_api.users.entities.User;
 import jakarta.persistence.*;
 import org.hibernate.annotations.UuidGenerator;
 
@@ -18,6 +19,12 @@ public class Transaction {
     Date transactionDate;
     String totalPrice;
     String status;
+
+    @ManyToOne
+    User user;
+
+    @ManyToOne
+    UserTransaction userReference;
 
     @OneToMany(mappedBy = "transaction", cascade = CascadeType.ALL, orphanRemoval = true)
     List<ProductItem> productItems;
@@ -76,6 +83,22 @@ public class Transaction {
 
     public List<ProductItem> getProductItems() {
         return productItems;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public UserTransaction getUserReference() {
+        return userReference;
+    }
+
+    public void setUserReference(UserTransaction userReference) {
+        this.userReference = userReference;
     }
 
     public void setProductItems(List<ProductItem> productItems) {

@@ -137,8 +137,7 @@ public class UserServiceImpl implements UserService {
     public User updateProfileImage(String id, MultipartFile file) {
         User user = repository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
 
-        if (user.getImageUser() != null)
-            deleteProfileImage(user);
+        if (user.getImageUser() != null) deleteProfileImage(user);
 
         Image image = uploadProfileImage(file);
         user.setImageUser(image);
@@ -150,9 +149,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public Optional<User> delete(String id) {
         return repository.findById(id).map(user -> {
-            if (user.getImageUser() != null)
-                deleteProfileImage(user);
-
+            if (user.getImageUser() != null) deleteProfileImage(user);
             repository.delete(user);
             return user;
         });
