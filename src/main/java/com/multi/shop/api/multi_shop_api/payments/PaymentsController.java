@@ -4,16 +4,19 @@ import com.multi.shop.api.multi_shop_api.payments.dtos.NewTransactionDTO;
 import com.multi.shop.api.multi_shop_api.payments.dtos.StripeRequestDTO;
 import com.multi.shop.api.multi_shop_api.payments.dtos.StripeResponseDTO;
 import com.multi.shop.api.multi_shop_api.payments.dtos.UserTransactionDTO;
+import com.multi.shop.api.multi_shop_api.payments.entities.Transaction;
 import com.multi.shop.api.multi_shop_api.payments.services.impl.PaymentsServiceImpl;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/app/payments")
@@ -39,8 +42,15 @@ public class PaymentsController {
         return ResponseEntity.ok().body(service.createTransaction(dto));
     }
 
-    @PutMapping("/add-user")
-    public ResponseEntity<String> adddUser(@RequestBody UserTransactionDTO)
+    @PutMapping("/add-user/{transactionId}")
+    public ResponseEntity<String> addUser(@RequestBody UserTransactionDTO userDTO, @PathVariable String transactionId) {
+        Optional<Transaction> op = service.addUserToTransaction(userDTO, transactionId);
+
+        if (op.isPresent())
+            return ResponseEntity.status(HttpStatus.CREATED).build();
+
+        return ResponseEntity.notFound().build();
+    }
 
     @GetMapping("/success")
     public Map<String, String> success() {

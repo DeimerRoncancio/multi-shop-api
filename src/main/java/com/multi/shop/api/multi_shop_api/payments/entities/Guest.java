@@ -7,25 +7,24 @@ import jakarta.persistence.Table;
 import org.hibernate.annotations.UuidGenerator;
 
 @Entity
-@Table(name = "transaction_users")
-public class UserTransaction {
+@Table(name = "guests")
+public class Guest {
     @Id
     @UuidGenerator
     @JoinColumn(name = "id", updatable = false, nullable = false)
-    String id;
-    String userNames;
-    String userEmail;
-    String userPhone;
-    String userAddress;
+    private String id;
+    private String userNames;
+    @JoinColumn(name = "userEmail")
+    private String userEmail;
+    private String userPhone;
 
-    public UserTransaction() {}
+    public Guest() {}
 
-    public UserTransaction(String id, String userNames, String userEmail, String userPhone, String userAddress) {
+    public Guest(String id, String userNames, String userEmail, String userPhone) {
         this.id = id;
         this.userNames = userNames;
         this.userEmail = userEmail;
         this.userPhone = userPhone;
-        this.userAddress = userAddress;
     }
 
     public String getId() {
@@ -58,13 +57,5 @@ public class UserTransaction {
 
     public void setUserPhone(String userPhone) {
         this.userPhone = userPhone;
-    }
-
-    public String getUserAddress() {
-        return userAddress;
-    }
-
-    public void setUserAddress(String userAddress) {
-        this.userAddress = userAddress;
     }
 }

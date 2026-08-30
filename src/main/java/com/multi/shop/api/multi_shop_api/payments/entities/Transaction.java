@@ -1,6 +1,5 @@
 package com.multi.shop.api.multi_shop_api.payments.entities;
 
-import com.multi.shop.api.multi_shop_api.users.entities.User;
 import jakarta.persistence.*;
 import org.hibernate.annotations.UuidGenerator;
 
@@ -14,17 +13,23 @@ public class Transaction {
     @Id
     @UuidGenerator
     @JoinColumn(name = "id", updatable = false, nullable = false)
-    String id;
-    String reference;
-    Date transactionDate;
-    String totalPrice;
-    String status;
+    private String id;
+    private String reference;
+    private Date transactionDate;
+    private String totalPrice;
+    private String status;
 
-    @ManyToOne
-    User user;
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "customer_id")
+    private Customer customer;
 
-    @ManyToOne
-    UserTransaction userReference;
+//    @ManyToOne
+//    @JoinColumn(name = "id_user")
+//    User user;
+//
+//    @ManyToOne(cascade = CascadeType.ALL)
+//    @JoinColumn(name = "id_user_reference")
+//    UserTransaction userReference;
 
     @OneToMany(mappedBy = "transaction", cascade = CascadeType.ALL, orphanRemoval = true)
     List<ProductItem> productItems;
@@ -85,21 +90,29 @@ public class Transaction {
         return productItems;
     }
 
-    public User getUser() {
-        return user;
+    public Customer getCustomer() {
+        return customer;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setCustomer(Customer customer) {
+        this.customer = customer;
     }
 
-    public UserTransaction getUserReference() {
-        return userReference;
-    }
-
-    public void setUserReference(UserTransaction userReference) {
-        this.userReference = userReference;
-    }
+    //    public User getUser() {
+//        return user;
+//    }
+//
+//    public void setUser(User user) {
+//        this.user = user;
+//    }
+//
+//    public UserTransaction getUserReference() {
+//        return userReference;
+//    }
+//
+//    public void setUserReference(UserTransaction userReference) {
+//        this.userReference = userReference;
+//    }
 
     public void setProductItems(List<ProductItem> productItems) {
         this.productItems = productItems;

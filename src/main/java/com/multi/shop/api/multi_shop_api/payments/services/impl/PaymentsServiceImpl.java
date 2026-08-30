@@ -1,10 +1,12 @@
 package com.multi.shop.api.multi_shop_api.payments.services.impl;
 
-import com.multi.shop.api.multi_shop_api.payments.PaymentsRepository;
+import com.multi.shop.api.multi_shop_api.payments.repositories.CustomersRepository;
+import com.multi.shop.api.multi_shop_api.payments.repositories.PaymentsRepository;
 import com.multi.shop.api.multi_shop_api.payments.dtos.*;
+import com.multi.shop.api.multi_shop_api.payments.entities.Customer;
 import com.multi.shop.api.multi_shop_api.payments.entities.ProductItem;
 import com.multi.shop.api.multi_shop_api.payments.entities.Transaction;
-import com.multi.shop.api.multi_shop_api.payments.entities.UserTransaction;
+import com.multi.shop.api.multi_shop_api.payments.entities.Guest;
 import com.multi.shop.api.multi_shop_api.payments.services.PaymentService;
 import com.multi.shop.api.multi_shop_api.products.repositories.ProductRepository;
 import com.multi.shop.api.multi_shop_api.users.entities.User;
@@ -29,9 +31,10 @@ import java.util.*;
 public class PaymentsServiceImpl implements PaymentService {
     private static final Logger log = LoggerFactory.getLogger(PaymentsServiceImpl.class);
 
-    private PaymentsRepository repository;
-    private ProductRepository productRepository;
-    private UserRepository userRepository;
+    private final PaymentsRepository repository;
+    private final ProductRepository productRepository;
+    private final CustomersRepository customersRepository;
+    private final UserRepository userRepository;
 
     @Value("${stripe.key.secret}")
     private String stripeKey;
@@ -40,9 +43,10 @@ public class PaymentsServiceImpl implements PaymentService {
     @Value("${stripe.cancel.url}")
     private String stripeCancelUrl;
 
-    public PaymentsServiceImpl (PaymentsRepository repository, ProductRepository productRepository, UserRepository userRepository) {
+    public PaymentsServiceImpl (PaymentsRepository repository, ProductRepository productRepository, CustomersRepository customersRepository, UserRepository userRepository) {
         this.repository = repository;
         this.productRepository = productRepository;
+        this.customersRepository = customersRepository;
         this.userRepository = userRepository;
     }
 
@@ -73,19 +77,28 @@ public class PaymentsServiceImpl implements PaymentService {
     @Transactional
     public Optional<Transaction> addUserToTransaction(UserTransactionDTO dto, String transactionId) {
         return repository.findById(transactionId).map(transaction -> {
-            Optional<User> user = userRepository.findById(dto.userId());
+            Customer customer = customersRepository
+                .findByUser_EmailOrGuest_UserEmail(dto.userEmail(), dto.userEmail())
+                .orElseGet(() -> {
+                    Customer newCustomer = new Customer();
+                    newCustomer.setCustomerAddress(dto.userAddress());
 
-            if (user.isPresent()) {
-                transaction.setUser(user.get());
-            } else{
-                UserTransaction newUser = new UserTransaction();
-                newUser.setUserNames(dto.userNames());
-                newUser.setUserEmail(dto.userEmail());
-                newUser.setUserPhone(dto.userPhone());
-                newUser.setUserAddress(dto.userAddress());
+                    userRepository
+                        .findByEmail(dto.userEmail())
+                        .ifPresentOrElse(
+                                newCustomer::setUser,
+                            () -> {
+                                Guest newGuest = new Guest();
+                                newGuest.setUserNames(dto.userNames());
+                                newGuest.setUserEmail(dto.userEmail());
+                                newGuest.setUserPhone(dto.userPhone());
+                                newCustomer.setGuest(newGuest);
+                            });
 
-                transaction.setUserReference(newUser);
-            };
+                    return newCustomer;
+                });
+
+            transaction.setCustomer(customer);
 
             repository.save(transaction);
             return transaction;

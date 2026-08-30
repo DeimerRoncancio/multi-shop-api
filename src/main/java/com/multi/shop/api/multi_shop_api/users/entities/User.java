@@ -43,7 +43,7 @@ public class User {
     private Long phoneNumber;
     private String gender;
 
-    @Column(unique = true)
+    @Column(name = "email", unique = true)
     private String email;
     private String password;
 
