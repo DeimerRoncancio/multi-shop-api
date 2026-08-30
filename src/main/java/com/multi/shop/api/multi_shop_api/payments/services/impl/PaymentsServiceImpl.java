@@ -83,25 +83,22 @@ public class PaymentsServiceImpl implements PaymentService {
                     Customer newCustomer = new Customer();
                     newCustomer.setCustomerAddress(dto.userAddress());
 
-                    userRepository
-                        .findByEmail(dto.userEmail())
-                        .ifPresentOrElse(
-                                newCustomer::setUser,
-                            () -> {
-                                Guest newGuest = new Guest();
-                                newGuest.setUserNames(dto.userNames());
-                                newGuest.setUserEmail(dto.userEmail());
-                                newGuest.setUserPhone(dto.userPhone());
-                                newCustomer.setGuest(newGuest);
-                            });
+                    Optional<User> user = userRepository.findByEmail(dto.userEmail());
+                    if (user.isPresent()) {
+                        newCustomer.setUser(user.get());
+                    } else {
+                        Guest guest = new Guest();
+                        guest.setUserNames(dto.userNames());
+                        guest.setUserEmail(dto.userEmail());
+                        guest.setUserPhone(dto.userPhone());
+                        newCustomer.setGuest(guest);
+                    }
 
                     return newCustomer;
                 });
 
             transaction.setCustomer(customer);
-
-            repository.save(transaction);
-            return transaction;
+            return repository.save(transaction);
         });
     }
 
