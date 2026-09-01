@@ -19,17 +19,9 @@ public class Transaction {
     private String totalPrice;
     private String status;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "customer_id")
     private Customer customer;
-
-//    @ManyToOne
-//    @JoinColumn(name = "id_user")
-//    User user;
-//
-//    @ManyToOne(cascade = CascadeType.ALL)
-//    @JoinColumn(name = "id_user_reference")
-//    UserTransaction userReference;
 
     @OneToMany(mappedBy = "transaction", cascade = CascadeType.ALL, orphanRemoval = true)
     List<ProductItem> productItems;
@@ -97,22 +89,6 @@ public class Transaction {
     public void setCustomer(Customer customer) {
         this.customer = customer;
     }
-
-    //    public User getUser() {
-//        return user;
-//    }
-//
-//    public void setUser(User user) {
-//        this.user = user;
-//    }
-//
-//    public UserTransaction getUserReference() {
-//        return userReference;
-//    }
-//
-//    public void setUserReference(UserTransaction userReference) {
-//        this.userReference = userReference;
-//    }
 
     public void setProductItems(List<ProductItem> productItems) {
         this.productItems = productItems;

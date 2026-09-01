@@ -51,6 +51,10 @@ public class Customer {
         this.guest = guest;
     }
 
+    public boolean isGuest() {
+        return guest != null;
+    }
+
     public void setCustomerAddress(String customerAddress) {
         this.customerAddress = customerAddress;
     }

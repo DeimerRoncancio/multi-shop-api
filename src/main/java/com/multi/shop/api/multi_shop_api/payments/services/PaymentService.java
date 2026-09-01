@@ -9,4 +9,5 @@ import java.util.Optional;
 public interface PaymentService {
     String createTransaction(NewTransactionDTO dto);
     Optional<Transaction> addUserToTransaction(UserTransactionDTO dto, String transactionId);
+    Optional<Transaction> deleteTransaction(String id);
 }

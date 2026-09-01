@@ -1,9 +1,11 @@
 package com.multi.shop.api.multi_shop_api.payments;
 
+import com.multi.shop.api.multi_shop_api.common.exceptions.NotFoundException;
 import com.multi.shop.api.multi_shop_api.payments.dtos.NewTransactionDTO;
 import com.multi.shop.api.multi_shop_api.payments.dtos.StripeRequestDTO;
 import com.multi.shop.api.multi_shop_api.payments.dtos.StripeResponseDTO;
 import com.multi.shop.api.multi_shop_api.payments.dtos.UserTransactionDTO;
+import com.multi.shop.api.multi_shop_api.payments.entities.Customer;
 import com.multi.shop.api.multi_shop_api.payments.entities.Transaction;
 import com.multi.shop.api.multi_shop_api.payments.services.impl.PaymentsServiceImpl;
 import com.stripe.exception.SignatureVerificationException;
@@ -44,12 +46,23 @@ public class PaymentsController {
 
     @PutMapping("/add-user/{transactionId}")
     public ResponseEntity<String> addUser(@RequestBody UserTransactionDTO userDTO, @PathVariable String transactionId) {
-        Optional<Transaction> op = service.addUserToTransaction(userDTO, transactionId);
+        Optional<Transaction> transactionOp = service.addUserToTransaction(userDTO, transactionId);
 
-        if (op.isPresent())
-            return ResponseEntity.status(HttpStatus.CREATED).build();
+        Transaction transaction = transactionOp.orElseThrow(() -> new NotFoundException("Transaction not found"));
+        Customer customer = transaction.getCustomer();
 
-        return ResponseEntity.notFound().build();
+        if (customer.isGuest())
+            return ResponseEntity.status(HttpStatus.CREATED).body(customer.getGuest().getUserEmail());
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(null);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteTransaction(@PathVariable("id") String id) {
+        Optional<Transaction> transactionOp = service.deleteTransaction(id);
+        transactionOp.orElseThrow(() -> new NotFoundException("Transaction not found"));
+
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/success")

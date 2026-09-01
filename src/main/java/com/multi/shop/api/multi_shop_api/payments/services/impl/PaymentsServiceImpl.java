@@ -102,6 +102,15 @@ public class PaymentsServiceImpl implements PaymentService {
         });
     }
 
+    @Override
+    @Transactional
+    public Optional<Transaction> deleteTransaction(String id) {
+        return repository.findById(id).map(transaction -> {
+           repository.delete(transaction);
+           return transaction;
+        });
+    }
+
     public StripeResponseDTO createPaymentSession(StripeRequestDTO paymentSession) throws StripeException {
         List<StripeItemDTO> products = paymentSession.items();
         List<SessionCreateParams.LineItem> list = new ArrayList<>();
