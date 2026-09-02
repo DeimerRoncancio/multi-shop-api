@@ -57,6 +57,17 @@ public class PaymentsServiceImpl implements PaymentService {
 
     @Override
     @Transactional
+    public Optional<Customer> getCustomer(String transactionId) {
+        Optional<Transaction> transactionOp = repository.findById(transactionId);
+        Customer customer = new Customer();
+
+        if (transactionOp.isPresent()) customer = transactionOp.get().getCustomer();
+
+        return Optional.ofNullable(customer);
+    }
+
+    @Override
+    @Transactional
     public String createTransaction(NewTransactionDTO dto) {
         Transaction transaction = new Transaction();
 

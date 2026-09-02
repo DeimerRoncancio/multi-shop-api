@@ -33,6 +33,12 @@ public class PaymentsController {
         this.service = service;
     }
 
+    @GetMapping("/get-customer/{transactionId}")
+    public ResponseEntity<Void> getCustomer(@PathVariable("transactionId") String transactionId) {
+        service.getCustomer(transactionId).orElseThrow(() -> new NotFoundException("Customer not found"));
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping("/create-payment-session")
     public StripeResponseDTO createPaymentSession(@RequestBody @Valid StripeRequestDTO paymentSession)
     throws StripeException {
