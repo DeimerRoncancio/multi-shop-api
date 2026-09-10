@@ -1,24 +1,20 @@
 package com.multi.shop.api.multi_shop_api.payments;
 
 import com.multi.shop.api.multi_shop_api.common.exceptions.NotFoundException;
-import com.multi.shop.api.multi_shop_api.payments.dtos.NewTransactionDTO;
-import com.multi.shop.api.multi_shop_api.payments.dtos.StripeRequestDTO;
-import com.multi.shop.api.multi_shop_api.payments.dtos.StripeResponseDTO;
-import com.multi.shop.api.multi_shop_api.payments.dtos.UserTransactionDTO;
+import com.multi.shop.api.multi_shop_api.payments.dtos.*;
 import com.multi.shop.api.multi_shop_api.payments.entities.Customer;
 import com.multi.shop.api.multi_shop_api.payments.entities.Transaction;
 import com.multi.shop.api.multi_shop_api.payments.services.impl.PaymentsServiceImpl;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
 import jakarta.validation.Valid;
+import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
 @RequestMapping("/app/payments")
@@ -39,15 +35,21 @@ public class PaymentsController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/create-payment-session")
-    public StripeResponseDTO createPaymentSession(@RequestBody @Valid StripeRequestDTO paymentSession)
-    throws StripeException {
-        return service.createPaymentSession(paymentSession);
-    }
-
     @PostMapping("/create-transaction")
     public ResponseEntity<String> createTransaction(@RequestBody NewTransactionDTO dto) {
         return ResponseEntity.ok().body(service.createTransaction(dto));
+    }
+
+    @PutMapping("/update-products/{transactionId}")
+    public ResponseEntity<Void> updateProducts(@PathVariable String transactionId, @RequestBody List<ProductItemDTO> products) {
+        service.updateProducts(transactionId, products).orElseThrow(() -> new NotFoundException("Transaction not found"));
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @PutMapping("/add-transaction-date/{transactionId}")
+    public ResponseEntity<Void> addTransactionDate(@PathVariable("transactionId") String transactionId, @RequestBody Date date) {
+        service.addTransactionDate(transactionId, date);
+        return ResponseEntity.ok().build();
     }
 
     @PutMapping("/add-user/{transactionId}")
@@ -63,12 +65,23 @@ public class PaymentsController {
         return ResponseEntity.status(HttpStatus.CREATED).body(null);
     }
 
+    @PutMapping("/set-status/{transactionId}/{status}")
+    public ResponseEntity<Void> setStatus(@PathVariable("transactionId") String transactionId, @PathVariable("status") String status) {
+        service.setStatus(transactionId, status);
+        return ResponseEntity.ok().build();
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTransaction(@PathVariable("id") String id) {
         Optional<Transaction> transactionOp = service.deleteTransaction(id);
         transactionOp.orElseThrow(() -> new NotFoundException("Transaction not found"));
 
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/create-payment-session/{transactionId}")
+    public ResponseEntity<StripeResponseDTO> createPaymentSession(@PathVariable String transactionId, @RequestBody @Valid StripeRequestDTO paymentSession) throws StripeException {
+        return ResponseEntity.ok().body(service.createPaymentSession(paymentSession, transactionId));
     }
 
     @GetMapping("/success")
@@ -92,8 +105,7 @@ public class PaymentsController {
     }
 
     @PostMapping("/webhook")
-    public ResponseEntity<String> webhook(@RequestBody String payload, @RequestHeader("Stripe-Signature") String sigHeader)
-    throws SignatureVerificationException {
+    public ResponseEntity<String> webhook(@RequestBody String payload, @RequestHeader("Stripe-Signature") String sigHeader) throws SignatureVerificationException {
         service.webhookEvent(payload, sigHeader, webhookSecret);
         return ResponseEntity.ok().body("Success");
     }

@@ -19,11 +19,11 @@ import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
 import com.stripe.param.checkout.SessionCreateParams;
 import jakarta.annotation.PostConstruct;
-import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -56,7 +56,7 @@ public class PaymentsServiceImpl implements PaymentService {
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public Optional<Customer> getCustomer(String transactionId) {
         Optional<Transaction> transactionOp = repository.findById(transactionId);
         Customer customer = new Customer();
@@ -79,9 +79,45 @@ public class PaymentsServiceImpl implements PaymentService {
             transaction.getProductItems().add(productItem);
         });
 
+        transaction.setTotalPrice(calculateTotalPrice(transaction));
         transaction.setStatus("Pending");
         repository.save(transaction);
         return transaction.getId();
+    }
+
+    private Long calculateTotalPrice(Transaction transaction) {
+        return transaction.getProductItems().stream()
+                .filter(item -> item.getProduct() != null && item.getProduct().getPrice() != null)
+                .mapToLong(item -> item.getProduct().getPrice() * item.getQuantity())
+                .sum();
+    }
+
+    @Override
+    @Transactional
+    public Optional<Transaction> updateProducts(String id, List<ProductItemDTO> products) {
+        return repository.findById(id).map(transaction -> {
+            transaction.getProductItems().clear();
+
+            products.forEach(item -> {
+                ProductItem productItem = new ProductItem();
+                productRepository.findById(item.id()).ifPresent(productItem::setProduct);
+                productItem.setTransaction(transaction);
+                productItem.setQuantity(item.quantity());
+                transaction.getProductItems().add(productItem);
+            });
+
+            transaction.setTotalPrice(calculateTotalPrice(transaction));
+            return transaction;
+        });
+    }
+
+    @Override
+    @Transactional
+    public void addTransactionDate(String transactionId, Date date){
+        repository.findById(transactionId).map(transaction -> {
+            transaction.setTransactionDate(date);
+            return null;
+        });
     }
 
     @Override
@@ -115,6 +151,15 @@ public class PaymentsServiceImpl implements PaymentService {
 
     @Override
     @Transactional
+    public void setStatus(String transactionId, String status) {
+        repository.findById(transactionId).map(transaction -> {
+            transaction.setStatus(status);
+            return repository.save(transaction);
+        });
+    }
+
+    @Override
+    @Transactional
     public Optional<Transaction> deleteTransaction(String id) {
         return repository.findById(id).map(transaction -> {
            repository.delete(transaction);
@@ -122,7 +167,7 @@ public class PaymentsServiceImpl implements PaymentService {
         });
     }
 
-    public StripeResponseDTO createPaymentSession(StripeRequestDTO paymentSession) throws StripeException {
+    public StripeResponseDTO createPaymentSession(StripeRequestDTO paymentSession, String transactionId) throws StripeException {
         List<StripeItemDTO> products = paymentSession.items();
         List<SessionCreateParams.LineItem> list = new ArrayList<>();
 
@@ -157,6 +202,7 @@ public class PaymentsServiceImpl implements PaymentService {
                 .build();
 
         Session session = Session.create(params);
+        setStatus(transactionId, "PROCESSING");
 
         return new StripeResponseDTO(
             "SUCCESS",

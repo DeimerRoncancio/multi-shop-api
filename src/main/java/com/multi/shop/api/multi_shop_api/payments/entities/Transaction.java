@@ -14,9 +14,8 @@ public class Transaction {
     @UuidGenerator
     @JoinColumn(name = "id", updatable = false, nullable = false)
     private String id;
-    private String reference;
     private Date transactionDate;
-    private String totalPrice;
+    private Long totalPrice;
     private String status;
 
     @ManyToOne
@@ -30,9 +29,8 @@ public class Transaction {
         this.productItems = new ArrayList<>();
     }
 
-    public Transaction(String id, String reference, Date transactionDate, String totalPrice, String status) {
+    public Transaction(String id, Date transactionDate, Long totalPrice, String status) {
         this.id = id;
-        this.reference = reference;
         this.transactionDate = transactionDate;
         this.totalPrice = totalPrice;
         this.status = status;
@@ -46,14 +44,6 @@ public class Transaction {
         this.id = id;
     }
 
-    public String getReference() {
-        return reference;
-    }
-
-    public void setReference(String reference) {
-        this.reference = reference;
-    }
-
     public Date getTransactionDate() {
         return transactionDate;
     }
@@ -62,11 +52,11 @@ public class Transaction {
         this.transactionDate = transactionDate;
     }
 
-    public String getTotalPrice() {
+    public Long getTotalPrice() {
         return totalPrice;
     }
 
-    public void setTotalPrice(String totalPrice) {
+    public void setTotalPrice(Long totalPrice) {
         this.totalPrice = totalPrice;
     }
 

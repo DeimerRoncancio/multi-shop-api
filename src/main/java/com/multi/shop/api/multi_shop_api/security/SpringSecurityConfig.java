@@ -48,25 +48,29 @@ public class SpringSecurityConfig {
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http.authorizeHttpRequests(authz -> authz
-            .requestMatchers(HttpMethod.GET, "/app/categories", "/app/categories/{id}").permitAll()
-            .requestMatchers(HttpMethod.GET, "/app/products", "/app/products/{id}").permitAll()
-            .requestMatchers(HttpMethod.GET, "/app/users/token-validation").permitAll()
-            .requestMatchers(HttpMethod.POST, "/app/users/register").permitAll()
-            .requestMatchers(HttpMethod.GET, "/app/payments/success").permitAll()
-            .requestMatchers(HttpMethod.GET, "/app/payments/cancel").permitAll()
-            .requestMatchers(HttpMethod.GET, "/app/payments/get-customer/{transactionId}").permitAll()
-            .requestMatchers(HttpMethod.POST, "/app/payments/webhook").permitAll()
-            .requestMatchers(HttpMethod.POST, "/app/payments/create-payment-session").permitAll()
-            .requestMatchers(HttpMethod.POST, "/app/payments/create-transaction").permitAll()
-            .requestMatchers(HttpMethod.PUT, "/app/payments/add-user/{transactionId}").permitAll()
-            .requestMatchers(HttpMethod.DELETE, "/app/payments/{id}").permitAll()
-            .anyRequest().authenticated())
-            .addFilter(new JwtAuthenticationFilter(authenticationManager()))
-            .addFilter(new JwtValidationFilter(authenticationManager()))
-            .csrf(AbstractHttpConfigurer::disable)
-            .cors(cors -> cors.configurationSource(sourceConfigurationSource()))
-            .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .build();
+                        .requestMatchers("/error").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/app/categories", "/app/categories/{id}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/app/products", "/app/products/{id}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/app/users/token-validation").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/app/users/register").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/app/payments/success").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/app/payments/cancel").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/app/payments/get-customer/{transactionId}").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/app/payments/webhook").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/app/payments/create-payment-session/{transactionId}").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/app/payments/create-transaction").permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/app/payments/add-user/{transactionId}").permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/app/payments/update-products/{id}").permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/app/payments/set-status/{transactionId}/{status}").permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/app/payments/add-transaction-date/{transactionId}").permitAll()
+                        .requestMatchers(HttpMethod.DELETE, "/app/payments/{id}").permitAll()
+                        .anyRequest().authenticated())
+                .addFilter(new JwtAuthenticationFilter(authenticationManager()))
+                .addFilter(new JwtValidationFilter(authenticationManager()))
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(sourceConfigurationSource()))
+                .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .build();
     }
 
     @Bean
