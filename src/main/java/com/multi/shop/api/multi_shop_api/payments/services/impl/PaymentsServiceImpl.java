@@ -1,12 +1,11 @@
 package com.multi.shop.api.multi_shop_api.payments.services.impl;
 
+import com.multi.shop.api.multi_shop_api.payments.entities.*;
+import com.multi.shop.api.multi_shop_api.payments.mappers.TransactionMapper;
+import com.multi.shop.api.multi_shop_api.payments.repositories.AddressRepository;
 import com.multi.shop.api.multi_shop_api.payments.repositories.CustomersRepository;
 import com.multi.shop.api.multi_shop_api.payments.repositories.PaymentsRepository;
 import com.multi.shop.api.multi_shop_api.payments.dtos.*;
-import com.multi.shop.api.multi_shop_api.payments.entities.Customer;
-import com.multi.shop.api.multi_shop_api.payments.entities.ProductItem;
-import com.multi.shop.api.multi_shop_api.payments.entities.Transaction;
-import com.multi.shop.api.multi_shop_api.payments.entities.Guest;
 import com.multi.shop.api.multi_shop_api.payments.services.PaymentService;
 import com.multi.shop.api.multi_shop_api.products.repositories.ProductRepository;
 import com.multi.shop.api.multi_shop_api.users.entities.User;
@@ -34,6 +33,7 @@ public class PaymentsServiceImpl implements PaymentService {
     private final PaymentsRepository repository;
     private final ProductRepository productRepository;
     private final CustomersRepository customersRepository;
+    private final AddressRepository addressRepository;
     private final UserRepository userRepository;
 
     @Value("${stripe.key.secret}")
@@ -43,10 +43,11 @@ public class PaymentsServiceImpl implements PaymentService {
     @Value("${stripe.cancel.url}")
     private String stripeCancelUrl;
 
-    public PaymentsServiceImpl (PaymentsRepository repository, ProductRepository productRepository, CustomersRepository customersRepository, UserRepository userRepository) {
+    public PaymentsServiceImpl (PaymentsRepository repository, ProductRepository productRepository, CustomersRepository customersRepository, AddressRepository addressRepository, UserRepository userRepository) {
         this.repository = repository;
         this.productRepository = productRepository;
         this.customersRepository = customersRepository;
+        this.addressRepository = addressRepository;
         this.userRepository = userRepository;
     }
 
@@ -124,29 +125,55 @@ public class PaymentsServiceImpl implements PaymentService {
     @Transactional
     public Optional<Transaction> addUserToTransaction(UserTransactionDTO dto, String transactionId) {
         return repository.findById(transactionId).map(transaction -> {
-            Customer customer = customersRepository
-                .findByUser_EmailOrGuest_UserEmail(dto.userEmail(), dto.userEmail())
-                .orElseGet(() -> {
-                    Customer newCustomer = new Customer();
-                    newCustomer.setCustomerAddress(dto.userAddress());
+            Customer customer = getCustomer(dto);
+            Address address = getAddress(dto.userAddress(), customer);
 
-                    Optional<User> user = userRepository.findByEmail(dto.userEmail());
-                    if (user.isPresent()) {
-                        newCustomer.setUser(user.get());
-                    } else {
-                        Guest guest = new Guest();
-                        guest.setUserNames(dto.userNames());
-                        guest.setUserEmail(dto.userEmail());
-                        guest.setUserPhone(dto.userPhone());
-                        newCustomer.setGuest(guest);
-                    }
+            address.setCustomer(customer);
+            if (!customer.getAddress().contains(address))
+                customer.getAddress().add(address);
 
-                    return newCustomer;
-                });
-
+            if (customer.getId() == null) customersRepository.save(customer);
             transaction.setCustomer(customer);
             return repository.save(transaction);
         });
+    }
+
+    public Customer getCustomer(UserTransactionDTO dto) {
+        return customersRepository
+            .findByUser_EmailOrGuest_UserEmail(dto.userEmail(), dto.userEmail())
+            .map(customer -> {
+                if (customer.isGuest()) {
+                    customer.getGuest().setUserNames(dto.userNames());
+                    customer.getGuest().setUserEmail(dto.userEmail());
+                    customer.getGuest().setUserPhone(dto.userPhone());
+                }
+
+                return customer;
+            }).orElseGet(() -> {
+                Customer newCustomer = new Customer();
+
+                Optional<User> user = userRepository.findByEmail(dto.userEmail());
+                if (user.isPresent()) {
+                    newCustomer.setUser(user.get());
+                } else {
+                    Guest guest = new Guest();
+                    guest.setUserNames(dto.userNames());
+                    guest.setUserEmail(dto.userEmail());
+                    guest.setUserPhone(dto.userPhone());
+                    newCustomer.setGuest(guest);
+                }
+
+                return newCustomer;
+            });
+    }
+
+    public Address getAddress(CustomerAddressDTO dto, Customer customer) {
+        Address address = customer.getId() == null
+            ? new Address()
+            : addressRepository.findByCustomerAndAddressName(customer, dto.addressName())
+                .orElseGet(Address::new);
+
+        return TransactionMapper.MAPPER.updateAddress(dto, address);
     }
 
     @Override

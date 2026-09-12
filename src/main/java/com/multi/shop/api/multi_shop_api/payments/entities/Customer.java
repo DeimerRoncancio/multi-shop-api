@@ -4,6 +4,9 @@ import com.multi.shop.api.multi_shop_api.users.entities.User;
 import jakarta.persistence.*;
 import org.hibernate.annotations.UuidGenerator;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "customers")
 public class Customer {
@@ -19,9 +22,13 @@ public class Customer {
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "guest_email", referencedColumnName = "userEmail")
     private Guest guest;
-    private String customerAddress;
 
-    public Customer() {}
+    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Address> address;
+
+    public Customer() {
+        this.address = new ArrayList<>();
+    }
 
     public String getId() {
         return id;
@@ -31,8 +38,8 @@ public class Customer {
         this.id = id;
     }
 
-    public String getCustomerAddress() {
-        return customerAddress;
+    public List<Address> getAddress() {
+        return address;
     }
 
     public User getUser() {
@@ -55,7 +62,7 @@ public class Customer {
         return guest != null;
     }
 
-    public void setCustomerAddress(String customerAddress) {
-        this.customerAddress = customerAddress;
+    public void setAddress(List<Address> address) {
+        this.address = address;
     }
 }

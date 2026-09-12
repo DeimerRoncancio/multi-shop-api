@@ -4,5 +4,5 @@ public record UserTransactionDTO(
     String userNames,
     String userEmail,
     String userPhone,
-    String userAddress
+    CustomerAddressDTO userAddress
 ) {}
