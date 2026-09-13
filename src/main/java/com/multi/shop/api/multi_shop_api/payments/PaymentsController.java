@@ -35,14 +35,30 @@ public class PaymentsController {
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping("/customer/{transactionId}/{email}")
+    public ResponseEntity<CustomerCheckoutDTO> getCheckoutCustomer(
+        @PathVariable String transactionId,
+        @PathVariable String email
+    ) {
+        CustomerCheckoutDTO customer = service.getCheckoutCustomer(transactionId, email)
+            .orElseThrow(() -> new NotFoundException("Customer not found"));
+
+        return ResponseEntity.ok(customer);
+    }
+
     @PostMapping("/create-transaction")
     public ResponseEntity<String> createTransaction(@RequestBody NewTransactionDTO dto) {
         return ResponseEntity.ok().body(service.createTransaction(dto));
     }
 
     @PutMapping("/update-products/{transactionId}")
-    public ResponseEntity<Void> updateProducts(@PathVariable String transactionId, @RequestBody List<ProductItemDTO> products) {
-        service.updateProducts(transactionId, products).orElseThrow(() -> new NotFoundException("Transaction not found"));
+    public ResponseEntity<Void> updateProducts(
+        @PathVariable String transactionId,
+        @RequestBody List<ProductItemDTO> products
+    ) {
+        service.updateProducts(transactionId, products)
+            .orElseThrow(() -> new NotFoundException("Transaction not found"));
+
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 

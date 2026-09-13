@@ -68,6 +68,59 @@ public class PaymentsServiceImpl implements PaymentService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Optional<CustomerCheckoutDTO> getCheckoutCustomer(String transactionId, String email) {
+        return repository.findById(transactionId).flatMap(transaction -> {
+            Customer customer = transaction.getCustomer();
+
+            if (customer != null) {
+                return customerHasEmail(customer, email)
+                    ? Optional.of(toCustomerCheckoutDTO(customer))
+                    : Optional.empty();
+            }
+
+            return customersRepository
+                .findByUser_EmailOrGuest_UserEmail(email, email)
+                .map(this::toCustomerCheckoutDTO);
+        });
+    }
+
+    private boolean customerHasEmail(Customer customer, String email) {
+        return customer.isGuest()
+            ? email.equals(customer.getGuest().getUserEmail())
+            : customer.getUser() != null && email.equals(customer.getUser().getEmail());
+    }
+
+    private CustomerCheckoutDTO toCustomerCheckoutDTO(Customer customer) {
+        String userNames = customer.isGuest()
+            ? customer.getGuest().getUserNames()
+            : customer.getUser().getName();
+
+        String userEmail = customer.isGuest()
+            ? customer.getGuest().getUserEmail()
+            : customer.getUser().getEmail();
+
+        String userPhone = customer.isGuest()
+            ? customer.getGuest().getUserPhone()
+            : customer.getUser().getPhoneNumber() == null
+                ? null
+                : customer.getUser().getPhoneNumber().toString();
+
+        List<CustomerAddressDTO> addresses = customer.getAddress().stream()
+            .map(address -> new CustomerAddressDTO(
+                address.getAddressName(),
+                address.getAddress(),
+                address.getCity(),
+                address.getState(),
+                address.getCountry(),
+                address.getAddressNumber()
+            ))
+            .toList();
+
+        return new CustomerCheckoutDTO(userNames, userEmail, userPhone, addresses);
+    }
+
+    @Override
     @Transactional
     public String createTransaction(NewTransactionDTO dto) {
         Transaction transaction = new Transaction();
