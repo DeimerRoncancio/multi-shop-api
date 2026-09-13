@@ -1,6 +1,8 @@
 package com.multi.shop.api.multi_shop_api.payments.services.impl;
 
 import com.multi.shop.api.multi_shop_api.payments.entities.*;
+import com.multi.shop.api.multi_shop_api.payments.mappers.CheckoutMapper;
+import com.multi.shop.api.multi_shop_api.payments.mappers.CustomerMapper;
 import com.multi.shop.api.multi_shop_api.payments.mappers.TransactionMapper;
 import com.multi.shop.api.multi_shop_api.payments.repositories.AddressRepository;
 import com.multi.shop.api.multi_shop_api.payments.repositories.CustomersRepository;
@@ -75,49 +77,40 @@ public class PaymentsServiceImpl implements PaymentService {
 
             if (customer != null) {
                 return customerHasEmail(customer, email)
-                    ? Optional.of(toCustomerCheckoutDTO(customer))
+                    ? Optional.of(toCustomerCheckoutDTO(customer, transaction))
                     : Optional.empty();
             }
 
             return customersRepository
                 .findByUser_EmailOrGuest_UserEmail(email, email)
-                .map(this::toCustomerCheckoutDTO);
+                .map(customerMatch -> toCustomerCheckoutDTO(customerMatch, transaction));
         });
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<CheckoutSummaryDTO> getCheckoutSummary(String transactionId) {
+        return repository.findById(transactionId).map(CheckoutMapper.MAPPER::toCheckoutSummaryDTO);
+    }
+
+    private CustomerCheckoutDTO toCustomerCheckoutDTO(Customer customer, Transaction transaction) {
+        CustomerCheckoutDTO customerDTO = CustomerMapper.MAPPER.toCustomerCheckoutDTO(customer);
+        CustomerAddressDTO selectedAddress = TransactionMapper.MAPPER
+            .toCustomerAddressDTO(transaction.getShippingAddress());
+
+        return new CustomerCheckoutDTO(
+            customerDTO.userNames(),
+            customerDTO.userEmail(),
+            customerDTO.userPhone(),
+            customerDTO.addresses(),
+            selectedAddress
+        );
     }
 
     private boolean customerHasEmail(Customer customer, String email) {
         return customer.isGuest()
             ? email.equals(customer.getGuest().getUserEmail())
             : customer.getUser() != null && email.equals(customer.getUser().getEmail());
-    }
-
-    private CustomerCheckoutDTO toCustomerCheckoutDTO(Customer customer) {
-        String userNames = customer.isGuest()
-            ? customer.getGuest().getUserNames()
-            : customer.getUser().getName();
-
-        String userEmail = customer.isGuest()
-            ? customer.getGuest().getUserEmail()
-            : customer.getUser().getEmail();
-
-        String userPhone = customer.isGuest()
-            ? customer.getGuest().getUserPhone()
-            : customer.getUser().getPhoneNumber() == null
-                ? null
-                : customer.getUser().getPhoneNumber().toString();
-
-        List<CustomerAddressDTO> addresses = customer.getAddress().stream()
-            .map(address -> new CustomerAddressDTO(
-                address.getAddressName(),
-                address.getAddress(),
-                address.getCity(),
-                address.getState(),
-                address.getCountry(),
-                address.getAddressNumber()
-            ))
-            .toList();
-
-        return new CustomerCheckoutDTO(userNames, userEmail, userPhone, addresses);
     }
 
     @Override
@@ -187,6 +180,8 @@ public class PaymentsServiceImpl implements PaymentService {
 
             if (customer.getId() == null) customersRepository.save(customer);
             transaction.setCustomer(customer);
+            ShippingAddress shippingAddress = TransactionMapper.MAPPER.toShippingAddress(dto.userAddress());
+            transaction.setShippingAddress(shippingAddress);
             return repository.save(transaction);
         });
     }

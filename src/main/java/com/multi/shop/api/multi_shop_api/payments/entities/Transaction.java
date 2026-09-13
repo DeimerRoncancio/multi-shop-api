@@ -22,6 +22,9 @@ public class Transaction {
     @JoinColumn(name = "customer_id")
     private Customer customer;
 
+    @OneToOne(mappedBy = "transaction", cascade = CascadeType.ALL, orphanRemoval = true)
+    private ShippingAddress shippingAddress;
+
     @OneToMany(mappedBy = "transaction", cascade = CascadeType.ALL, orphanRemoval = true)
     List<ProductItem> productItems;
 
@@ -78,6 +81,20 @@ public class Transaction {
 
     public void setCustomer(Customer customer) {
         this.customer = customer;
+    }
+
+    public ShippingAddress getShippingAddress() {
+        return shippingAddress;
+    }
+
+    public void setShippingAddress(ShippingAddress shippingAddress) {
+        if (this.shippingAddress != null && this.shippingAddress != shippingAddress)
+            this.shippingAddress.setTransaction(null);
+
+        this.shippingAddress = shippingAddress;
+
+        if (shippingAddress != null && shippingAddress.getTransaction() != this)
+            shippingAddress.setTransaction(this);
     }
 
     public void setProductItems(List<ProductItem> productItems) {

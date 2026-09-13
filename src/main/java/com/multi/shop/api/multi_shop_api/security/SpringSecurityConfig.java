@@ -57,6 +57,7 @@ public class SpringSecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/app/payments/cancel").permitAll()
                         .requestMatchers(HttpMethod.GET, "/app/payments/get-customer/{transactionId}").permitAll()
                         .requestMatchers(HttpMethod.GET, "/app/payments/customer/{transactionId}/{email}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/app/payments/checkout/{transactionId}").authenticated()
                         .requestMatchers(HttpMethod.POST, "/app/payments/webhook").permitAll()
                         .requestMatchers(HttpMethod.POST, "/app/payments/create-payment-session/{transactionId}").permitAll()
                         .requestMatchers(HttpMethod.POST, "/app/payments/create-transaction").permitAll()

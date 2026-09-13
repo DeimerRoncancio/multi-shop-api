@@ -46,6 +46,14 @@ public class PaymentsController {
         return ResponseEntity.ok(customer);
     }
 
+    @GetMapping("/checkout/{transactionId}")
+    public ResponseEntity<CheckoutSummaryDTO> getCheckoutSummary(@PathVariable String transactionId) {
+        CheckoutSummaryDTO summary = service.getCheckoutSummary(transactionId)
+            .orElseThrow(() -> new NotFoundException("Transaction not found"));
+
+        return ResponseEntity.ok(summary);
+    }
+
     @PostMapping("/create-transaction")
     public ResponseEntity<String> createTransaction(@RequestBody NewTransactionDTO dto) {
         return ResponseEntity.ok().body(service.createTransaction(dto));

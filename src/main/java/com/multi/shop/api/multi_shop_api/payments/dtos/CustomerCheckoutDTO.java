@@ -6,5 +6,6 @@ public record CustomerCheckoutDTO(
     String userNames,
     String userEmail,
     String userPhone,
-    List<CustomerAddressDTO> addresses
+    List<CustomerAddressDTO> addresses,
+    CustomerAddressDTO selectedAddress
 ) {}
