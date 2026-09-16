@@ -57,7 +57,7 @@ public class SpringSecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/app/payments/cancel").permitAll()
                         .requestMatchers(HttpMethod.GET, "/app/payments/get-customer/{transactionId}").permitAll()
                         .requestMatchers(HttpMethod.GET, "/app/payments/customer/{transactionId}/{email}").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/app/payments/checkout/{transactionId}").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/app/payments/checkout/{transactionId}").permitAll()
                         .requestMatchers(HttpMethod.POST, "/app/payments/webhook").permitAll()
                         .requestMatchers(HttpMethod.POST, "/app/payments/create-payment-session/{transactionId}").permitAll()
                         .requestMatchers(HttpMethod.POST, "/app/payments/create-transaction").permitAll()
@@ -81,7 +81,7 @@ public class SpringSecurityConfig {
 
         config.setAllowedOriginPatterns(List.of("*"));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
-        config.setAllowedHeaders(Arrays.asList("Authorization", "content-type", "Token"));
+        config.setAllowedHeaders(Arrays.asList("Authorization", "content-type", "Token", "X-Checkout-Access-Token"));
         config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

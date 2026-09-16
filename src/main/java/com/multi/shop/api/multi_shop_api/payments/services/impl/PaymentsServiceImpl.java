@@ -26,11 +26,16 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @Service
 public class PaymentsServiceImpl implements PaymentService {
     private static final Logger log = LoggerFactory.getLogger(PaymentsServiceImpl.class);
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private final PaymentsRepository repository;
     private final ProductRepository productRepository;
@@ -77,34 +82,22 @@ public class PaymentsServiceImpl implements PaymentService {
 
             if (customer != null) {
                 return customerHasEmail(customer, email)
-                    ? Optional.of(toCustomerCheckoutDTO(customer, transaction))
+                    ? Optional.of(CustomerMapper.MAPPER.toCustomerCheckoutDTO(customer, transaction))
                     : Optional.empty();
             }
 
             return customersRepository
                 .findByUser_EmailOrGuest_UserEmail(email, email)
-                .map(customerMatch -> toCustomerCheckoutDTO(customerMatch, transaction));
+                .map(customerMatch -> CustomerMapper.MAPPER.toCustomerCheckoutDTO(customerMatch, transaction));
         });
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<CheckoutSummaryDTO> getCheckoutSummary(String transactionId) {
-        return repository.findById(transactionId).map(CheckoutMapper.MAPPER::toCheckoutSummaryDTO);
-    }
-
-    private CustomerCheckoutDTO toCustomerCheckoutDTO(Customer customer, Transaction transaction) {
-        CustomerCheckoutDTO customerDTO = CustomerMapper.MAPPER.toCustomerCheckoutDTO(customer);
-        CustomerAddressDTO selectedAddress = TransactionMapper.MAPPER
-            .toCustomerAddressDTO(transaction.getShippingAddress());
-
-        return new CustomerCheckoutDTO(
-            customerDTO.userNames(),
-            customerDTO.userEmail(),
-            customerDTO.userPhone(),
-            customerDTO.addresses(),
-            selectedAddress
-        );
+    public Optional<CheckoutSummaryDTO> getCheckoutSummary(String transactionId, String checkoutAccessToken) {
+        return repository.findById(transactionId)
+            .filter(transaction -> hasCheckoutAccess(transaction, checkoutAccessToken))
+            .map(CheckoutMapper.MAPPER::toCheckoutSummaryDTO);
     }
 
     private boolean customerHasEmail(Customer customer, String email) {
@@ -115,8 +108,12 @@ public class PaymentsServiceImpl implements PaymentService {
 
     @Override
     @Transactional
-    public String createTransaction(NewTransactionDTO dto) {
+    public TransactionAccessDTO createTransaction(NewTransactionDTO dto) {
         Transaction transaction = new Transaction();
+        byte[] accessTokenBytes = new byte[32];
+        SECURE_RANDOM.nextBytes(accessTokenBytes);
+        String checkoutAccessToken = Base64.getUrlEncoder().withoutPadding().encodeToString(accessTokenBytes);
+        transaction.setCheckoutAccessTokenDigest(digestCheckoutAccessToken(checkoutAccessToken));
 
         dto.productItems().forEach(item -> {
             ProductItem productItem = new ProductItem();
@@ -129,7 +126,26 @@ public class PaymentsServiceImpl implements PaymentService {
         transaction.setTotalPrice(calculateTotalPrice(transaction));
         transaction.setStatus("Pending");
         repository.save(transaction);
-        return transaction.getId();
+        return new TransactionAccessDTO(transaction.getId(), checkoutAccessToken);
+    }
+
+    private boolean hasCheckoutAccess(Transaction transaction, String checkoutAccessToken) {
+        if (transaction.getCheckoutAccessTokenDigest() == null || checkoutAccessToken == null) return false;
+
+        return MessageDigest.isEqual(
+            transaction.getCheckoutAccessTokenDigest().getBytes(StandardCharsets.UTF_8),
+            digestCheckoutAccessToken(checkoutAccessToken).getBytes(StandardCharsets.UTF_8)
+        );
+    }
+
+    private String digestCheckoutAccessToken(String checkoutAccessToken) {
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256")
+                .digest(checkoutAccessToken.getBytes(StandardCharsets.UTF_8));
+            return Base64.getUrlEncoder().withoutPadding().encodeToString(digest);
+        } catch (NoSuchAlgorithmException exception) {
+            throw new IllegalStateException("SHA-256 is not available", exception);
+        }
     }
 
     private Long calculateTotalPrice(Transaction transaction) {

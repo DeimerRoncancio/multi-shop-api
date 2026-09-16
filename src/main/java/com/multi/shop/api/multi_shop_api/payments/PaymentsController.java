@@ -47,15 +47,17 @@ public class PaymentsController {
     }
 
     @GetMapping("/checkout/{transactionId}")
-    public ResponseEntity<CheckoutSummaryDTO> getCheckoutSummary(@PathVariable String transactionId) {
-        CheckoutSummaryDTO summary = service.getCheckoutSummary(transactionId)
-            .orElseThrow(() -> new NotFoundException("Transaction not found"));
-
-        return ResponseEntity.ok(summary);
+    public ResponseEntity<CheckoutSummaryDTO> getCheckoutSummary(
+        @PathVariable String transactionId,
+        @RequestHeader(value = "X-Checkout-Access-Token", required = false) String checkoutAccessToken
+    ) {
+        return service.getCheckoutSummary(transactionId, checkoutAccessToken)
+            .map(ResponseEntity::ok)
+            .orElseGet(() -> ResponseEntity.status(HttpStatus.FORBIDDEN).build());
     }
 
     @PostMapping("/create-transaction")
-    public ResponseEntity<String> createTransaction(@RequestBody NewTransactionDTO dto) {
+    public ResponseEntity<TransactionAccessDTO> createTransaction(@RequestBody NewTransactionDTO dto) {
         return ResponseEntity.ok().body(service.createTransaction(dto));
     }
 

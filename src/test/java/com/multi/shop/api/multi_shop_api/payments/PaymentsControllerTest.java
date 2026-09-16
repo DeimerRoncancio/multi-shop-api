@@ -47,9 +47,11 @@ class PaymentsControllerTest {
             address,
             List.of(new CheckoutProductItemDTO("product-id", "Cafe", 25000L, 2))
         );
-        when(service.getCheckoutSummary("transaction-id")).thenReturn(Optional.of(summary));
+        when(service.getCheckoutSummary("transaction-id", "valid-token"))
+            .thenReturn(Optional.of(summary));
 
-        mockMvc.perform(get("/app/payments/checkout/transaction-id"))
+        mockMvc.perform(get("/app/payments/checkout/transaction-id")
+                .header("X-Checkout-Access-Token", "valid-token"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.transactionId").value("transaction-id"))
             .andExpect(jsonPath("$.status").value("Pending"))
@@ -64,10 +66,20 @@ class PaymentsControllerTest {
     }
 
     @Test
-    void returnsNotFoundWhenCheckoutTransactionDoesNotExist() throws Exception {
-        when(service.getCheckoutSummary("missing-id")).thenReturn(Optional.empty());
+    void returnsForbiddenWhenCheckoutAccessTokenIsMissing() throws Exception {
+        when(service.getCheckoutSummary("transaction-id", null)).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/app/payments/checkout/missing-id"))
-            .andExpect(status().isNotFound());
+        mockMvc.perform(get("/app/payments/checkout/transaction-id"))
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void returnsForbiddenWhenCheckoutAccessTokenIsInvalid() throws Exception {
+        when(service.getCheckoutSummary("transaction-id", "invalid-token"))
+            .thenReturn(Optional.empty());
+
+        mockMvc.perform(get("/app/payments/checkout/transaction-id")
+                .header("X-Checkout-Access-Token", "invalid-token"))
+            .andExpect(status().isForbidden());
     }
 }

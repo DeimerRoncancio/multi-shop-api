@@ -18,6 +18,9 @@ public class Transaction {
     private Long totalPrice;
     private String status;
 
+    @Column(name = "checkout_access_token_digest", length = 43, updatable = false)
+    private String checkoutAccessTokenDigest;
+
     @ManyToOne
     @JoinColumn(name = "customer_id")
     private Customer customer;
@@ -69,6 +72,14 @@ public class Transaction {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getCheckoutAccessTokenDigest() {
+        return checkoutAccessTokenDigest;
+    }
+
+    public void setCheckoutAccessTokenDigest(String checkoutAccessTokenDigest) {
+        this.checkoutAccessTokenDigest = checkoutAccessTokenDigest;
     }
 
     public List<ProductItem> getProductItems() {
