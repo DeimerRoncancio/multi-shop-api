@@ -1,13 +1,15 @@
-package com.multi.shop.api.multi_shop_api.payments;
+package com.multi.shop.api.multi_shop_api.payments.controllers;
 
 import com.multi.shop.api.multi_shop_api.common.exceptions.NotFoundException;
 import com.multi.shop.api.multi_shop_api.payments.dtos.*;
 import com.multi.shop.api.multi_shop_api.payments.entities.Customer;
 import com.multi.shop.api.multi_shop_api.payments.entities.Transaction;
-import com.multi.shop.api.multi_shop_api.payments.services.impl.PaymentsServiceImpl;
+import com.multi.shop.api.multi_shop_api.payments.services.CheckoutCustomerService;
+import com.multi.shop.api.multi_shop_api.payments.services.PaymentService;
+import com.multi.shop.api.multi_shop_api.payments.services.StripeCheckoutService;
+import com.multi.shop.api.multi_shop_api.payments.services.StripeWebhookService;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
-import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,18 +21,29 @@ import java.util.*;
 @RequestMapping("/app/payments")
 @CrossOrigin(originPatterns = "*")
 public class PaymentsController {
-    private final PaymentsServiceImpl service;
+    private final PaymentService service;
+    private final CheckoutCustomerService customerService;
+    private final StripeCheckoutService stripeCheckoutService;
+    private final StripeWebhookService stripeWebhookService;
 
     @Value("${stripe.webhook.secret}")
     private String webhookSecret;
 
-    public PaymentsController(PaymentsServiceImpl service) {
+    public PaymentsController(
+        PaymentService service,
+        CheckoutCustomerService customerService,
+        StripeCheckoutService stripeCheckoutService,
+        StripeWebhookService stripeWebhookService
+    ) {
         this.service = service;
+        this.customerService = customerService;
+        this.stripeCheckoutService = stripeCheckoutService;
+        this.stripeWebhookService = stripeWebhookService;
     }
 
     @GetMapping("/get-customer/{transactionId}")
     public ResponseEntity<Void> getCustomer(@PathVariable("transactionId") String transactionId) {
-        service.getCustomer(transactionId).orElseThrow(() -> new NotFoundException("Customer not found"));
+        customerService.getCustomer(transactionId).orElseThrow(() -> new NotFoundException("Customer not found"));
         return ResponseEntity.ok().build();
     }
 
@@ -39,7 +52,7 @@ public class PaymentsController {
         @PathVariable String transactionId,
         @PathVariable String email
     ) {
-        CustomerCheckoutDTO customer = service.getCheckoutCustomer(transactionId, email)
+        CustomerCheckoutDTO customer = customerService.getCheckoutCustomer(transactionId, email)
             .orElseThrow(() -> new NotFoundException("Customer not found"));
 
         return ResponseEntity.ok(customer);
@@ -71,15 +84,9 @@ public class PaymentsController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    @PutMapping("/add-transaction-date/{transactionId}")
-    public ResponseEntity<Void> addTransactionDate(@PathVariable("transactionId") String transactionId, @RequestBody Date date) {
-        service.addTransactionDate(transactionId, date);
-        return ResponseEntity.ok().build();
-    }
-
     @PutMapping("/add-user/{transactionId}")
     public ResponseEntity<String> addUser(@RequestBody UserTransactionDTO userDTO, @PathVariable String transactionId) {
-        Optional<Transaction> transactionOp = service.addUserToTransaction(userDTO, transactionId);
+        Optional<Transaction> transactionOp = customerService.addUserToTransaction(userDTO, transactionId);
 
         Transaction transaction = transactionOp.orElseThrow(() -> new NotFoundException("Transaction not found"));
         Customer customer = transaction.getCustomer();
@@ -88,12 +95,6 @@ public class PaymentsController {
             return ResponseEntity.status(HttpStatus.CREATED).body(customer.getGuest().getUserEmail());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(null);
-    }
-
-    @PutMapping("/set-status/{transactionId}/{status}")
-    public ResponseEntity<Void> setStatus(@PathVariable("transactionId") String transactionId, @PathVariable("status") String status) {
-        service.setStatus(transactionId, status);
-        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{id}")
@@ -106,10 +107,20 @@ public class PaymentsController {
 
     @PostMapping("/create-payment-session/{transactionId}")
     public ResponseEntity<StripeResponseDTO> createPaymentSession(@PathVariable String transactionId) throws StripeException {
-        StripeResponseDTO session = service.createPaymentSession(transactionId)
+        StripeResponseDTO session = stripeCheckoutService.createPaymentSession(transactionId)
             .orElseThrow(() -> new NotFoundException("Transaction not found"));
 
         return ResponseEntity.ok().body(session);
+    }
+
+    @PostMapping("/cancel-payment-session/{transactionId}")
+    public ResponseEntity<Void> cancelPaymentSession(
+        @PathVariable String transactionId,
+        @RequestHeader(value = "X-Checkout-Access-Token", required = false) String checkoutAccessToken
+    ) throws StripeException {
+        return stripeCheckoutService.cancelPaymentSession(transactionId, checkoutAccessToken)
+            ? ResponseEntity.noContent().build()
+            : ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
     @GetMapping("/success")
@@ -135,7 +146,7 @@ public class PaymentsController {
     @PostMapping("/webhook")
     public ResponseEntity<String> webhook(@RequestBody String payload, @RequestHeader("Stripe-Signature") String sigHeader) {
         try {
-            service.webhookEvent(payload, sigHeader, webhookSecret);
+            stripeWebhookService.webhookEvent(payload, sigHeader, webhookSecret);
         } catch (SignatureVerificationException exception) {
             return ResponseEntity.badRequest().body("Invalid signature");
         }

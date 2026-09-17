@@ -1,11 +1,14 @@
-package com.multi.shop.api.multi_shop_api.payments;
+package com.multi.shop.api.multi_shop_api.payments.controllers;
 
 import com.multi.shop.api.multi_shop_api.common.controllers.ControllerAdvice;
 import com.multi.shop.api.multi_shop_api.payments.dtos.CheckoutProductItemDTO;
 import com.multi.shop.api.multi_shop_api.payments.dtos.CheckoutSummaryDTO;
 import com.multi.shop.api.multi_shop_api.payments.dtos.CustomerAddressDTO;
 import com.multi.shop.api.multi_shop_api.payments.dtos.CustomerSummaryDTO;
-import com.multi.shop.api.multi_shop_api.payments.services.impl.PaymentsServiceImpl;
+import com.multi.shop.api.multi_shop_api.payments.services.CheckoutCustomerService;
+import com.multi.shop.api.multi_shop_api.payments.services.PaymentService;
+import com.multi.shop.api.multi_shop_api.payments.services.StripeCheckoutService;
+import com.multi.shop.api.multi_shop_api.payments.services.StripeWebhookService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MockMvc;
@@ -21,14 +24,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class PaymentsControllerTest {
-    private PaymentsServiceImpl service;
+    private PaymentService service;
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
-        service = mock(PaymentsServiceImpl.class);
+        service = mock(PaymentService.class);
         mockMvc = MockMvcBuilders
-            .standaloneSetup(new PaymentsController(service))
+            .standaloneSetup(new PaymentsController(
+                service,
+                mock(CheckoutCustomerService.class),
+                mock(StripeCheckoutService.class),
+                mock(StripeWebhookService.class)
+            ))
             .setControllerAdvice(new ControllerAdvice())
             .build();
     }

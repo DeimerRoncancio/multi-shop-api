@@ -1,11 +1,13 @@
 package com.multi.shop.api.multi_shop_api.payments.entities;
 
+import com.multi.shop.api.multi_shop_api.products.entities.Product;
 import jakarta.persistence.*;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Stream;
 
 @Entity
 @Table(name = "transactions")
@@ -20,6 +22,9 @@ public class Transaction {
 
     @Column(name = "checkout_access_token_digest", length = 43, updatable = false)
     private String checkoutAccessTokenDigest;
+
+    @Column(name = "stripe_session_id")
+    private String stripeSessionId;
 
     @ManyToOne
     @JoinColumn(name = "customer_id")
@@ -82,6 +87,14 @@ public class Transaction {
         this.checkoutAccessTokenDigest = checkoutAccessTokenDigest;
     }
 
+    public String getStripeSessionId() {
+        return stripeSessionId;
+    }
+
+    public void setStripeSessionId(String stripeSessionId) {
+        this.stripeSessionId = stripeSessionId;
+    }
+
     public List<ProductItem> getProductItems() {
         return productItems;
     }
@@ -110,5 +123,32 @@ public class Transaction {
 
     public void setProductItems(List<ProductItem> productItems) {
         this.productItems = productItems;
+    }
+
+    public void addItem(Product product, int quantity) {
+        ProductItem item = new ProductItem();
+        item.setProduct(product);
+        item.setTransaction(this);
+        item.setQuantity(quantity);
+        productItems.add(item);
+    }
+
+    public Long calculateTotalPrice() {
+        return productItems.stream()
+            .filter(item -> item.getProduct() != null && item.getProduct().getPrice() != null)
+            .mapToLong(item -> item.getProduct().getPrice() * item.getQuantity())
+            .sum();
+    }
+
+    public Stream<ProductItem> payableItems() {
+        return productItems.stream()
+            .filter(item -> item.getProduct() != null && item.getProduct().getPrice() != null)
+            .filter(item -> item.getQuantity() > 0);
+    }
+
+    public long payableAmountInCents() {
+        return payableItems()
+            .mapToLong(item -> item.getProduct().getPrice() * 100 * item.getQuantity())
+            .sum();
     }
 }
