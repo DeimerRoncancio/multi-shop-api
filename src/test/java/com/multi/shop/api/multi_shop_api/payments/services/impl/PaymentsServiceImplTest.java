@@ -20,6 +20,7 @@ import com.multi.shop.api.multi_shop_api.products.repositories.ProductRepository
 import com.multi.shop.api.multi_shop_api.products.entities.Product;
 import com.multi.shop.api.multi_shop_api.users.entities.User;
 import com.multi.shop.api.multi_shop_api.users.repositories.UserRepository;
+import com.stripe.param.checkout.SessionCreateParams;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
@@ -30,6 +31,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -39,6 +42,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.never;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -441,6 +445,68 @@ class PaymentsServiceImplTest {
         Customer customer = new Customer();
         customer.setGuest(guest);
         return customer;
+    }
+
+    @Test
+    void buildsThePaymentSessionFromTheStoredItemsAndCatalogPrices() {
+        ReflectionTestUtils.setField(service, "stripeCurrency", "cop");
+        Transaction transaction = new Transaction();
+        transaction.setId("transaction-id");
+        transaction.getProductItems().add(productItem("Hamburguesa", "Clásica con papas", 38000L, 2));
+        transaction.getProductItems().add(productItem("Limonada", " ", 9000L, 1));
+
+        SessionCreateParams params = service.buildSessionParams(transaction);
+
+        assertThat(params.getLineItems()).hasSize(2);
+        SessionCreateParams.LineItem burger = params.getLineItems().get(0);
+        assertThat(burger.getQuantity()).isEqualTo(2L);
+        assertThat(burger.getPriceData().getUnitAmount()).isEqualTo(3_800_000L);
+        assertThat(burger.getPriceData().getCurrency()).isEqualTo("cop");
+        assertThat(burger.getPriceData().getProductData().getName()).isEqualTo("Hamburguesa");
+        assertThat(params.getLineItems().get(1).getPriceData().getProductData().getDescription())
+            .isEqualTo("Limonada");
+        assertThat(params.getClientReferenceId()).isEqualTo("transaction-id");
+        assertThat(params.getMetadata()).containsEntry("transactionId", "transaction-id");
+    }
+
+    @Test
+    void skipsItemsWithoutAProductOrPrice() {
+        Transaction transaction = new Transaction();
+        transaction.getProductItems().add(productItem("Hamburguesa", "Clásica", 38000L, 1));
+        transaction.getProductItems().add(productItem("Sin precio", "Borrador", null, 1));
+        ProductItem orphan = new ProductItem();
+        orphan.setQuantity(3);
+        transaction.getProductItems().add(orphan);
+
+        SessionCreateParams params = service.buildSessionParams(transaction);
+
+        assertThat(params.getLineItems()).hasSize(1);
+    }
+
+    @Test
+    void refusesAPaymentSessionForATransactionWithNothingToPay() {
+        Transaction transaction = new Transaction();
+
+        assertThatThrownBy(() -> service.buildSessionParams(transaction))
+            .isInstanceOf(ResponseStatusException.class);
+    }
+
+    @Test
+    void returnsEmptyPaymentSessionWhenTransactionDoesNotExist() throws Exception {
+        when(repository.findById("missing")).thenReturn(Optional.empty());
+
+        assertThat(service.createPaymentSession("missing")).isEmpty();
+    }
+
+    private ProductItem productItem(String name, String description, Long price, int quantity) {
+        Product product = new Product();
+        product.setProductName(name);
+        product.setDescription(description);
+        product.setPrice(price);
+        ProductItem item = new ProductItem();
+        item.setProduct(product);
+        item.setQuantity(quantity);
+        return item;
     }
 
     private void authorizeCheckout(Transaction transaction) {

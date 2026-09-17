@@ -9,6 +9,7 @@ import com.multi.shop.api.multi_shop_api.payments.repositories.CustomersReposito
 import com.multi.shop.api.multi_shop_api.payments.repositories.PaymentsRepository;
 import com.multi.shop.api.multi_shop_api.payments.dtos.*;
 import com.multi.shop.api.multi_shop_api.payments.services.PaymentService;
+import com.multi.shop.api.multi_shop_api.products.entities.Product;
 import com.multi.shop.api.multi_shop_api.products.repositories.ProductRepository;
 import com.multi.shop.api.multi_shop_api.users.entities.User;
 import com.multi.shop.api.multi_shop_api.users.repositories.UserRepository;
@@ -23,8 +24,10 @@ import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -49,6 +52,8 @@ public class PaymentsServiceImpl implements PaymentService {
     private String stripeSuccessUrl;
     @Value("${stripe.cancel.url}")
     private String stripeCancelUrl;
+    @Value("${stripe.currency:cop}")
+    private String stripeCurrency;
 
     public PaymentsServiceImpl (PaymentsRepository repository, ProductRepository productRepository, CustomersRepository customersRepository, AddressRepository addressRepository, UserRepository userRepository) {
         this.repository = repository;
@@ -258,49 +263,66 @@ public class PaymentsServiceImpl implements PaymentService {
         });
     }
 
-    public StripeResponseDTO createPaymentSession(StripeRequestDTO paymentSession, String transactionId) throws StripeException {
-        List<StripeItemDTO> products = paymentSession.items();
-        List<SessionCreateParams.LineItem> list = new ArrayList<>();
+    @Transactional
+    public Optional<StripeResponseDTO> createPaymentSession(String transactionId) throws StripeException {
+        Optional<Transaction> transactionOp = repository.findById(transactionId);
+        if (transactionOp.isEmpty()) return Optional.empty();
 
-        for (StripeItemDTO product : products) {
-            SessionCreateParams.LineItem.PriceData.ProductData productData = SessionCreateParams
-                    .LineItem.PriceData.ProductData.builder()
-                    .setName(product.name())
-                    .setDescription(product.description())
-                    .build();
+        Transaction transaction = transactionOp.get();
+        Session session = Session.create(buildSessionParams(transaction));
+        transaction.setStatus("PROCESSING");
 
-            SessionCreateParams.LineItem.PriceData priceData = SessionCreateParams
-                    .LineItem.PriceData.builder()
-                    .setCurrency(paymentSession.currency())
-                    .setProductData(productData)
-                    .setUnitAmount(product.price())
-                    .build();
-
-            SessionCreateParams.LineItem lineItem = SessionCreateParams
-                    .LineItem.builder()
-                    .setPriceData(priceData)
-                    .setQuantity(product.quantity())
-                    .build();
-
-            list.add(lineItem);
-        }
-
-        SessionCreateParams params = SessionCreateParams.builder()
-                .setMode(SessionCreateParams.Mode.PAYMENT)
-                .setSuccessUrl(stripeSuccessUrl)
-                .setCancelUrl(stripeCancelUrl)
-                .addAllLineItem(list)
-                .build();
-
-        Session session = Session.create(params);
-        setStatus(transactionId, "PROCESSING");
-
-        return new StripeResponseDTO(
+        return Optional.of(new StripeResponseDTO(
             "SUCCESS",
-            "Payment session creates",
+            "Payment session created",
             session.getId(),
             session.getUrl()
-        );
+        ));
+    }
+
+    SessionCreateParams buildSessionParams(Transaction transaction) {
+        List<SessionCreateParams.LineItem> lineItems = transaction.getProductItems().stream()
+            .filter(item -> item.getProduct() != null && item.getProduct().getPrice() != null)
+            .filter(item -> item.getQuantity() > 0)
+            .map(this::toLineItem)
+            .toList();
+
+        if (lineItems.isEmpty())
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Transaction has no payable items");
+
+        return SessionCreateParams.builder()
+            .setMode(SessionCreateParams.Mode.PAYMENT)
+            .setSuccessUrl(stripeSuccessUrl)
+            .setCancelUrl(stripeCancelUrl)
+            .setClientReferenceId(transaction.getId())
+            .putMetadata("transactionId", transaction.getId())
+            .addAllLineItem(lineItems)
+            .build();
+    }
+
+    private SessionCreateParams.LineItem toLineItem(ProductItem item) {
+        Product product = item.getProduct();
+        String description = product.getDescription() == null || product.getDescription().isBlank()
+            ? product.getProductName()
+            : product.getDescription().trim();
+
+        SessionCreateParams.LineItem.PriceData.ProductData productData = SessionCreateParams
+            .LineItem.PriceData.ProductData.builder()
+            .setName(product.getProductName())
+            .setDescription(description)
+            .build();
+
+        SessionCreateParams.LineItem.PriceData priceData = SessionCreateParams
+            .LineItem.PriceData.builder()
+            .setCurrency(stripeCurrency)
+            .setProductData(productData)
+            .setUnitAmount(product.getPrice() * 100)
+            .build();
+
+        return SessionCreateParams.LineItem.builder()
+            .setPriceData(priceData)
+            .setQuantity((long) item.getQuantity())
+            .build();
     }
 
     public void webhookEvent(String payload, String sigHeader, String webhookKey) throws SignatureVerificationException {

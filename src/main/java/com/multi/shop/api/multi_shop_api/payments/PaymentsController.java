@@ -7,7 +7,6 @@ import com.multi.shop.api.multi_shop_api.payments.entities.Transaction;
 import com.multi.shop.api.multi_shop_api.payments.services.impl.PaymentsServiceImpl;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
-import jakarta.validation.Valid;
 import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -106,8 +105,11 @@ public class PaymentsController {
     }
 
     @PostMapping("/create-payment-session/{transactionId}")
-    public ResponseEntity<StripeResponseDTO> createPaymentSession(@PathVariable String transactionId, @RequestBody @Valid StripeRequestDTO paymentSession) throws StripeException {
-        return ResponseEntity.ok().body(service.createPaymentSession(paymentSession, transactionId));
+    public ResponseEntity<StripeResponseDTO> createPaymentSession(@PathVariable String transactionId) throws StripeException {
+        StripeResponseDTO session = service.createPaymentSession(transactionId)
+            .orElseThrow(() -> new NotFoundException("Transaction not found"));
+
+        return ResponseEntity.ok().body(session);
     }
 
     @GetMapping("/success")
