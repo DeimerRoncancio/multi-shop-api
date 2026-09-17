@@ -15,8 +15,11 @@ import com.multi.shop.api.multi_shop_api.users.entities.User;
 import com.multi.shop.api.multi_shop_api.users.repositories.UserRepository;
 import com.stripe.Stripe;
 import com.stripe.exception.SignatureVerificationException;
+import com.stripe.exception.EventDataObjectDeserializationException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Event;
+import com.stripe.model.EventDataObjectDeserializer;
+import com.stripe.model.StripeObject;
 import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
 import com.stripe.param.checkout.SessionCreateParams;
@@ -34,11 +37,14 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.stream.Stream;
 
 @Service
 public class PaymentsServiceImpl implements PaymentService {
     private static final Logger log = LoggerFactory.getLogger(PaymentsServiceImpl.class);
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+    private static final String STATUS_APPROVED = "APPROVED";
+    private static final String STATUS_REJECTED = "REJECTED";
 
     private final PaymentsRepository repository;
     private final ProductRepository productRepository;
@@ -281,9 +287,7 @@ public class PaymentsServiceImpl implements PaymentService {
     }
 
     SessionCreateParams buildSessionParams(Transaction transaction) {
-        List<SessionCreateParams.LineItem> lineItems = transaction.getProductItems().stream()
-            .filter(item -> item.getProduct() != null && item.getProduct().getPrice() != null)
-            .filter(item -> item.getQuantity() > 0)
+        List<SessionCreateParams.LineItem> lineItems = payableItems(transaction)
             .map(this::toLineItem)
             .toList();
 
@@ -298,6 +302,12 @@ public class PaymentsServiceImpl implements PaymentService {
             .putMetadata("transactionId", transaction.getId())
             .addAllLineItem(lineItems)
             .build();
+    }
+
+    private Stream<ProductItem> payableItems(Transaction transaction) {
+        return transaction.getProductItems().stream()
+            .filter(item -> item.getProduct() != null && item.getProduct().getPrice() != null)
+            .filter(item -> item.getQuantity() > 0);
     }
 
     private SessionCreateParams.LineItem toLineItem(ProductItem item) {
@@ -325,14 +335,76 @@ public class PaymentsServiceImpl implements PaymentService {
             .build();
     }
 
+    @Transactional
     public void webhookEvent(String payload, String sigHeader, String webhookKey) throws SignatureVerificationException {
-        Event event;
+        Event event = Webhook.constructEvent(payload, sigHeader, webhookKey);
 
-        try {
-            event = Webhook.constructEvent(payload, sigHeader, webhookKey);
-        } catch (SignatureVerificationException e) {
-            log.warn("Signature verification failed: {}", String.valueOf(e));
-            throw new SignatureVerificationException("Error", webhookKey);
+        switch (event.getType()) {
+            case "checkout.session.completed", "checkout.session.async_payment_succeeded" ->
+                sessionFrom(event).ifPresent(session -> {
+                    if ("paid".equals(session.getPaymentStatus())) approvePayment(session);
+                });
+            case "checkout.session.async_payment_failed", "checkout.session.expired" ->
+                sessionFrom(event).ifPresent(this::rejectPayment);
+            default -> log.debug("Ignoring Stripe event {}", event.getType());
         }
+    }
+
+    private Optional<Session> sessionFrom(Event event) {
+        EventDataObjectDeserializer deserializer = event.getDataObjectDeserializer();
+        Optional<StripeObject> object = deserializer.getObject();
+
+        if (object.isEmpty()) {
+            try {
+                object = Optional.of(deserializer.deserializeUnsafe());
+            } catch (EventDataObjectDeserializationException exception) {
+                log.error("Could not read Stripe event {}: {}", event.getId(), exception.getMessage());
+                return Optional.empty();
+            }
+        }
+
+        return object.filter(Session.class::isInstance).map(Session.class::cast);
+    }
+
+    private void approvePayment(Session session) {
+        transactionOf(session).ifPresent(transaction -> {
+            long expectedAmount = payableItems(transaction)
+                .mapToLong(item -> item.getProduct().getPrice() * 100 * item.getQuantity())
+                .sum();
+
+            if (session.getAmountTotal() == null || session.getAmountTotal() != expectedAmount) {
+                log.warn("Stripe session {} charged {} but transaction {} expects {}",
+                    session.getId(), session.getAmountTotal(), transaction.getId(), expectedAmount);
+                return;
+            }
+
+            transaction.setStatus(STATUS_APPROVED);
+            if (transaction.getTransactionDate() == null) transaction.setTransactionDate(new Date());
+        });
+    }
+
+    private void rejectPayment(Session session) {
+        transactionOf(session).ifPresent(transaction -> {
+            if (STATUS_APPROVED.equals(transaction.getStatus())) return;
+
+            transaction.setStatus(STATUS_REJECTED);
+            if (transaction.getTransactionDate() == null) transaction.setTransactionDate(new Date());
+        });
+    }
+
+    private Optional<Transaction> transactionOf(Session session) {
+        String transactionId = session.getMetadata() != null && session.getMetadata().get("transactionId") != null
+            ? session.getMetadata().get("transactionId")
+            : session.getClientReferenceId();
+
+        if (transactionId == null) {
+            log.warn("Stripe session {} has no transaction", session.getId());
+            return Optional.empty();
+        }
+
+        Optional<Transaction> transaction = repository.findById(transactionId);
+        if (transaction.isEmpty()) log.warn("Stripe session {} points to missing transaction {}", session.getId(), transactionId);
+
+        return transaction;
     }
 }

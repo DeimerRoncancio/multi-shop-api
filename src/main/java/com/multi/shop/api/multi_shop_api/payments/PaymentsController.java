@@ -133,8 +133,13 @@ public class PaymentsController {
     }
 
     @PostMapping("/webhook")
-    public ResponseEntity<String> webhook(@RequestBody String payload, @RequestHeader("Stripe-Signature") String sigHeader) throws SignatureVerificationException {
-        service.webhookEvent(payload, sigHeader, webhookSecret);
+    public ResponseEntity<String> webhook(@RequestBody String payload, @RequestHeader("Stripe-Signature") String sigHeader) {
+        try {
+            service.webhookEvent(payload, sigHeader, webhookSecret);
+        } catch (SignatureVerificationException exception) {
+            return ResponseEntity.badRequest().body("Invalid signature");
+        }
+
         return ResponseEntity.ok().body("Success");
     }
 }
