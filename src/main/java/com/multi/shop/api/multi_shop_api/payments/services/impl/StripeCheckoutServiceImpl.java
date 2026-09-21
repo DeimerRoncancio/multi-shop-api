@@ -47,11 +47,15 @@ public class StripeCheckoutServiceImpl implements StripeCheckoutService {
 
     @Override
     @Transactional
-    public Optional<StripeResponseDTO> createPaymentSession(String transactionId) throws StripeException {
-        Optional<Transaction> transactionOp = repository.findById(transactionId);
+    public Optional<StripeResponseDTO> createPaymentSession(String transactionId, String accessToken) throws StripeException {
+        Optional<Transaction> transactionOp = repository.findById(transactionId)
+            .filter(transaction -> checkoutAccessToken.grants(transaction, accessToken));
         if (transactionOp.isEmpty()) return Optional.empty();
 
         Transaction transaction = transactionOp.get();
+        if ("APPROVED".equals(transaction.getStatus()))
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Transaction is already paid");
+
         SessionCreateParams params = buildSessionParams(transaction);
         expireOpenSession(transaction);
 
@@ -71,7 +75,7 @@ public class StripeCheckoutServiceImpl implements StripeCheckoutService {
     @Transactional(readOnly = true)
     public boolean cancelPaymentSession(String transactionId, String accessToken) throws StripeException {
         Optional<Transaction> transactionOp = repository.findById(transactionId)
-            .filter(transaction -> checkoutAccessToken.matches(transaction.getCheckoutAccessTokenDigest(), accessToken));
+            .filter(transaction -> checkoutAccessToken.grants(transaction, accessToken));
 
         if (transactionOp.isEmpty()) return false;
 

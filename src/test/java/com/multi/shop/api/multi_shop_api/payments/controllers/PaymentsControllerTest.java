@@ -18,23 +18,33 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class PaymentsControllerTest {
     private PaymentService service;
+    private CheckoutCustomerService customerService;
+    private StripeCheckoutService stripeCheckoutService;
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
         service = mock(PaymentService.class);
+        customerService = mock(CheckoutCustomerService.class);
+        stripeCheckoutService = mock(StripeCheckoutService.class);
         mockMvc = MockMvcBuilders
             .standaloneSetup(new PaymentsController(
                 service,
-                mock(CheckoutCustomerService.class),
-                mock(StripeCheckoutService.class),
+                customerService,
+                stripeCheckoutService,
                 mock(StripeWebhookService.class)
             ))
             .setControllerAdvice(new ControllerAdvice())
@@ -71,6 +81,25 @@ class PaymentsControllerTest {
             .andExpect(jsonPath("$.items[0].productName").value("Cafe"))
             .andExpect(jsonPath("$.items[0].price").value(25000))
             .andExpect(jsonPath("$.items[0].quantity").value(2));
+    }
+
+    @Test
+    void forbidsChangingATransactionWithoutAccessToken() throws Exception {
+        when(service.updateProducts(any(), anyList(), isNull())).thenReturn(Optional.empty());
+        when(service.deleteTransaction(any(), isNull())).thenReturn(Optional.empty());
+        when(customerService.addUserToTransaction(any(), any(), isNull())).thenReturn(Optional.empty());
+        when(stripeCheckoutService.createPaymentSession(any(), isNull())).thenReturn(Optional.empty());
+
+        mockMvc.perform(put("/app/payments/update-products/transaction-id")
+                .contentType("application/json").content("[]"))
+            .andExpect(status().isForbidden());
+        mockMvc.perform(put("/app/payments/add-user/transaction-id")
+                .contentType("application/json").content("{}"))
+            .andExpect(status().isForbidden());
+        mockMvc.perform(post("/app/payments/create-payment-session/transaction-id"))
+            .andExpect(status().isForbidden());
+        mockMvc.perform(delete("/app/payments/transaction-id"))
+            .andExpect(status().isForbidden());
     }
 
     @Test

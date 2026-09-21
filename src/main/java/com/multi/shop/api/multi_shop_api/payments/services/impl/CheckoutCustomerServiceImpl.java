@@ -13,11 +13,14 @@ import com.multi.shop.api.multi_shop_api.payments.mappers.TransactionMapper;
 import com.multi.shop.api.multi_shop_api.payments.repositories.AddressRepository;
 import com.multi.shop.api.multi_shop_api.payments.repositories.CustomersRepository;
 import com.multi.shop.api.multi_shop_api.payments.repositories.PaymentsRepository;
+import com.multi.shop.api.multi_shop_api.payments.security.CheckoutAccessToken;
 import com.multi.shop.api.multi_shop_api.payments.services.CheckoutCustomerService;
 import com.multi.shop.api.multi_shop_api.users.entities.User;
 import com.multi.shop.api.multi_shop_api.users.repositories.UserRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Optional;
 
@@ -27,12 +30,14 @@ public class CheckoutCustomerServiceImpl implements CheckoutCustomerService {
     private final CustomersRepository customersRepository;
     private final AddressRepository addressRepository;
     private final UserRepository userRepository;
+    private final CheckoutAccessToken checkoutAccessToken;
 
-    public CheckoutCustomerServiceImpl(PaymentsRepository repository, CustomersRepository customersRepository, AddressRepository addressRepository, UserRepository userRepository) {
+    public CheckoutCustomerServiceImpl(PaymentsRepository repository, CustomersRepository customersRepository, AddressRepository addressRepository, UserRepository userRepository, CheckoutAccessToken checkoutAccessToken) {
         this.repository = repository;
         this.customersRepository = customersRepository;
         this.addressRepository = addressRepository;
         this.userRepository = userRepository;
+        this.checkoutAccessToken = checkoutAccessToken;
     }
 
     @Override
@@ -66,21 +71,26 @@ public class CheckoutCustomerServiceImpl implements CheckoutCustomerService {
 
     @Override
     @Transactional
-    public Optional<Transaction> addUserToTransaction(UserTransactionDTO dto, String transactionId) {
-        return repository.findById(transactionId).map(transaction -> {
-            Customer customer = findOrCreateCustomer(dto);
-            Address address = findOrCreateAddress(dto.userAddress(), customer);
+    public Optional<Transaction> addUserToTransaction(UserTransactionDTO dto, String transactionId, String accessToken) {
+        return repository.findById(transactionId)
+            .filter(transaction -> checkoutAccessToken.grants(transaction, accessToken))
+            .map(transaction -> {
+                if ("APPROVED".equals(transaction.getStatus()))
+                    throw new ResponseStatusException(HttpStatus.CONFLICT, "Transaction is already paid");
 
-            address.setCustomer(customer);
-            if (!customer.getAddress().contains(address))
-                customer.getAddress().add(address);
+                Customer customer = findOrCreateCustomer(dto);
+                Address address = findOrCreateAddress(dto.userAddress(), customer);
 
-            if (customer.getId() == null) customersRepository.save(customer);
-            transaction.setCustomer(customer);
-            ShippingAddress shippingAddress = TransactionMapper.MAPPER.toShippingAddress(dto.userAddress());
-            transaction.setShippingAddress(shippingAddress);
-            return repository.save(transaction);
-        });
+                address.setCustomer(customer);
+                if (!customer.getAddress().contains(address))
+                    customer.getAddress().add(address);
+
+                if (customer.getId() == null) customersRepository.save(customer);
+                transaction.setCustomer(customer);
+                ShippingAddress shippingAddress = TransactionMapper.MAPPER.toShippingAddress(dto.userAddress());
+                transaction.setShippingAddress(shippingAddress);
+                return repository.save(transaction);
+            });
     }
 
     private boolean customerHasEmail(Customer customer, String email) {

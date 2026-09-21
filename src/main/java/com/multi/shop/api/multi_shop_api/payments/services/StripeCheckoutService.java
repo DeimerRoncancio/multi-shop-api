@@ -6,6 +6,6 @@ import com.stripe.exception.StripeException;
 import java.util.Optional;
 
 public interface StripeCheckoutService {
-    Optional<StripeResponseDTO> createPaymentSession(String transactionId) throws StripeException;
+    Optional<StripeResponseDTO> createPaymentSession(String transactionId, String checkoutAccessToken) throws StripeException;
     boolean cancelPaymentSession(String transactionId, String checkoutAccessToken) throws StripeException;
 }

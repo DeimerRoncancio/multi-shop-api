@@ -76,19 +76,24 @@ public class PaymentsController {
     @PutMapping("/update-products/{transactionId}")
     public ResponseEntity<Void> updateProducts(
         @PathVariable String transactionId,
-        @RequestBody List<ProductItemDTO> products
+        @RequestBody List<ProductItemDTO> products,
+        @RequestHeader(value = "X-Checkout-Access-Token", required = false) String checkoutAccessToken
     ) {
-        service.updateProducts(transactionId, products)
-            .orElseThrow(() -> new NotFoundException("Transaction not found"));
-
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        return service.updateProducts(transactionId, products, checkoutAccessToken).isPresent()
+            ? ResponseEntity.status(HttpStatus.CREATED).build()
+            : ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
     @PutMapping("/add-user/{transactionId}")
-    public ResponseEntity<String> addUser(@RequestBody UserTransactionDTO userDTO, @PathVariable String transactionId) {
-        Optional<Transaction> transactionOp = customerService.addUserToTransaction(userDTO, transactionId);
+    public ResponseEntity<String> addUser(
+        @RequestBody UserTransactionDTO userDTO,
+        @PathVariable String transactionId,
+        @RequestHeader(value = "X-Checkout-Access-Token", required = false) String checkoutAccessToken
+    ) {
+        Optional<Transaction> transactionOp = customerService.addUserToTransaction(userDTO, transactionId, checkoutAccessToken);
+        if (transactionOp.isEmpty()) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
 
-        Transaction transaction = transactionOp.orElseThrow(() -> new NotFoundException("Transaction not found"));
+        Transaction transaction = transactionOp.get();
         Customer customer = transaction.getCustomer();
 
         if (customer.isGuest())
@@ -98,19 +103,23 @@ public class PaymentsController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTransaction(@PathVariable("id") String id) {
-        Optional<Transaction> transactionOp = service.deleteTransaction(id);
-        transactionOp.orElseThrow(() -> new NotFoundException("Transaction not found"));
-
-        return ResponseEntity.ok().build();
+    public ResponseEntity<Void> deleteTransaction(
+        @PathVariable("id") String id,
+        @RequestHeader(value = "X-Checkout-Access-Token", required = false) String checkoutAccessToken
+    ) {
+        return service.deleteTransaction(id, checkoutAccessToken).isPresent()
+            ? ResponseEntity.ok().build()
+            : ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
     @PostMapping("/create-payment-session/{transactionId}")
-    public ResponseEntity<StripeResponseDTO> createPaymentSession(@PathVariable String transactionId) throws StripeException {
-        StripeResponseDTO session = stripeCheckoutService.createPaymentSession(transactionId)
-            .orElseThrow(() -> new NotFoundException("Transaction not found"));
-
-        return ResponseEntity.ok().body(session);
+    public ResponseEntity<StripeResponseDTO> createPaymentSession(
+        @PathVariable String transactionId,
+        @RequestHeader(value = "X-Checkout-Access-Token", required = false) String checkoutAccessToken
+    ) throws StripeException {
+        return stripeCheckoutService.createPaymentSession(transactionId, checkoutAccessToken)
+            .map(ResponseEntity::ok)
+            .orElseGet(() -> ResponseEntity.status(HttpStatus.FORBIDDEN).build());
     }
 
     @PostMapping("/cancel-payment-session/{transactionId}")

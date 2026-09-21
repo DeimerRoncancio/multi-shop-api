@@ -10,5 +10,5 @@ import java.util.Optional;
 public interface CheckoutCustomerService {
     Optional<Customer> getCustomer(String transactionId);
     Optional<CustomerCheckoutDTO> getCheckoutCustomer(String transactionId, String email);
-    Optional<Transaction> addUserToTransaction(UserTransactionDTO dto, String transactionId);
+    Optional<Transaction> addUserToTransaction(UserTransactionDTO dto, String transactionId, String checkoutAccessToken);
 }

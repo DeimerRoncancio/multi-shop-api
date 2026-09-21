@@ -53,7 +53,7 @@ class StripeCheckoutServiceImplTest {
             stripe.when(() -> Session.retrieve("cs_old")).thenReturn(oldSession);
             stripe.when(() -> Session.create(any(SessionCreateParams.class))).thenReturn(newSession);
 
-            service.createPaymentSession("transaction-id");
+            service.createPaymentSession("transaction-id", CHECKOUT_ACCESS_TOKEN);
         }
 
         verify(oldSession).expire();
@@ -157,7 +157,34 @@ class StripeCheckoutServiceImplTest {
     void returnsEmptyPaymentSessionWhenTransactionDoesNotExist() throws Exception {
         when(repository.findById("missing")).thenReturn(Optional.empty());
 
-        assertThat(service.createPaymentSession("missing")).isEmpty();
+        assertThat(service.createPaymentSession("missing", CHECKOUT_ACCESS_TOKEN)).isEmpty();
+    }
+
+    @Test
+    void refusesToCreateAPaymentSessionWithoutAValidAccessToken() throws Exception {
+        Transaction transaction = payableTransaction();
+        when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
+
+        try (MockedStatic<Session> stripe = mockStatic(Session.class)) {
+            assertThat(service.createPaymentSession("transaction-id", "wrong-token")).isEmpty();
+            assertThat(service.createPaymentSession("transaction-id", null)).isEmpty();
+            stripe.verifyNoInteractions();
+        }
+
+        assertThat(transaction.getStatus()).isEqualTo("Pending");
+    }
+
+    @Test
+    void refusesToChargeATransactionThatIsAlreadyPaid() {
+        Transaction transaction = payableTransaction();
+        transaction.setStatus("APPROVED");
+        when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
+
+        try (MockedStatic<Session> stripe = mockStatic(Session.class)) {
+            assertThatThrownBy(() -> service.createPaymentSession("transaction-id", CHECKOUT_ACCESS_TOKEN))
+                .isInstanceOf(ResponseStatusException.class);
+            stripe.verifyNoInteractions();
+        }
     }
 
     private Transaction payableTransaction() {

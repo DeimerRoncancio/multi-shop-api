@@ -12,6 +12,6 @@ import java.util.Optional;
 public interface PaymentService {
     Optional<CheckoutSummaryDTO> getCheckoutSummary(String transactionId, String checkoutAccessToken);
     TransactionAccessDTO createTransaction(NewTransactionDTO dto);
-    Optional<Transaction> updateProducts(String id, List<ProductItemDTO> products);
-    Optional<Transaction> deleteTransaction(String id);
+    Optional<Transaction> updateProducts(String id, List<ProductItemDTO> products, String checkoutAccessToken);
+    Optional<Transaction> deleteTransaction(String id, String checkoutAccessToken);
 }

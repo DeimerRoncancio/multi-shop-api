@@ -1,5 +1,6 @@
 package com.multi.shop.api.multi_shop_api.payments.security;
 
+import com.multi.shop.api.multi_shop_api.payments.entities.Transaction;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
@@ -26,6 +27,10 @@ public class CheckoutAccessToken {
         } catch (NoSuchAlgorithmException exception) {
             throw new IllegalStateException("SHA-256 is not available", exception);
         }
+    }
+
+    public boolean grants(Transaction transaction, String checkoutAccessToken) {
+        return matches(transaction.getCheckoutAccessTokenDigest(), checkoutAccessToken);
     }
 
     public boolean matches(String storedDigest, String checkoutAccessToken) {

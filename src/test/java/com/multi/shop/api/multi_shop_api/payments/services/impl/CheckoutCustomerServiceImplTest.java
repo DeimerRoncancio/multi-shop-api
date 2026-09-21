@@ -12,6 +12,7 @@ import com.multi.shop.api.multi_shop_api.payments.mappers.TransactionMapper;
 import com.multi.shop.api.multi_shop_api.payments.repositories.AddressRepository;
 import com.multi.shop.api.multi_shop_api.payments.repositories.CustomersRepository;
 import com.multi.shop.api.multi_shop_api.payments.repositories.PaymentsRepository;
+import com.multi.shop.api.multi_shop_api.payments.security.CheckoutAccessToken;
 import com.multi.shop.api.multi_shop_api.users.entities.User;
 import com.multi.shop.api.multi_shop_api.users.repositories.UserRepository;
 import jakarta.persistence.CascadeType;
@@ -25,15 +26,21 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.web.server.ResponseStatusException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class CheckoutCustomerServiceImplTest {
+    private static final String CHECKOUT_ACCESS_TOKEN = "checkout-access-token";
+
     @Mock
     private PaymentsRepository repository;
     @Mock
@@ -42,6 +49,8 @@ class CheckoutCustomerServiceImplTest {
     private AddressRepository addressRepository;
     @Mock
     private UserRepository userRepository;
+    @Spy
+    private CheckoutAccessToken checkoutAccessToken = new CheckoutAccessToken();
 
     @InjectMocks
     private CheckoutCustomerServiceImpl service;
@@ -178,7 +187,7 @@ class CheckoutCustomerServiceImplTest {
 
     @Test
     void persistsAnIndependentShippingAddressSnapshotWhenAddingAUser() {
-        Transaction transaction = new Transaction();
+        Transaction transaction = authorizedTransaction();
         CustomerAddressDTO selectedAddress = new CustomerAddressDTO(
             "Casa",
             "Calle 1",
@@ -201,7 +210,7 @@ class CheckoutCustomerServiceImplTest {
         when(userRepository.findByEmail("guest@example.com")).thenReturn(Optional.empty());
         when(repository.save(transaction)).thenReturn(transaction);
 
-        Optional<Transaction> result = service.addUserToTransaction(dto, "transaction-id");
+        Optional<Transaction> result = service.addUserToTransaction(dto, "transaction-id", CHECKOUT_ACCESS_TOKEN);
 
         assertThat(result).contains(transaction);
         verify(repository).save(transaction);
@@ -246,6 +255,44 @@ class CheckoutCustomerServiceImplTest {
         assertThat(inverseRelationship.fetch()).isEqualTo(FetchType.EAGER);
         assertThat(inverseRelationship.orphanRemoval()).isTrue();
         assertThat(inverseRelationship.cascade()).containsExactly(CascadeType.ALL);
+    }
+
+    @Test
+    void refusesToAddAUserWithoutAValidAccessToken() {
+        Transaction transaction = authorizedTransaction();
+        when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
+
+        assertThat(service.addUserToTransaction(guestDto(), "transaction-id", "wrong-token")).isEmpty();
+        assertThat(service.addUserToTransaction(guestDto(), "transaction-id", null)).isEmpty();
+
+        verify(repository, never()).save(any());
+        assertThat(transaction.getCustomer()).isNull();
+    }
+
+    @Test
+    void refusesToChangeTheCustomerOfAPaidTransaction() {
+        Transaction transaction = authorizedTransaction();
+        transaction.setStatus("APPROVED");
+        when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
+
+        assertThatThrownBy(() -> service.addUserToTransaction(guestDto(), "transaction-id", CHECKOUT_ACCESS_TOKEN))
+            .isInstanceOf(ResponseStatusException.class);
+        verify(repository, never()).save(any());
+    }
+
+    private Transaction authorizedTransaction() {
+        Transaction transaction = new Transaction();
+        transaction.setCheckoutAccessTokenDigest(new CheckoutAccessToken().digest(CHECKOUT_ACCESS_TOKEN));
+        return transaction;
+    }
+
+    private UserTransactionDTO guestDto() {
+        return new UserTransactionDTO(
+            "Guest User",
+            "guest@example.com",
+            "3001234567",
+            new CustomerAddressDTO("Casa", "Calle 1", "Bogota", "Cundinamarca", "Colombia", "3001234567")
+        );
     }
 
     private ShippingAddress shippingAddress() {

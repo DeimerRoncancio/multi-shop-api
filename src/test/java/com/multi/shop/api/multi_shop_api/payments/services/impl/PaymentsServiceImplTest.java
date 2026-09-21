@@ -3,6 +3,7 @@ package com.multi.shop.api.multi_shop_api.payments.services.impl;
 import com.multi.shop.api.multi_shop_api.payments.dtos.CheckoutSummaryDTO;
 import com.multi.shop.api.multi_shop_api.payments.dtos.CustomerAddressDTO;
 import com.multi.shop.api.multi_shop_api.payments.dtos.NewTransactionDTO;
+import com.multi.shop.api.multi_shop_api.payments.dtos.ProductItemDTO;
 import com.multi.shop.api.multi_shop_api.payments.dtos.TransactionAccessDTO;
 import com.multi.shop.api.multi_shop_api.payments.entities.Address;
 import com.multi.shop.api.multi_shop_api.payments.entities.Customer;
@@ -28,11 +29,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.web.server.ResponseStatusException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -204,6 +208,92 @@ class PaymentsServiceImplTest {
 
         assertThat(service.getCheckoutSummary("transaction-id", CHECKOUT_ACCESS_TOKEN)).isEmpty();
         assertThat(service.getCheckoutSummary("transaction-id", null)).isEmpty();
+    }
+
+    @Test
+    void replacesTheProductsWithAValidAccessToken() {
+        Product product = new Product();
+        product.setPrice(25000L);
+        Transaction transaction = new Transaction();
+        authorizeCheckout(transaction);
+        when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
+        when(productRepository.findById("product-id")).thenReturn(Optional.of(product));
+
+        Optional<Transaction> result = service.updateProducts(
+            "transaction-id",
+            List.of(new ProductItemDTO("product-id", 3)),
+            CHECKOUT_ACCESS_TOKEN
+        );
+
+        assertThat(result).contains(transaction);
+        assertThat(transaction.getProductItems()).singleElement()
+            .satisfies(item -> assertThat(item.getQuantity()).isEqualTo(3));
+        assertThat(transaction.getTotalPrice()).isEqualTo(75000L);
+    }
+
+    @Test
+    void refusesToChangeProductsWithoutAValidAccessToken() {
+        Transaction transaction = new Transaction();
+        authorizeCheckout(transaction);
+        when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
+
+        List<ProductItemDTO> products = List.of(new ProductItemDTO("product-id", 3));
+
+        assertThat(service.updateProducts("transaction-id", products, "wrong-token")).isEmpty();
+        assertThat(service.updateProducts("transaction-id", products, null)).isEmpty();
+        assertThat(transaction.getProductItems()).isEmpty();
+        verifyNoInteractions(productRepository);
+    }
+
+    @Test
+    void refusesToChangeTheProductsOfAPaidTransaction() {
+        Transaction transaction = new Transaction();
+        transaction.setStatus("APPROVED");
+        authorizeCheckout(transaction);
+        when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
+
+        assertThatThrownBy(() -> service.updateProducts(
+            "transaction-id",
+            List.of(new ProductItemDTO("product-id", 3)),
+            CHECKOUT_ACCESS_TOKEN
+        )).isInstanceOf(ResponseStatusException.class);
+    }
+
+    @Test
+    void deletesAPendingTransactionWithAValidAccessToken() {
+        Transaction transaction = new Transaction();
+        transaction.setStatus("Pending");
+        authorizeCheckout(transaction);
+        when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
+
+        assertThat(service.deleteTransaction("transaction-id", CHECKOUT_ACCESS_TOKEN)).contains(transaction);
+        verify(repository).delete(transaction);
+    }
+
+    @Test
+    void refusesToDeleteWithoutAValidAccessToken() {
+        Transaction transaction = new Transaction();
+        authorizeCheckout(transaction);
+        when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
+
+        assertThat(service.deleteTransaction("transaction-id", "wrong-token")).isEmpty();
+        assertThat(service.deleteTransaction("transaction-id", null)).isEmpty();
+        verify(repository, never()).delete(any());
+    }
+
+    @Test
+    void refusesToDeleteATransactionThatIsBeingPaidOrIsPaid() {
+        for (String status : List.of("PROCESSING", "APPROVED")) {
+            Transaction transaction = new Transaction();
+            transaction.setStatus(status);
+            authorizeCheckout(transaction);
+            when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
+
+            assertThatThrownBy(() -> service.deleteTransaction("transaction-id", CHECKOUT_ACCESS_TOKEN))
+                .isInstanceOf(ResponseStatusException.class);
+        }
+
+        verify(repository, never()).delete(any());
     }
 
     private ShippingAddress shippingAddress() {

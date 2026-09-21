@@ -10,14 +10,19 @@ import com.multi.shop.api.multi_shop_api.payments.repositories.PaymentsRepositor
 import com.multi.shop.api.multi_shop_api.payments.security.CheckoutAccessToken;
 import com.multi.shop.api.multi_shop_api.payments.services.PaymentService;
 import com.multi.shop.api.multi_shop_api.products.repositories.ProductRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class PaymentsServiceImpl implements PaymentService {
+    private static final String STATUS_APPROVED = "APPROVED";
+    private static final String STATUS_PROCESSING = "PROCESSING";
+
     private final PaymentsRepository repository;
     private final ProductRepository productRepository;
     private final CheckoutAccessToken checkoutAccessToken;
@@ -32,7 +37,7 @@ public class PaymentsServiceImpl implements PaymentService {
     @Transactional(readOnly = true)
     public Optional<CheckoutSummaryDTO> getCheckoutSummary(String transactionId, String accessToken) {
         return repository.findById(transactionId)
-            .filter(transaction -> checkoutAccessToken.matches(transaction.getCheckoutAccessTokenDigest(), accessToken))
+            .filter(transaction -> checkoutAccessToken.grants(transaction, accessToken))
             .map(CheckoutMapper.MAPPER::toCheckoutSummaryDTO);
     }
 
@@ -51,11 +56,16 @@ public class PaymentsServiceImpl implements PaymentService {
 
     @Override
     @Transactional
-    public Optional<Transaction> updateProducts(String id, List<ProductItemDTO> products) {
-        return repository.findById(id).map(transaction -> {
-            replaceItems(transaction, products);
-            return transaction;
-        });
+    public Optional<Transaction> updateProducts(String id, List<ProductItemDTO> products, String accessToken) {
+        return repository.findById(id)
+            .filter(transaction -> checkoutAccessToken.grants(transaction, accessToken))
+            .map(transaction -> {
+                if (STATUS_APPROVED.equals(transaction.getStatus()))
+                    throw new ResponseStatusException(HttpStatus.CONFLICT, "Transaction is already paid");
+
+                replaceItems(transaction, products);
+                return transaction;
+            });
     }
 
     private void replaceItems(Transaction transaction, List<ProductItemDTO> products) {
@@ -68,10 +78,15 @@ public class PaymentsServiceImpl implements PaymentService {
 
     @Override
     @Transactional
-    public Optional<Transaction> deleteTransaction(String id) {
-        return repository.findById(id).map(transaction -> {
-           repository.delete(transaction);
-           return transaction;
-        });
+    public Optional<Transaction> deleteTransaction(String id, String accessToken) {
+        return repository.findById(id)
+            .filter(transaction -> checkoutAccessToken.grants(transaction, accessToken))
+            .map(transaction -> {
+                if (STATUS_APPROVED.equals(transaction.getStatus()) || STATUS_PROCESSING.equals(transaction.getStatus()))
+                    throw new ResponseStatusException(HttpStatus.CONFLICT, "Transaction is paid or has a payment in course");
+
+                repository.delete(transaction);
+                return transaction;
+            });
     }
 }
