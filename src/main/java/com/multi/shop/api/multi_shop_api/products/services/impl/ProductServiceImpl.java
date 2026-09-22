@@ -1,6 +1,7 @@
 package com.multi.shop.api.multi_shop_api.products.services.impl;
 
 import com.multi.shop.api.multi_shop_api.images.services.ImageService;
+import com.multi.shop.api.multi_shop_api.images.services.TransactionalImages;
 import com.multi.shop.api.multi_shop_api.products.dtos.ProductDTO;
 import com.multi.shop.api.multi_shop_api.products.dtos.ProductResponseDTO;
 import com.multi.shop.api.multi_shop_api.products.dtos.VariantDTO;
@@ -9,6 +10,8 @@ import com.multi.shop.api.multi_shop_api.products.mappers.VariantMapper;
 import com.multi.shop.api.multi_shop_api.products.services.ProductCategoryService;
 import com.multi.shop.api.multi_shop_api.products.services.ProductService;
 import com.multi.shop.api.multi_shop_api.products.services.VariantService;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,11 +37,13 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository repository;
     private final ProductCategoryService categoryService;
     private final ImageService imageService;
+    private final TransactionalImages transactionalImages;
 
-    public ProductServiceImpl(ProductRepository repository, ProductCategoryService categoryService, ImageService imageService) {
+    public ProductServiceImpl(ProductRepository repository, ProductCategoryService categoryService, ImageService imageService, TransactionalImages transactionalImages) {
         this.repository = repository;
         this.categoryService = categoryService;
         this.imageService = imageService;
+        this.transactionalImages = transactionalImages;
     }
 
     @Override
@@ -83,10 +88,7 @@ public class ProductServiceImpl implements ProductService {
         List<ProductCategory> categoryList =  categoryService.findCategoriesByName(dto.categoriesList());
         product.setCategories(categoryList);
 
-        dto.images().stream()
-                .filter(Objects::nonNull)
-                .map(this::uploadImage)
-                .forEach(product.getProductImages()::add);
+        product.getProductImages().addAll(uploadImages(dto.images()));
 
         repository.save(product);
         return ProductMapper.MAPPER.productToProductDTO(product);
@@ -188,13 +190,14 @@ public class ProductServiceImpl implements ProductService {
                     .map(String::toLowerCase)
                     .collect(Collectors.toSet());
 
-            files.stream()
+            List<MultipartFile> newFiles = files.stream()
                     .filter(file -> Optional.ofNullable(file.getOriginalFilename())
                             .map(String::toLowerCase)
                             .map(name -> !imageNames.contains(name))
                             .orElse(false))
-                    .map(this::uploadImage)
-                    .forEach(currentImages::add);
+                    .toList();
+
+            currentImages.addAll(uploadImages(newFiles));
         }
 
         return currentImages;
@@ -239,24 +242,26 @@ public class ProductServiceImpl implements ProductService {
     }
 
     public void deleteImage(Image image) {
-        try {
-            imageService.deleteImage(image);
-        } catch(IOException e) {
-            logger.warn("Exception to try delete image {}: {}", image.getImageId(), e.getMessage());
-        }
+        transactionalImages.deleteAfterCommit(image);
+    }
+
+    public List<Image> uploadImages(List<MultipartFile> files) {
+        if (files == null) return List.of();
+
+        return files.stream()
+                .filter(file -> file != null && !file.isEmpty())
+                .map(this::uploadImage)
+                .toList();
     }
 
     public Image uploadImage(MultipartFile file) {
-        if (file == null || file.isEmpty()) {
-            logger.warn("File is null or empty");
-            return null;
-        }
-
         try {
-            return imageService.uploadImage(file);
+            Image image = imageService.uploadImage(file);
+            transactionalImages.deleteOnRollback(image);
+            return image;
         } catch (IOException e) {
             logger.warn("Exception trying add image: {}", String.valueOf(e));
-            return null;
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "The image could not be uploaded");
         }
     }
 }

@@ -5,6 +5,7 @@ import com.multi.shop.api.multi_shop_api.common.exceptions.InvalidPasswordExcept
 import com.multi.shop.api.multi_shop_api.common.exceptions.NotFoundException;
 import com.multi.shop.api.multi_shop_api.common.exceptions.PasswordMatchException;
 import com.multi.shop.api.multi_shop_api.images.services.ImageService;
+import com.multi.shop.api.multi_shop_api.images.services.TransactionalImages;
 import com.multi.shop.api.multi_shop_api.users.dtos.PasswordDTO;
 import com.multi.shop.api.multi_shop_api.users.dtos.UserDTO;
 import com.multi.shop.api.multi_shop_api.users.dtos.UserResponseDTO;
@@ -38,13 +39,16 @@ public class UserServiceImpl implements UserService {
     private final RoleRepository roleRepository;
     private final ImageService imageService;
     private final PasswordEncoder passwordEncoder;
+    private final TransactionalImages transactionalImages;
 
     public UserServiceImpl(UserRepository repository,
-    RoleRepository roleRepository, ImageService imageService, PasswordEncoder passwordEncoder) {
+    RoleRepository roleRepository, ImageService imageService, PasswordEncoder passwordEncoder,
+    TransactionalImages transactionalImages) {
         this.repository = repository;
         this.roleRepository = roleRepository;
         this.imageService = imageService;
         this.passwordEncoder = passwordEncoder;
+        this.transactionalImages = transactionalImages;
     }
 
     @Override
@@ -204,7 +208,9 @@ public class UserServiceImpl implements UserService {
         }
 
         try {
-            return imageService.uploadImage(file);
+            Image image = imageService.uploadImage(file);
+            transactionalImages.deleteOnRollback(image);
+            return image;
         } catch (IOException e) {
             LOGGER.error("Exception to try upload image: {}", String.valueOf(e));
             return null;
@@ -212,11 +218,7 @@ public class UserServiceImpl implements UserService {
     }
 
     public void deleteProfileImage(User user) {
-        try {
-            imageService.deleteImage(user.getImageUser());
-        } catch(IOException e) {
-            LOGGER.error("Exception to try delete the image: {}", String.valueOf(e));
-        }
+        transactionalImages.deleteAfterCommit(user.getImageUser());
     }
 
     @Override

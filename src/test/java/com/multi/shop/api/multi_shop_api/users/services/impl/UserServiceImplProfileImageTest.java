@@ -2,6 +2,7 @@ package com.multi.shop.api.multi_shop_api.users.services.impl;
 
 import com.multi.shop.api.multi_shop_api.images.entities.Image;
 import com.multi.shop.api.multi_shop_api.images.services.ImageService;
+import com.multi.shop.api.multi_shop_api.images.services.TransactionalImages;
 import com.multi.shop.api.multi_shop_api.users.repositories.RoleRepository;
 import com.multi.shop.api.multi_shop_api.users.repositories.UserRepository;
 import org.junit.jupiter.api.Test;
@@ -31,6 +32,8 @@ class UserServiceImplProfileImageTest {
     private RoleRepository roleRepository;
     @Mock
     private ImageService imageService;
+    @Mock
+    private TransactionalImages transactionalImages;
     @Mock
     private PasswordEncoder passwordEncoder;
 
