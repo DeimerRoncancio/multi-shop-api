@@ -3,6 +3,7 @@ package com.multi.shop.api.multi_shop_api.payments.services.impl;
 import com.multi.shop.api.multi_shop_api.payments.dtos.StripeResponseDTO;
 import com.multi.shop.api.multi_shop_api.payments.entities.ProductItem;
 import com.multi.shop.api.multi_shop_api.payments.entities.Transaction;
+import com.multi.shop.api.multi_shop_api.payments.enums.TransactionStatus;
 import com.multi.shop.api.multi_shop_api.payments.repositories.PaymentsRepository;
 import com.multi.shop.api.multi_shop_api.payments.security.CheckoutAccessToken;
 import com.multi.shop.api.multi_shop_api.payments.services.StripeCheckoutService;
@@ -53,7 +54,7 @@ public class StripeCheckoutServiceImpl implements StripeCheckoutService {
         if (transactionOp.isEmpty()) return Optional.empty();
 
         Transaction transaction = transactionOp.get();
-        if ("APPROVED".equals(transaction.getStatus()))
+        if (transaction.getStatus() == TransactionStatus.APPROVED)
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Transaction is already paid");
 
         SessionCreateParams params = buildSessionParams(transaction);
@@ -61,7 +62,7 @@ public class StripeCheckoutServiceImpl implements StripeCheckoutService {
 
         Session session = Session.create(params);
         transaction.setStripeSessionId(session.getId());
-        transaction.setStatus("PROCESSING");
+        transaction.setStatus(TransactionStatus.PROCESSING);
 
         return Optional.of(new StripeResponseDTO(
             "SUCCESS",

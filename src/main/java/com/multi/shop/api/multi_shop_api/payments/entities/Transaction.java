@@ -1,5 +1,6 @@
 package com.multi.shop.api.multi_shop_api.payments.entities;
 
+import com.multi.shop.api.multi_shop_api.payments.enums.TransactionStatus;
 import com.multi.shop.api.multi_shop_api.products.entities.Product;
 import jakarta.persistence.*;
 import org.hibernate.annotations.UuidGenerator;
@@ -18,7 +19,8 @@ public class Transaction {
     private String id;
     private Date transactionDate;
     private Long totalPrice;
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private TransactionStatus status;
 
     @Column(name = "checkout_access_token_digest", length = 43, updatable = false)
     private String checkoutAccessTokenDigest;
@@ -40,7 +42,7 @@ public class Transaction {
         this.productItems = new ArrayList<>();
     }
 
-    public Transaction(String id, Date transactionDate, Long totalPrice, String status) {
+    public Transaction(String id, Date transactionDate, Long totalPrice, TransactionStatus status) {
         this.id = id;
         this.transactionDate = transactionDate;
         this.totalPrice = totalPrice;
@@ -71,11 +73,11 @@ public class Transaction {
         this.totalPrice = totalPrice;
     }
 
-    public String getStatus() {
+    public TransactionStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(TransactionStatus status) {
         this.status = status;
     }
 

@@ -2,6 +2,7 @@ package com.multi.shop.api.multi_shop_api.payments.services.impl;
 
 import com.multi.shop.api.multi_shop_api.payments.entities.ProductItem;
 import com.multi.shop.api.multi_shop_api.payments.entities.Transaction;
+import com.multi.shop.api.multi_shop_api.payments.enums.TransactionStatus;
 import com.multi.shop.api.multi_shop_api.payments.repositories.PaymentsRepository;
 import com.multi.shop.api.multi_shop_api.products.entities.Product;
 import com.stripe.Stripe;
@@ -39,7 +40,7 @@ class StripeWebhookServiceImplTest {
 
         sendWebhook("checkout.session.completed", "paid", 7_600_000L);
 
-        assertThat(transaction.getStatus()).isEqualTo("APPROVED");
+        assertThat(transaction.getStatus()).isEqualTo(TransactionStatus.APPROVED);
         assertThat(transaction.getTransactionDate()).isNotNull();
     }
 
@@ -52,7 +53,7 @@ class StripeWebhookServiceImplTest {
         Date approvedAt = transaction.getTransactionDate();
         sendWebhook("checkout.session.completed", "paid", 7_600_000L);
 
-        assertThat(transaction.getStatus()).isEqualTo("APPROVED");
+        assertThat(transaction.getStatus()).isEqualTo(TransactionStatus.APPROVED);
         assertThat(transaction.getTransactionDate()).isSameAs(approvedAt);
     }
 
@@ -65,7 +66,7 @@ class StripeWebhookServiceImplTest {
 
         sendWebhook("checkout.session.completed", "paid", 7_600_000L);
 
-        assertThat(transaction.getStatus()).isEqualTo("APPROVED");
+        assertThat(transaction.getStatus()).isEqualTo(TransactionStatus.APPROVED);
         assertThat(transaction.getTransactionDate()).isAfter(cancelledAt);
     }
 
@@ -78,7 +79,7 @@ class StripeWebhookServiceImplTest {
 
         sendWebhook("checkout.session.expired", "unpaid", 7_600_000L);
 
-        assertThat(transaction.getStatus()).isEqualTo("REJECTED");
+        assertThat(transaction.getStatus()).isEqualTo(TransactionStatus.REJECTED);
         assertThat(transaction.getTransactionDate()).isAfter(firstCancelAt);
     }
 
@@ -100,7 +101,7 @@ class StripeWebhookServiceImplTest {
 
         sendWebhook("checkout.session.completed", "unpaid", 7_600_000L);
 
-        assertThat(transaction.getStatus()).isEqualTo("PROCESSING");
+        assertThat(transaction.getStatus()).isEqualTo(TransactionStatus.PROCESSING);
         verify(repository, never()).findById(any());
     }
 
@@ -111,7 +112,7 @@ class StripeWebhookServiceImplTest {
 
         sendWebhook("checkout.session.completed", "paid", 100L);
 
-        assertThat(transaction.getStatus()).isEqualTo("PROCESSING");
+        assertThat(transaction.getStatus()).isEqualTo(TransactionStatus.PROCESSING);
     }
 
     @Test
@@ -121,7 +122,7 @@ class StripeWebhookServiceImplTest {
 
         sendWebhook("checkout.session.expired", "unpaid", 7_600_000L);
 
-        assertThat(transaction.getStatus()).isEqualTo("REJECTED");
+        assertThat(transaction.getStatus()).isEqualTo(TransactionStatus.REJECTED);
     }
 
     @Test
@@ -132,18 +133,18 @@ class StripeWebhookServiceImplTest {
 
         sendWebhook("checkout.session.expired", "unpaid", 7_600_000L);
 
-        assertThat(transaction.getStatus()).isEqualTo("PROCESSING");
+        assertThat(transaction.getStatus()).isEqualTo(TransactionStatus.PROCESSING);
     }
 
     @Test
     void aLateFailureDoesNotUndoAnApprovedPayment() throws Exception {
         Transaction transaction = processingTransaction();
-        transaction.setStatus("APPROVED");
+        transaction.setStatus(TransactionStatus.APPROVED);
         when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
 
         sendWebhook("checkout.session.async_payment_failed", "unpaid", 7_600_000L);
 
-        assertThat(transaction.getStatus()).isEqualTo("APPROVED");
+        assertThat(transaction.getStatus()).isEqualTo(TransactionStatus.APPROVED);
     }
 
     @Test
@@ -158,7 +159,7 @@ class StripeWebhookServiceImplTest {
     private Transaction processingTransaction() {
         Transaction transaction = new Transaction();
         transaction.setId("transaction-id");
-        transaction.setStatus("PROCESSING");
+        transaction.setStatus(TransactionStatus.PROCESSING);
         transaction.setStripeSessionId("cs_test");
         transaction.getProductItems().add(productItem("Hamburguesa", "Clásica", 38000L, 2));
         return transaction;

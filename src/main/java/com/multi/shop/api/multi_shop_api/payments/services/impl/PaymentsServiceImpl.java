@@ -5,6 +5,7 @@ import com.multi.shop.api.multi_shop_api.payments.dtos.NewTransactionDTO;
 import com.multi.shop.api.multi_shop_api.payments.dtos.ProductItemDTO;
 import com.multi.shop.api.multi_shop_api.payments.dtos.TransactionAccessDTO;
 import com.multi.shop.api.multi_shop_api.payments.entities.Transaction;
+import com.multi.shop.api.multi_shop_api.payments.enums.TransactionStatus;
 import com.multi.shop.api.multi_shop_api.payments.mappers.CheckoutMapper;
 import com.multi.shop.api.multi_shop_api.payments.repositories.PaymentsRepository;
 import com.multi.shop.api.multi_shop_api.payments.security.CheckoutAccessToken;
@@ -21,9 +22,6 @@ import java.util.Optional;
 
 @Service
 public class PaymentsServiceImpl implements PaymentService {
-    private static final String STATUS_APPROVED = "APPROVED";
-    private static final String STATUS_PROCESSING = "PROCESSING";
-
     private final PaymentsRepository repository;
     private final ProductRepository productRepository;
     private final CheckoutAccessToken checkoutAccessToken;
@@ -50,7 +48,7 @@ public class PaymentsServiceImpl implements PaymentService {
         transaction.setCheckoutAccessTokenDigest(checkoutAccessToken.digest(accessToken));
 
         replaceItems(transaction, dto.productItems());
-        transaction.setStatus("Pending");
+        transaction.setStatus(TransactionStatus.PENDING);
         repository.save(transaction);
         return new TransactionAccessDTO(transaction.getId(), accessToken);
     }
@@ -61,7 +59,7 @@ public class PaymentsServiceImpl implements PaymentService {
         return repository.findById(id)
             .filter(transaction -> checkoutAccessToken.grants(transaction, accessToken))
             .map(transaction -> {
-                if (STATUS_APPROVED.equals(transaction.getStatus()))
+                if (transaction.getStatus() == TransactionStatus.APPROVED)
                     throw new ResponseStatusException(HttpStatus.CONFLICT, "Transaction is already paid");
 
                 replaceItems(transaction, products);
@@ -92,7 +90,7 @@ public class PaymentsServiceImpl implements PaymentService {
         return repository.findById(id)
             .filter(transaction -> checkoutAccessToken.grants(transaction, accessToken))
             .map(transaction -> {
-                if (STATUS_APPROVED.equals(transaction.getStatus()) || STATUS_PROCESSING.equals(transaction.getStatus()))
+                if (transaction.getStatus() == TransactionStatus.APPROVED || transaction.getStatus() == TransactionStatus.PROCESSING)
                     throw new ResponseStatusException(HttpStatus.CONFLICT, "Transaction is paid or has a payment in course");
 
                 repository.delete(transaction);

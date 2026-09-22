@@ -11,6 +11,7 @@ import com.multi.shop.api.multi_shop_api.payments.entities.Guest;
 import com.multi.shop.api.multi_shop_api.payments.entities.ProductItem;
 import com.multi.shop.api.multi_shop_api.payments.entities.ShippingAddress;
 import com.multi.shop.api.multi_shop_api.payments.entities.Transaction;
+import com.multi.shop.api.multi_shop_api.payments.enums.TransactionStatus;
 import com.multi.shop.api.multi_shop_api.payments.mappers.TransactionMapper;
 import com.multi.shop.api.multi_shop_api.payments.repositories.PaymentsRepository;
 import com.multi.shop.api.multi_shop_api.payments.security.CheckoutAccessToken;
@@ -97,7 +98,7 @@ class PaymentsServiceImplTest {
 
         Transaction transaction = new Transaction();
         transaction.setId("transaction-id");
-        transaction.setStatus("Pending");
+        transaction.setStatus(TransactionStatus.PENDING);
         transaction.setTotalPrice(50000L);
         transaction.setCustomer(customer);
         transaction.setShippingAddress(shippingAddress());
@@ -113,7 +114,7 @@ class PaymentsServiceImplTest {
         assertThat(result).isPresent();
         CheckoutSummaryDTO summary = result.orElseThrow();
         assertThat(summary.transactionId()).isEqualTo("transaction-id");
-        assertThat(summary.status()).isEqualTo("Pending");
+        assertThat(summary.status()).isEqualTo(TransactionStatus.PENDING);
         assertThat(summary.totalPrice()).isEqualTo(50000L);
         assertThat(summary.customer().userNames()).isEqualTo("Guest User");
         assertThat(summary.customer().userEmail()).isEqualTo("guest@example.com");
@@ -131,7 +132,7 @@ class PaymentsServiceImplTest {
             assertThat(item.quantity()).isEqualTo(2);
         });
         assertThat(transaction.getTotalPrice()).isEqualTo(50000L);
-        assertThat(transaction.getStatus()).isEqualTo("Pending");
+        assertThat(transaction.getStatus()).isEqualTo(TransactionStatus.PENDING);
         assertThat(transaction.getCustomer()).isSameAs(customer);
         verify(repository, never()).save(transaction);
     }
@@ -298,7 +299,7 @@ class PaymentsServiceImplTest {
     @Test
     void refusesToChangeTheProductsOfAPaidTransaction() {
         Transaction transaction = new Transaction();
-        transaction.setStatus("APPROVED");
+        transaction.setStatus(TransactionStatus.APPROVED);
         authorizeCheckout(transaction);
         when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
 
@@ -312,7 +313,7 @@ class PaymentsServiceImplTest {
     @Test
     void deletesAPendingTransactionWithAValidAccessToken() {
         Transaction transaction = new Transaction();
-        transaction.setStatus("Pending");
+        transaction.setStatus(TransactionStatus.PENDING);
         authorizeCheckout(transaction);
         when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
 
@@ -333,7 +334,7 @@ class PaymentsServiceImplTest {
 
     @Test
     void refusesToDeleteATransactionThatIsBeingPaidOrIsPaid() {
-        for (String status : List.of("PROCESSING", "APPROVED")) {
+        for (TransactionStatus status : List.of(TransactionStatus.PROCESSING, TransactionStatus.APPROVED)) {
             Transaction transaction = new Transaction();
             transaction.setStatus(status);
             authorizeCheckout(transaction);

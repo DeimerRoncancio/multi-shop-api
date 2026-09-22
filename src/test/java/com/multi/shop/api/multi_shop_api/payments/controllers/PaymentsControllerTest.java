@@ -5,6 +5,7 @@ import com.multi.shop.api.multi_shop_api.payments.dtos.CheckoutProductItemDTO;
 import com.multi.shop.api.multi_shop_api.payments.dtos.CheckoutSummaryDTO;
 import com.multi.shop.api.multi_shop_api.payments.dtos.CustomerAddressDTO;
 import com.multi.shop.api.multi_shop_api.payments.dtos.CustomerSummaryDTO;
+import com.multi.shop.api.multi_shop_api.payments.enums.TransactionStatus;
 import com.multi.shop.api.multi_shop_api.payments.services.CheckoutCustomerService;
 import com.multi.shop.api.multi_shop_api.payments.services.PaymentService;
 import com.multi.shop.api.multi_shop_api.payments.services.StripeCheckoutService;
@@ -76,7 +77,7 @@ class PaymentsControllerTest {
         );
         CheckoutSummaryDTO summary = new CheckoutSummaryDTO(
             "transaction-id",
-            "Pending",
+            TransactionStatus.PENDING,
             50000L,
             new CustomerSummaryDTO("Guest User", "guest@example.com", "3001234567"),
             List.of(address),
@@ -90,7 +91,7 @@ class PaymentsControllerTest {
                 .header("X-Checkout-Access-Token", "valid-token"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.transactionId").value("transaction-id"))
-            .andExpect(jsonPath("$.status").value("Pending"))
+            .andExpect(jsonPath("$.status").value("PENDING"))
             .andExpect(jsonPath("$.totalPrice").value(50000))
             .andExpect(jsonPath("$.customer.userEmail").value("guest@example.com"))
             .andExpect(jsonPath("$.addresses[0].addressName").value("Casa"))

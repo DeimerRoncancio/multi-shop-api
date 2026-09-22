@@ -2,6 +2,7 @@ package com.multi.shop.api.multi_shop_api.payments.services.impl;
 
 import com.multi.shop.api.multi_shop_api.payments.entities.ProductItem;
 import com.multi.shop.api.multi_shop_api.payments.entities.Transaction;
+import com.multi.shop.api.multi_shop_api.payments.enums.TransactionStatus;
 import com.multi.shop.api.multi_shop_api.payments.repositories.PaymentsRepository;
 import com.multi.shop.api.multi_shop_api.payments.security.CheckoutAccessToken;
 import com.multi.shop.api.multi_shop_api.products.entities.Product;
@@ -58,7 +59,7 @@ class StripeCheckoutServiceImplTest {
 
         verify(oldSession).expire();
         assertThat(transaction.getStripeSessionId()).isEqualTo("cs_new");
-        assertThat(transaction.getStatus()).isEqualTo("PROCESSING");
+        assertThat(transaction.getStatus()).isEqualTo(TransactionStatus.PROCESSING);
     }
 
     @Test
@@ -77,7 +78,7 @@ class StripeCheckoutServiceImplTest {
 
         assertThat(cancelled).isTrue();
         verify(session).expire();
-        assertThat(transaction.getStatus()).isEqualTo("Pending");
+        assertThat(transaction.getStatus()).isEqualTo(TransactionStatus.PENDING);
     }
 
     @Test
@@ -171,13 +172,13 @@ class StripeCheckoutServiceImplTest {
             stripe.verifyNoInteractions();
         }
 
-        assertThat(transaction.getStatus()).isEqualTo("Pending");
+        assertThat(transaction.getStatus()).isEqualTo(TransactionStatus.PENDING);
     }
 
     @Test
     void refusesToChargeATransactionThatIsAlreadyPaid() {
         Transaction transaction = payableTransaction();
-        transaction.setStatus("APPROVED");
+        transaction.setStatus(TransactionStatus.APPROVED);
         when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
 
         try (MockedStatic<Session> stripe = mockStatic(Session.class)) {
@@ -190,7 +191,7 @@ class StripeCheckoutServiceImplTest {
     private Transaction payableTransaction() {
         Transaction transaction = new Transaction();
         transaction.setId("transaction-id");
-        transaction.setStatus("Pending");
+        transaction.setStatus(TransactionStatus.PENDING);
         transaction.setCheckoutAccessTokenDigest(new CheckoutAccessToken().digest(CHECKOUT_ACCESS_TOKEN));
         transaction.getProductItems().add(productItem("Hamburguesa", "Clásica", 38000L, 1));
         return transaction;

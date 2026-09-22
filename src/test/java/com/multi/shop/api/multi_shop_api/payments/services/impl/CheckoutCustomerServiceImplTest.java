@@ -7,6 +7,7 @@ import com.multi.shop.api.multi_shop_api.payments.entities.Customer;
 import com.multi.shop.api.multi_shop_api.payments.entities.Guest;
 import com.multi.shop.api.multi_shop_api.payments.entities.ShippingAddress;
 import com.multi.shop.api.multi_shop_api.payments.entities.Transaction;
+import com.multi.shop.api.multi_shop_api.payments.enums.TransactionStatus;
 import com.multi.shop.api.multi_shop_api.payments.repositories.AddressRepository;
 import com.multi.shop.api.multi_shop_api.payments.repositories.CustomersRepository;
 import com.multi.shop.api.multi_shop_api.payments.repositories.PaymentsRepository;
@@ -258,7 +259,7 @@ class CheckoutCustomerServiceImplTest {
     @Test
     void refusesToChangeTheCustomerOfAPaidTransaction() {
         Transaction transaction = authorizedTransaction();
-        transaction.setStatus("APPROVED");
+        transaction.setStatus(TransactionStatus.APPROVED);
         when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
 
         assertThatThrownBy(() -> service.addUserToTransaction(guestDto(), "transaction-id", CHECKOUT_ACCESS_TOKEN, null))

@@ -1,6 +1,7 @@
 package com.multi.shop.api.multi_shop_api.payments.services.impl;
 
 import com.multi.shop.api.multi_shop_api.payments.entities.Transaction;
+import com.multi.shop.api.multi_shop_api.payments.enums.TransactionStatus;
 import com.multi.shop.api.multi_shop_api.payments.repositories.PaymentsRepository;
 import com.multi.shop.api.multi_shop_api.payments.services.StripeWebhookService;
 import com.stripe.exception.EventDataObjectDeserializationException;
@@ -21,8 +22,6 @@ import java.util.Optional;
 @Service
 public class StripeWebhookServiceImpl implements StripeWebhookService {
     private static final Logger log = LoggerFactory.getLogger(StripeWebhookServiceImpl.class);
-    private static final String STATUS_APPROVED = "APPROVED";
-    private static final String STATUS_REJECTED = "REJECTED";
 
     private final PaymentsRepository repository;
 
@@ -64,7 +63,7 @@ public class StripeWebhookServiceImpl implements StripeWebhookService {
 
     private void approvePayment(Session session) {
         transactionOf(session).ifPresent(transaction -> {
-            if (STATUS_APPROVED.equals(transaction.getStatus())) return;
+            if (transaction.getStatus() == TransactionStatus.APPROVED) return;
 
             long expectedAmount = transaction.payableAmountInCents();
 
@@ -74,18 +73,18 @@ public class StripeWebhookServiceImpl implements StripeWebhookService {
                 return;
             }
 
-            transaction.setStatus(STATUS_APPROVED);
+            transaction.setStatus(TransactionStatus.APPROVED);
             transaction.setTransactionDate(new Date());
         });
     }
 
     private void rejectPayment(Session session) {
         transactionOf(session).ifPresent(transaction -> {
-            if (STATUS_APPROVED.equals(transaction.getStatus())) return;
-            if (STATUS_REJECTED.equals(transaction.getStatus())) return;
+            if (transaction.getStatus() == TransactionStatus.APPROVED) return;
+            if (transaction.getStatus() == TransactionStatus.REJECTED) return;
             if (transaction.getStripeSessionId() != null && !transaction.getStripeSessionId().equals(session.getId())) return;
 
-            transaction.setStatus(STATUS_REJECTED);
+            transaction.setStatus(TransactionStatus.REJECTED);
             transaction.setTransactionDate(new Date());
         });
     }

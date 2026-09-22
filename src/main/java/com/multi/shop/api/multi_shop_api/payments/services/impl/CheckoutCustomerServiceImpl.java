@@ -7,6 +7,7 @@ import com.multi.shop.api.multi_shop_api.payments.entities.Customer;
 import com.multi.shop.api.multi_shop_api.payments.entities.Guest;
 import com.multi.shop.api.multi_shop_api.payments.entities.ShippingAddress;
 import com.multi.shop.api.multi_shop_api.payments.entities.Transaction;
+import com.multi.shop.api.multi_shop_api.payments.enums.TransactionStatus;
 import com.multi.shop.api.multi_shop_api.payments.mappers.CustomerMapper;
 import com.multi.shop.api.multi_shop_api.payments.mappers.TransactionMapper;
 import com.multi.shop.api.multi_shop_api.payments.repositories.AddressRepository;
@@ -47,7 +48,7 @@ public class CheckoutCustomerServiceImpl implements CheckoutCustomerService {
         return repository.findById(transactionId)
             .filter(transaction -> checkoutAccessToken.grants(transaction, accessToken))
             .map(transaction -> {
-                if ("APPROVED".equals(transaction.getStatus()))
+                if (transaction.getStatus() == TransactionStatus.APPROVED)
                     throw new ResponseStatusException(HttpStatus.CONFLICT, "Transaction is already paid");
 
                 ShippingAddress shippingAddress = TransactionMapper.MAPPER.toShippingAddress(dto.userAddress());
