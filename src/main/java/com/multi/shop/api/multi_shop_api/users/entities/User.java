@@ -1,7 +1,6 @@
 package com.multi.shop.api.multi_shop_api.users.entities;
 
 import com.multi.shop.api.multi_shop_api.images.entities.Image;
-import com.multi.shop.api.multi_shop_api.orders.entities.Order;
 import org.hibernate.annotations.UuidGenerator;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -12,7 +11,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
@@ -50,10 +48,6 @@ public class User {
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnoreProperties("user")
-    private List<Order> orders;
-
     @ManyToMany
     @JoinTable(
             name = "roles_to_users",
@@ -71,7 +65,6 @@ public class User {
 
     public User() {
         this.roles = new ArrayList<>();
-        this.orders = new ArrayList<>();
     }
 
     public String getId() {
@@ -144,21 +137,6 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
-    }
-
-    public List<Order> getOrders() {
-        return orders;
-    }
-
-    public void setOrders(List<Order> orders) {
-        this.orders = orders;
-    }
-
-    public void addOrder(List<Order> order) {
-        order.forEach(ord -> {
-            ord.setUser(this);
-            orders.add(ord);
-        });
     }
 
     public List<Role> getRoles() {

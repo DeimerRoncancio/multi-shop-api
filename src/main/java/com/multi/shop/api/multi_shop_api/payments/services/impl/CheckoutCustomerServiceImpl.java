@@ -53,7 +53,7 @@ public class CheckoutCustomerServiceImpl implements CheckoutCustomerService {
                 ShippingAddress shippingAddress = TransactionMapper.MAPPER.toShippingAddress(dto.userAddress());
                 transaction.setShippingAddress(shippingAddress);
 
-                Customer customer = findUser(userIdentity)
+                Customer customer = userRepository.findByIdentity(userIdentity)
                     .map(user -> saveAddress(customerOf(user), dto.userAddress()))
                     .orElseGet(() -> guestCustomerOf(dto));
 
@@ -65,18 +65,10 @@ public class CheckoutCustomerServiceImpl implements CheckoutCustomerService {
     @Override
     @Transactional(readOnly = true)
     public List<CustomerAddressDTO> getSavedAddresses(String userIdentity) {
-        return findUser(userIdentity)
+        return userRepository.findByIdentity(userIdentity)
             .flatMap(user -> customersRepository.findByUserEmail(user.getEmail()))
             .map(CustomerMapper.MAPPER::toCustomerAddressDTOs)
             .orElse(List.of());
-    }
-
-    private Optional<User> findUser(String userIdentity) {
-        if (userIdentity == null || userIdentity.isBlank()) return Optional.empty();
-
-        return userIdentity.matches("\\d+")
-            ? userRepository.findByPhoneNumber(Long.parseLong(userIdentity))
-            : userRepository.findByEmail(userIdentity);
     }
 
     private Customer customerOf(User user) {

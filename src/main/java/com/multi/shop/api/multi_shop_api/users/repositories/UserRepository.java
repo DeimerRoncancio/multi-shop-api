@@ -13,6 +13,15 @@ import org.springframework.data.jpa.repository.Query;
 public interface UserRepository extends JpaRepository<User, String> {
     Optional<User> findByEmail(String email);
     Optional<User> findByPhoneNumber(Long number);
+
+    default Optional<User> findByIdentity(String identity) {
+        if (identity == null || identity.isBlank()) return Optional.empty();
+
+        return identity.matches("\\d+")
+            ? findByPhoneNumber(Long.parseLong(identity))
+            : findByEmail(identity);
+    }
+
     Page<User> findByAdminTrue(Pageable pageable);
     Page<User> findByAdminFalse(Pageable pageable);
     List<User> findTop4ByOrderByCreatedAtDesc();

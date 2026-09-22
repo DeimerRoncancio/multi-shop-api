@@ -19,6 +19,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -30,6 +31,8 @@ import org.springframework.web.server.ResponseStatusException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -52,6 +55,11 @@ class CheckoutCustomerServiceImplTest {
 
     @InjectMocks
     private CheckoutCustomerServiceImpl service;
+
+    @BeforeEach
+    void useTheRealIdentityLookup() {
+        lenient().doCallRealMethod().when(userRepository).findByIdentity(any());
+    }
 
     @Test
     void createsAGuestCustomerWithoutSavedAddresses() {
@@ -77,7 +85,9 @@ class CheckoutCustomerServiceImplTest {
         assertThat(snapshot.getCountry()).isEqualTo("Colombia");
         assertThat(snapshot.getAddressNumber()).isEqualTo("3001234567");
         assertThat(snapshot.getTransaction()).isSameAs(transaction);
-        verifyNoInteractions(addressRepository, userRepository);
+        verifyNoInteractions(addressRepository);
+        verify(userRepository, never()).findByEmail(any());
+        verify(userRepository, never()).findByPhoneNumber(any());
     }
 
     @Test
@@ -145,7 +155,8 @@ class CheckoutCustomerServiceImplTest {
 
         assertThat(transaction.getCustomer().getUser()).isNull();
         assertThat(transaction.getCustomer().getGuest().getUserEmail()).isEqualTo("registered@example.com");
-        verifyNoInteractions(userRepository);
+        verify(userRepository, never()).findByEmail(any());
+        verify(userRepository, never()).findByPhoneNumber(any());
     }
 
     @Test

@@ -67,14 +67,14 @@ public class UserController {
     }
 
     @PutMapping("/update/{id}")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @authz.isSelf(#id, authentication)")
     public ResponseEntity<UserDTO> updateUser(@Valid @RequestBody UserDTO userDTO, @PathVariable String id) {
         UserDTO user = UserMapper.MAPPER.userDTOtoOrAdmin(userDTO, false);
         return update(id, user);
     }
 
     @PutMapping("/update/password/{id}")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @authz.isSelf(#id, authentication)")
     public ResponseEntity<Void> updatePassword(@Valid @RequestBody PasswordDTO newPassword,
     @PathVariable String id) {
         service.updatePassword(id, newPassword).orElseThrow(() -> new NotFoundException("User nor found"));
@@ -82,14 +82,14 @@ public class UserController {
     }
 
     @PutMapping("/update/profile-image/{id}")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @authz.isSelf(#id, authentication)")
     public ResponseEntity<Image> updateProfileImage(@PathVariable String id, @RequestPart MultipartFile file) {
         User user = service.updateProfileImage(id, file);
         return ResponseEntity.status(HttpStatus.CREATED).body(user.getImageUser());
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @PreAuthorize("hasRole('ADMIN') or @authz.isSelf(#id, authentication)")
     public ResponseEntity<Void> delete(@PathVariable String id) {
         Optional<User> optionalUser = service.delete(id);
         optionalUser.orElseThrow(() -> new NotFoundException("User not found"));
@@ -98,13 +98,13 @@ public class UserController {
     }
 
     @GetMapping("/stats")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Long>> userStats(@RequestParam boolean isAdmin) {
         return ResponseEntity.ok().body(service.userStats(isAdmin));
     }
 
     @GetMapping("/search")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<UserResponseDTO>> userSearch(@PageableDefault Pageable pageable, @RequestParam String identifier,
     @RequestParam boolean isAdmin, @RequestParam(required = false) Boolean isEnabled,
     @RequestParam(required = false, defaultValue = "NAME") Field field) {
