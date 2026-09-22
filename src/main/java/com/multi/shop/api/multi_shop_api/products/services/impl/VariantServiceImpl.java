@@ -28,25 +28,22 @@ public class VariantServiceImpl implements VariantService {
     public Page<VariantResponseDTO> findAll(Pageable pageable){
         Page<Variant> variants = repository.findAll(pageable);
 
-        return variants.map(var -> {
-            List<String> values = List.of(var.getValues().split("\\|"));
-            return VariantMapper.MAPPER.variantToDTO(var, values);
-        });
+        return variants.map(var ->
+            VariantMapper.MAPPER.variantToDTO(var, VariantMapper.MAPPER.splitValues(var.getValues())));
     }
 
     @Override
     @Transactional(readOnly = true)
     public VariantResponseDTO findOne(String id) {
         Variant variant = repository.findById(id).orElseThrow(() -> new NotFoundException("Variant not found"));
-        List<String> values = List.of(variant.getValues().split("\\|"));
 
-        return VariantMapper.MAPPER.variantToDTO(variant, values);
+        return VariantMapper.MAPPER.variantToDTO(variant, VariantMapper.MAPPER.splitValues(variant.getValues()));
     }
 
     @Override
     @Transactional
     public VariantDTO addVariant(VariantDTO newVariant) {
-        String values = String.join("|", newVariant.listValues());
+        String values = VariantMapper.MAPPER.joinValues(newVariant.listValues());
         repository.save(VariantMapper.MAPPER.dtoToVariant(newVariant, values));
         return newVariant;
     }
@@ -55,7 +52,7 @@ public class VariantServiceImpl implements VariantService {
     @Transactional
     public Optional<VariantDTO> updateVariant(String id, VariantDTO variantDTO){
         return repository.findById(id).map(variantDb -> {
-            String values = String.join("|", variantDTO.listValues());
+            String values = VariantMapper.MAPPER.joinValues(variantDTO.listValues());
 
             variantDb.setName(variantDTO.name());
             variantDb.setTag(variantDTO.tag());

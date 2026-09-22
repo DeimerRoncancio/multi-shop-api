@@ -49,27 +49,13 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public Page<ProductResponseDTO> findAll(Pageable pageable) {
-        return repository.findAll(pageable).map(product -> {
-            List<VariantDTO> variants = product.getVariants().stream().map(var -> {
-                List<String> values = List.of(var.getValues().split("\\|"));
-                return new VariantDTO(var.getId(), var.getName(), var.getType(), var.getTag(), values);
-            }).toList();
-
-            return ProductMapper.MAPPER.productToResponseDTO(product, variants);
-        });
+        return repository.findAll(pageable).map(this::toResponseDTO);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Optional<ProductResponseDTO> findOne(String id) {
-        return repository.findById(id).map(product -> {
-            List<VariantDTO> variants = product.getVariants().stream().map(variant -> {
-                List<String> values = List.of(variant.getValues().split("\\|"));
-                return new VariantDTO(variant.getId(), variant.getName(), variant.getType(), variant.getTag(), values);
-            }).toList();
-
-            return ProductMapper.MAPPER.productToResponseDTO(product, variants);
-        });
+        return repository.findById(id).map(this::toResponseDTO);
     }
 
     @Override
@@ -78,7 +64,7 @@ public class ProductServiceImpl implements ProductService {
         List<Variant> variants = new ArrayList<>();
         if (dto.variants() != null && !dto.variants().isEmpty()) {
             variants = dto.variants().stream().map(variantDto -> {
-                String listValues = String.join("|", variantDto.listValues());
+                String listValues = VariantMapper.MAPPER.joinValues(variantDto.listValues());
                 return new Variant(variantDto.name(), variantDto.tag(), listValues, variantDto.type());
             }).toList();
         }
@@ -134,26 +120,18 @@ public class ProductServiceImpl implements ProductService {
     public Page<ProductResponseDTO> search(String query, List<String> categories, Pageable pageable) {
         Page<Product> products = repository.findByProductNameOrCategories(query, categories, pageable);
 
-        return products.map(product -> {
-            List<VariantDTO> variants = product.getVariants().stream().map(variant -> {
-                List<String> values = List.of(variant.getValues().split("\\|"));
-                return new VariantDTO(variant.getId(), variant.getName(), variant.getType(), variant.getTag(), values);
-            }).toList();
-            return ProductMapper.MAPPER.productToResponseDTO(product, variants);
-        });
+        return products.map(this::toResponseDTO);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<ProductResponseDTO> latestProducts() {
-        return repository.findTop5ByOrderByCreatedAtDesc().stream().map(product -> {
-            List<VariantDTO> variants = product.getVariants().stream().map(var -> {
-                List<String> values = List.of(var.getValues().split("\\|"));
-                return new VariantDTO(var.getId(), var.getName(), var.getType(), var.getTag(), values);
-            }).toList();
+        return repository.findTop5ByOrderByCreatedAtDesc().stream().map(this::toResponseDTO).toList();
+    }
 
-            return ProductMapper.MAPPER.productToResponseDTO(product, variants);
-        }).toList();
+    private ProductResponseDTO toResponseDTO(Product product) {
+        return ProductMapper.MAPPER.productToResponseDTO(
+            product, VariantMapper.MAPPER.toVariantDTOs(product.getVariants()));
     }
 
     @Override
@@ -220,7 +198,7 @@ public class ProductServiceImpl implements ProductService {
         if (variants == null || variants.isEmpty()) return;
         for (VariantDTO dto : variants) {
             if (dto.id() == null || dto.id().isEmpty()) {
-                String values = String.join("|", dto.listValues());
+                String values = VariantMapper.MAPPER.joinValues(dto.listValues());
                 Variant newVariant = VariantMapper.MAPPER.dtoToVariant(dto, values);
 
                 currentVariants.add(newVariant);
@@ -230,7 +208,7 @@ public class ProductServiceImpl implements ProductService {
                         .findFirst();
 
                 variantOp.ifPresent(variant -> {
-                    String values = String.join("|", dto.listValues());
+                    String values = VariantMapper.MAPPER.joinValues(dto.listValues());
 
                     variant.setName(dto.name());
                     variant.setTag(dto.tag());

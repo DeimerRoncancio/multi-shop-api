@@ -19,7 +19,6 @@ public class TransactionalImages {
         this.imageService = imageService;
     }
 
-    // Cloudinary no se puede deshacer: la imagen se borra solo si la transacción termina bien
     public void deleteAfterCommit(Image image) {
         if (image == null) return;
 
@@ -36,7 +35,6 @@ public class TransactionalImages {
         });
     }
 
-    // Si la transacción falla, la imagen ya subida se borra para no dejarla huérfana
     public void deleteOnRollback(Image image) {
         if (image == null || !TransactionSynchronizationManager.isSynchronizationActive()) return;
 
