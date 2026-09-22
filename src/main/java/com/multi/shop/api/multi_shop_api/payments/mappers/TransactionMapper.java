@@ -13,7 +13,7 @@ import org.mapstruct.factory.Mappers;
 public interface TransactionMapper {
     TransactionMapper MAPPER = Mappers.getMapper(TransactionMapper.class);
 
-    Address updateAddress(CustomerAddressDTO addressDTO, @MappingTarget Address address);
+    void updateAddress(CustomerAddressDTO addressDTO, @MappingTarget Address address);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "transaction", ignore = true)

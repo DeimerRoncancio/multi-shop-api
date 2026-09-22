@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 @Service
@@ -54,7 +55,7 @@ public class CheckoutCustomerServiceImpl implements CheckoutCustomerService {
 
                 Customer customer = findUser(userIdentity)
                     .map(user -> saveAddress(customerOf(user), dto.userAddress()))
-                    .orElseGet(() -> guestCustomerOf(transaction, dto));
+                    .orElseGet(() -> guestCustomerOf(dto));
 
                 transaction.setCustomer(customer);
                 return repository.save(transaction);
@@ -86,21 +87,24 @@ public class CheckoutCustomerServiceImpl implements CheckoutCustomerService {
         });
     }
 
-    private Customer guestCustomerOf(Transaction transaction, UserTransactionDTO dto) {
-        Customer current = transaction.getCustomer();
-        if (current == null || !current.isGuest()) return newGuestCustomer(dto);
+    private Customer guestCustomerOf(UserTransactionDTO dto) {
+        String names = clean(dto.userNames());
+        String email = clean(dto.userEmail() == null ? null : dto.userEmail().toLowerCase(Locale.ROOT));
+        String phone = clean(dto.userPhone());
 
-        Guest guest = current.getGuest();
-        guest.setUserNames(dto.userNames());
-        guest.setUserEmail(dto.userEmail());
-        guest.setUserPhone(dto.userPhone());
-        return current;
+        return customersRepository
+            .findFirstByGuest_UserNamesAndGuest_UserEmailAndGuest_UserPhone(names, email, phone)
+            .orElseGet(() -> newGuestCustomer(new Guest(null, names, email, phone)));
     }
 
-    private Customer newGuestCustomer(UserTransactionDTO dto) {
+    private Customer newGuestCustomer(Guest guest) {
         Customer customer = new Customer();
-        customer.setGuest(new Guest(null, dto.userNames(), dto.userEmail(), dto.userPhone()));
+        customer.setGuest(guest);
         return customersRepository.save(customer);
+    }
+
+    private static String clean(String value) {
+        return value == null ? null : value.trim().replaceAll("\\s+", " ");
     }
 
     private Customer saveAddress(Customer customer, CustomerAddressDTO dto) {

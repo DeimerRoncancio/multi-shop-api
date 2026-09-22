@@ -99,22 +99,38 @@ class CheckoutCustomerServiceImplTest {
     }
 
     @Test
-    void reusesTheGuestCustomerWhenTheSameTransactionIsSubmittedAgain() {
+    void reusesAnExistingGuestWithTheSameNormalizedData() {
         Transaction transaction = authorizedTransaction();
         Customer existing = new Customer();
         existing.setId("customer-id");
-        existing.setGuest(new Guest("guest-id", "Old Name", "old@example.com", "3000000000"));
-        transaction.setCustomer(existing);
+        existing.setGuest(new Guest("guest-id", "Guest User", "guest@example.com", "3001234567"));
         when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
         when(repository.save(transaction)).thenReturn(transaction);
+        when(customersRepository.findFirstByGuest_UserNamesAndGuest_UserEmailAndGuest_UserPhone(
+            "Guest User", "guest@example.com", "3001234567")).thenReturn(Optional.of(existing));
+        UserTransactionDTO messyDto = new UserTransactionDTO("  Guest   User ", " Guest@Example.COM ", " 3001234567 ", address("Casa"));
+
+        service.addUserToTransaction(messyDto, "transaction-id", CHECKOUT_ACCESS_TOKEN, null);
+
+        assertThat(transaction.getCustomer()).isSameAs(existing);
+        verify(customersRepository, never()).save(any());
+    }
+
+    @Test
+    void createsANewGuestInsteadOfChangingAnExistingOne() {
+        Transaction transaction = authorizedTransaction();
+        Customer previous = new Customer();
+        previous.setGuest(new Guest("guest-id", "Guest User", "guest@example.com", "3000000000"));
+        transaction.setCustomer(previous);
+        when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
+        when(repository.save(transaction)).thenReturn(transaction);
+        when(customersRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         service.addUserToTransaction(guestDto(), "transaction-id", CHECKOUT_ACCESS_TOKEN, null);
 
-        assertThat(transaction.getCustomer()).isSameAs(existing);
-        assertThat(existing.getGuest().getId()).isEqualTo("guest-id");
-        assertThat(existing.getGuest().getUserNames()).isEqualTo("Guest User");
-        assertThat(existing.getGuest().getUserEmail()).isEqualTo("guest@example.com");
-        verify(customersRepository, never()).save(any());
+        assertThat(transaction.getCustomer()).isNotSameAs(previous);
+        assertThat(transaction.getCustomer().getGuest().getUserPhone()).isEqualTo("3001234567");
+        assertThat(previous.getGuest().getUserPhone()).isEqualTo("3000000000");
     }
 
     @Test
