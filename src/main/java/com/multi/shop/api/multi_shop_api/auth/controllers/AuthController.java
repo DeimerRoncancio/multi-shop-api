@@ -26,7 +26,6 @@ import static com.multi.shop.api.multi_shop_api.security.JwtConfig.*;
 
 @RestController
 @RequestMapping("/app/users")
-@CrossOrigin(originPatterns = "*")
 public class AuthController {
     private static final Logger LOGGER = LoggerFactory.getLogger(AuthController.class);
     private final UserService service;

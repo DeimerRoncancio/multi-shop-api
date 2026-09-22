@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/app/variants")
-@CrossOrigin(originPatterns = "*")
 public class VariantController {
     private final VariantService service;
 
