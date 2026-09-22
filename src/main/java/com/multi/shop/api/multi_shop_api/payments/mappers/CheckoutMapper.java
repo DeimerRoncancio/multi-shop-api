@@ -12,6 +12,7 @@ import org.mapstruct.factory.Mappers;
 public interface CheckoutMapper {
     CheckoutMapper MAPPER = Mappers.getMapper(CheckoutMapper.class);
 
+    // Nivel 1: lo usa PaymentsServiceImpl.getCheckoutSummary
     @Mapping(target = "transactionId", source = "id")
     @Mapping(target = "customer", source = "customer")
     @Mapping(target = "addresses", source = "customer", qualifiedByName = "customerAddresses")
@@ -19,6 +20,7 @@ public interface CheckoutMapper {
     @Mapping(target = "items", source = "productItems")
     CheckoutSummaryDTO toCheckoutSummaryDTO(Transaction transaction);
 
+    // Nivel 2: lo usa toCheckoutSummaryDTO para cada producto
     @Mapping(target = "id", source = "product.id")
     @Mapping(target = "productName", source = "product.productName")
     @Mapping(target = "price", source = "product.price")

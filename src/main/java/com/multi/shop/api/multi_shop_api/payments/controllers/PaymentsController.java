@@ -1,6 +1,5 @@
 package com.multi.shop.api.multi_shop_api.payments.controllers;
 
-import com.multi.shop.api.multi_shop_api.common.exceptions.NotFoundException;
 import com.multi.shop.api.multi_shop_api.payments.dtos.*;
 import com.multi.shop.api.multi_shop_api.payments.entities.Customer;
 import com.multi.shop.api.multi_shop_api.payments.entities.Transaction;
@@ -15,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.*;
 
 @RestController
@@ -41,21 +41,9 @@ public class PaymentsController {
         this.stripeWebhookService = stripeWebhookService;
     }
 
-    @GetMapping("/get-customer/{transactionId}")
-    public ResponseEntity<Void> getCustomer(@PathVariable("transactionId") String transactionId) {
-        customerService.getCustomer(transactionId).orElseThrow(() -> new NotFoundException("Customer not found"));
-        return ResponseEntity.ok().build();
-    }
-
-    @GetMapping("/customer/{transactionId}/{email}")
-    public ResponseEntity<CustomerCheckoutDTO> getCheckoutCustomer(
-        @PathVariable String transactionId,
-        @PathVariable String email
-    ) {
-        CustomerCheckoutDTO customer = customerService.getCheckoutCustomer(transactionId, email)
-            .orElseThrow(() -> new NotFoundException("Customer not found"));
-
-        return ResponseEntity.ok(customer);
+    @GetMapping("/saved-addresses")
+    public List<CustomerAddressDTO> getSavedAddresses(Principal principal) {
+        return customerService.getSavedAddresses(principal.getName());
     }
 
     @GetMapping("/checkout/{transactionId}")
@@ -88,14 +76,14 @@ public class PaymentsController {
     public ResponseEntity<String> addUser(
         @RequestBody UserTransactionDTO userDTO,
         @PathVariable String transactionId,
-        @RequestHeader(value = "X-Checkout-Access-Token", required = false) String checkoutAccessToken
+        @RequestHeader(value = "X-Checkout-Access-Token", required = false) String checkoutAccessToken,
+        Principal principal
     ) {
-        Optional<Transaction> transactionOp = customerService.addUserToTransaction(userDTO, transactionId, checkoutAccessToken);
+        String userIdentity = principal == null ? null : principal.getName();
+        Optional<Transaction> transactionOp = customerService.addUserToTransaction(userDTO, transactionId, checkoutAccessToken, userIdentity);
         if (transactionOp.isEmpty()) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
 
-        Transaction transaction = transactionOp.get();
-        Customer customer = transaction.getCustomer();
-
+        Customer customer = transactionOp.get().getCustomer();
         if (customer.isGuest())
             return ResponseEntity.status(HttpStatus.CREATED).body(customer.getGuest().getUserEmail());
 

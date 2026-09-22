@@ -20,7 +20,7 @@ public class Customer {
     private User user;
 
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "guest_email", referencedColumnName = "userEmail")
+    @JoinColumn(name = "guest_id")
     private Guest guest;
 
     @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)

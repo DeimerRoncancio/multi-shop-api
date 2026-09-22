@@ -1,14 +1,12 @@
 package com.multi.shop.api.multi_shop_api.payments.services.impl;
 
 import com.multi.shop.api.multi_shop_api.payments.dtos.CustomerAddressDTO;
-import com.multi.shop.api.multi_shop_api.payments.dtos.CustomerCheckoutDTO;
 import com.multi.shop.api.multi_shop_api.payments.dtos.UserTransactionDTO;
 import com.multi.shop.api.multi_shop_api.payments.entities.Address;
 import com.multi.shop.api.multi_shop_api.payments.entities.Customer;
 import com.multi.shop.api.multi_shop_api.payments.entities.Guest;
 import com.multi.shop.api.multi_shop_api.payments.entities.ShippingAddress;
 import com.multi.shop.api.multi_shop_api.payments.entities.Transaction;
-import com.multi.shop.api.multi_shop_api.payments.mappers.TransactionMapper;
 import com.multi.shop.api.multi_shop_api.payments.repositories.AddressRepository;
 import com.multi.shop.api.multi_shop_api.payments.repositories.CustomersRepository;
 import com.multi.shop.api.multi_shop_api.payments.repositories.PaymentsRepository;
@@ -20,7 +18,6 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,6 +32,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -56,164 +54,21 @@ class CheckoutCustomerServiceImplTest {
     private CheckoutCustomerServiceImpl service;
 
     @Test
-    void returnsAddressesForTheLinkedCustomerWhenEmailMatches() {
-        Customer customer = guestCustomer("guest@example.com");
-        Address address = new Address();
-        address.setAddressName("Casa");
-        address.setAddress("Calle 1");
-        address.setCity("Bogota");
-        address.setState("Cundinamarca");
-        address.setCountry("Colombia");
-        address.setAddressNumber("3001234567");
-        customer.getAddress().add(address);
-        Transaction transaction = new Transaction();
-        transaction.setCustomer(customer);
-        transaction.setShippingAddress(shippingAddress());
-        when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
-
-        Optional<CustomerCheckoutDTO> result = service.getCheckoutCustomer(
-            "transaction-id",
-            "guest@example.com"
-        );
-
-        assertThat(result).isPresent();
-        CustomerCheckoutDTO checkoutCustomer = result.orElseThrow();
-        assertThat(checkoutCustomer.userNames()).isEqualTo("Guest User");
-        assertThat(checkoutCustomer.userEmail()).isEqualTo("guest@example.com");
-        assertThat(checkoutCustomer.userPhone()).isEqualTo("3001234567");
-        assertThat(checkoutCustomer.addresses()).containsExactly(new CustomerAddressDTO(
-            "Casa",
-            "Calle 1",
-            "Bogota",
-            "Cundinamarca",
-            "Colombia",
-            "3001234567"
-        ));
-        assertThat(checkoutCustomer.selectedAddress()).isEqualTo(new CustomerAddressDTO(
-            "Oficina",
-            "Carrera 7",
-            "Medellin",
-            "Antioquia",
-            "Colombia",
-            "3017654321"
-        ));
-    }
-
-    @Test
-    void mapsARegisteredCustomerPhoneThroughTheService() {
-        User user = new User();
-        user.setName("Registered User");
-        user.setEmail("registered@example.com");
-        user.setPhoneNumber(3001234567L);
-        Customer customer = new Customer();
-        customer.setUser(user);
-        Transaction transaction = new Transaction();
-        transaction.setCustomer(customer);
-        when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
-
-        Optional<CustomerCheckoutDTO> result = service.getCheckoutCustomer(
-            "transaction-id",
-            "registered@example.com"
-        );
-
-        assertThat(result).contains(new CustomerCheckoutDTO(
-            "Registered User",
-            "registered@example.com",
-            "3001234567",
-            List.of(),
-            null
-        ));
-    }
-
-    @Test
-    void preservesANullPhoneForARegisteredCustomer() {
-        User user = new User();
-        user.setName("Registered User");
-        user.setEmail("registered@example.com");
-        Customer customer = new Customer();
-        customer.setUser(user);
-        Transaction transaction = new Transaction();
-        transaction.setCustomer(customer);
-        when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
-
-        Optional<CustomerCheckoutDTO> result = service.getCheckoutCustomer(
-            "transaction-id",
-            "registered@example.com"
-        );
-
-        assertThat(result).isPresent();
-        assertThat(result.orElseThrow().userPhone()).isNull();
-    }
-
-    @Test
-    void rejectsAnEmailThatDoesNotMatchTheLinkedCustomer() {
-        Transaction transaction = new Transaction();
-        transaction.setCustomer(guestCustomer("linked@example.com"));
-        when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
-
-        Optional<CustomerCheckoutDTO> result = service.getCheckoutCustomer(
-            "transaction-id",
-            "other@example.com"
-        );
-
-        assertThat(result).isEmpty();
-        verify(customersRepository, never()).findByUser_EmailOrGuest_UserEmail(
-            "other@example.com",
-            "other@example.com"
-        );
-    }
-
-    @Test
-    void findsExistingCustomerForAnUnlinkedTransactionWithoutMutatingData() {
-        Transaction transaction = new Transaction();
-        Customer customer = guestCustomer("guest@example.com");
-        when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
-        when(customersRepository.findByUser_EmailOrGuest_UserEmail(
-            "guest@example.com",
-            "guest@example.com"
-        )).thenReturn(Optional.of(customer));
-
-        Optional<CustomerCheckoutDTO> result = service.getCheckoutCustomer(
-            "transaction-id",
-            "guest@example.com"
-        );
-
-        assertThat(result).isPresent();
-        assertThat(result.orElseThrow().addresses()).isEmpty();
-        assertThat(result.orElseThrow().selectedAddress()).isNull();
-        verify(repository, never()).save(transaction);
-        verify(customersRepository, never()).save(customer);
-    }
-
-    @Test
-    void persistsAnIndependentShippingAddressSnapshotWhenAddingAUser() {
+    void createsAGuestCustomerWithoutSavedAddresses() {
         Transaction transaction = authorizedTransaction();
-        CustomerAddressDTO selectedAddress = new CustomerAddressDTO(
-            "Casa",
-            "Calle 1",
-            "Bogota",
-            "Cundinamarca",
-            "Colombia",
-            "3001234567"
-        );
-        UserTransactionDTO dto = new UserTransactionDTO(
-            "Guest User",
-            "guest@example.com",
-            "3001234567",
-            selectedAddress
-        );
         when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
-        when(customersRepository.findByUser_EmailOrGuest_UserEmail(
-            "guest@example.com",
-            "guest@example.com"
-        )).thenReturn(Optional.empty());
-        when(userRepository.findByEmail("guest@example.com")).thenReturn(Optional.empty());
         when(repository.save(transaction)).thenReturn(transaction);
+        when(customersRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Optional<Transaction> result = service.addUserToTransaction(dto, "transaction-id", CHECKOUT_ACCESS_TOKEN);
+        Optional<Transaction> result = service.addUserToTransaction(guestDto(), "transaction-id", CHECKOUT_ACCESS_TOKEN, null);
 
         assertThat(result).contains(transaction);
-        verify(repository).save(transaction);
+        Customer customer = transaction.getCustomer();
+        assertThat(customer.getUser()).isNull();
+        assertThat(customer.getGuest().getUserNames()).isEqualTo("Guest User");
+        assertThat(customer.getGuest().getUserEmail()).isEqualTo("guest@example.com");
+        assertThat(customer.getGuest().getUserPhone()).isEqualTo("3001234567");
+        assertThat(customer.getAddress()).isEmpty();
         ShippingAddress snapshot = transaction.getShippingAddress();
         assertThat(snapshot.getAddressName()).isEqualTo("Casa");
         assertThat(snapshot.getAddress()).isEqualTo("Calle 1");
@@ -222,13 +77,166 @@ class CheckoutCustomerServiceImplTest {
         assertThat(snapshot.getCountry()).isEqualTo("Colombia");
         assertThat(snapshot.getAddressNumber()).isEqualTo("3001234567");
         assertThat(snapshot.getTransaction()).isSameAs(transaction);
-        verify(repository).save(org.mockito.ArgumentMatchers.argThat(savedTransaction ->
-            savedTransaction.getShippingAddress().getTransaction() == savedTransaction
-        ));
+        verifyNoInteractions(addressRepository, userRepository);
+    }
 
-        transaction.getCustomer().getAddress().get(0).setAddress("Calle modificada");
+    @Test
+    void givesEachGuestOrderItsOwnCustomerEvenWithTheSameEmail() {
+        Transaction first = authorizedTransaction();
+        Transaction second = authorizedTransaction();
+        when(repository.findById("first")).thenReturn(Optional.of(first));
+        when(repository.findById("second")).thenReturn(Optional.of(second));
+        when(repository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(customersRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        UserTransactionDTO otherGuest = new UserTransactionDTO("Other Guest", "guest@example.com", "3000000000", address("Casa"));
 
+        service.addUserToTransaction(guestDto(), "first", CHECKOUT_ACCESS_TOKEN, null);
+        service.addUserToTransaction(otherGuest, "second", CHECKOUT_ACCESS_TOKEN, null);
+
+        assertThat(first.getCustomer()).isNotSameAs(second.getCustomer());
+        assertThat(first.getCustomer().getGuest().getUserNames()).isEqualTo("Guest User");
+        assertThat(second.getCustomer().getGuest().getUserNames()).isEqualTo("Other Guest");
+    }
+
+    @Test
+    void reusesTheGuestCustomerWhenTheSameTransactionIsSubmittedAgain() {
+        Transaction transaction = authorizedTransaction();
+        Customer existing = new Customer();
+        existing.setId("customer-id");
+        existing.setGuest(new Guest("guest-id", "Old Name", "old@example.com", "3000000000"));
+        transaction.setCustomer(existing);
+        when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
+        when(repository.save(transaction)).thenReturn(transaction);
+
+        service.addUserToTransaction(guestDto(), "transaction-id", CHECKOUT_ACCESS_TOKEN, null);
+
+        assertThat(transaction.getCustomer()).isSameAs(existing);
+        assertThat(existing.getGuest().getId()).isEqualTo("guest-id");
+        assertThat(existing.getGuest().getUserNames()).isEqualTo("Guest User");
+        assertThat(existing.getGuest().getUserEmail()).isEqualTo("guest@example.com");
+        verify(customersRepository, never()).save(any());
+    }
+
+    @Test
+    void doesNotLinkAGuestToTheAccountThatOwnsTheEmail() {
+        Transaction transaction = authorizedTransaction();
+        when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
+        when(repository.save(transaction)).thenReturn(transaction);
+        when(customersRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        UserTransactionDTO dto = new UserTransactionDTO("Someone Else", "registered@example.com", "3000000000", address("Casa"));
+
+        service.addUserToTransaction(dto, "transaction-id", CHECKOUT_ACCESS_TOKEN, null);
+
+        assertThat(transaction.getCustomer().getUser()).isNull();
+        assertThat(transaction.getCustomer().getGuest().getUserEmail()).isEqualTo("registered@example.com");
+        verifyNoInteractions(userRepository);
+    }
+
+    @Test
+    void linksASignedInUserAndSavesTheAddressInTheirAccount() {
+        Transaction transaction = authorizedTransaction();
+        User user = registeredUser();
+        when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
+        when(repository.save(transaction)).thenReturn(transaction);
+        when(userRepository.findByEmail("registered@example.com")).thenReturn(Optional.of(user));
+        when(customersRepository.findByUserEmail("registered@example.com")).thenReturn(Optional.empty());
+
+        service.addUserToTransaction(guestDto(), "transaction-id", CHECKOUT_ACCESS_TOKEN, "registered@example.com");
+
+        Customer customer = transaction.getCustomer();
+        assertThat(customer.getUser()).isSameAs(user);
+        assertThat(customer.getAddress()).singleElement().satisfies(address -> {
+            assertThat(address.getAddressName()).isEqualTo("Casa");
+            assertThat(address.getCustomer()).isSameAs(customer);
+        });
+        verify(customersRepository).save(customer);
+
+        customer.getAddress().get(0).setAddress("Calle modificada");
         assertThat(transaction.getShippingAddress().getAddress()).isEqualTo("Calle 1");
+    }
+
+    @Test
+    void findsAUserWhoSignedInWithTheirPhoneNumber() {
+        Transaction transaction = authorizedTransaction();
+        User user = registeredUser();
+        when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
+        when(repository.save(transaction)).thenReturn(transaction);
+        when(userRepository.findByPhoneNumber(3001234567L)).thenReturn(Optional.of(user));
+        when(customersRepository.findByUserEmail("registered@example.com")).thenReturn(Optional.empty());
+
+        service.addUserToTransaction(guestDto(), "transaction-id", CHECKOUT_ACCESS_TOKEN, "3001234567");
+
+        assertThat(transaction.getCustomer().getUser()).isSameAs(user);
+    }
+
+    @Test
+    void updatesASavedAddressWithTheSameNameInsteadOfDuplicatingIt() {
+        Transaction transaction = authorizedTransaction();
+        Customer customer = new Customer();
+        customer.setId("customer-id");
+        customer.setUser(registeredUser());
+        Address saved = new Address();
+        saved.setAddressName("Casa");
+        saved.setAddress("Calle vieja");
+        saved.setCustomer(customer);
+        customer.getAddress().add(saved);
+        when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
+        when(repository.save(transaction)).thenReturn(transaction);
+        when(userRepository.findByEmail("registered@example.com")).thenReturn(Optional.of(customer.getUser()));
+        when(customersRepository.findByUserEmail("registered@example.com")).thenReturn(Optional.of(customer));
+        when(addressRepository.findByCustomerAndAddressName(customer, "Casa")).thenReturn(Optional.of(saved));
+
+        service.addUserToTransaction(guestDto(), "transaction-id", CHECKOUT_ACCESS_TOKEN, "registered@example.com");
+
+        assertThat(customer.getAddress()).containsExactly(saved);
+        assertThat(saved.getAddress()).isEqualTo("Calle 1");
+        verify(customersRepository, never()).save(any());
+    }
+
+    @Test
+    void returnsTheSavedAddressesOfTheSignedInUser() {
+        Customer customer = new Customer();
+        Address saved = new Address();
+        saved.setAddressName("Casa");
+        saved.setAddress("Calle 1");
+        customer.getAddress().add(saved);
+        when(userRepository.findByEmail("registered@example.com")).thenReturn(Optional.of(registeredUser()));
+        when(customersRepository.findByUserEmail("registered@example.com")).thenReturn(Optional.of(customer));
+
+        assertThat(service.getSavedAddresses("registered@example.com"))
+            .singleElement()
+            .satisfies(address -> assertThat(address.address()).isEqualTo("Calle 1"));
+    }
+
+    @Test
+    void returnsNoSavedAddressesWithoutAKnownUser() {
+        when(userRepository.findByEmail("nobody@example.com")).thenReturn(Optional.empty());
+
+        assertThat(service.getSavedAddresses("nobody@example.com")).isEmpty();
+        assertThat(service.getSavedAddresses(null)).isEmpty();
+    }
+
+    @Test
+    void refusesToAddAUserWithoutAValidAccessToken() {
+        Transaction transaction = authorizedTransaction();
+        when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
+
+        assertThat(service.addUserToTransaction(guestDto(), "transaction-id", "wrong-token", null)).isEmpty();
+        assertThat(service.addUserToTransaction(guestDto(), "transaction-id", null, null)).isEmpty();
+
+        verify(repository, never()).save(any());
+        assertThat(transaction.getShippingAddress()).isNull();
+    }
+
+    @Test
+    void refusesToChangeTheCustomerOfAPaidTransaction() {
+        Transaction transaction = authorizedTransaction();
+        transaction.setStatus("APPROVED");
+        when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
+
+        assertThatThrownBy(() -> service.addUserToTransaction(guestDto(), "transaction-id", CHECKOUT_ACCESS_TOKEN, null))
+            .isInstanceOf(ResponseStatusException.class);
+        verify(repository, never()).save(any());
     }
 
     @Test
@@ -257,63 +265,25 @@ class CheckoutCustomerServiceImplTest {
         assertThat(inverseRelationship.cascade()).containsExactly(CascadeType.ALL);
     }
 
-    @Test
-    void refusesToAddAUserWithoutAValidAccessToken() {
-        Transaction transaction = authorizedTransaction();
-        when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
-
-        assertThat(service.addUserToTransaction(guestDto(), "transaction-id", "wrong-token")).isEmpty();
-        assertThat(service.addUserToTransaction(guestDto(), "transaction-id", null)).isEmpty();
-
-        verify(repository, never()).save(any());
-        assertThat(transaction.getCustomer()).isNull();
-    }
-
-    @Test
-    void refusesToChangeTheCustomerOfAPaidTransaction() {
-        Transaction transaction = authorizedTransaction();
-        transaction.setStatus("APPROVED");
-        when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
-
-        assertThatThrownBy(() -> service.addUserToTransaction(guestDto(), "transaction-id", CHECKOUT_ACCESS_TOKEN))
-            .isInstanceOf(ResponseStatusException.class);
-        verify(repository, never()).save(any());
-    }
-
     private Transaction authorizedTransaction() {
         Transaction transaction = new Transaction();
         transaction.setCheckoutAccessTokenDigest(new CheckoutAccessToken().digest(CHECKOUT_ACCESS_TOKEN));
         return transaction;
     }
 
+    private User registeredUser() {
+        User user = new User();
+        user.setName("Registered User");
+        user.setEmail("registered@example.com");
+        user.setPhoneNumber(3001234567L);
+        return user;
+    }
+
     private UserTransactionDTO guestDto() {
-        return new UserTransactionDTO(
-            "Guest User",
-            "guest@example.com",
-            "3001234567",
-            new CustomerAddressDTO("Casa", "Calle 1", "Bogota", "Cundinamarca", "Colombia", "3001234567")
-        );
+        return new UserTransactionDTO("Guest User", "guest@example.com", "3001234567", address("Casa"));
     }
 
-    private ShippingAddress shippingAddress() {
-        CustomerAddressDTO address = new CustomerAddressDTO(
-            "Oficina",
-            "Carrera 7",
-            "Medellin",
-            "Antioquia",
-            "Colombia",
-            "3017654321"
-        );
-        return TransactionMapper.MAPPER.toShippingAddress(address);
-    }
-
-    private Customer guestCustomer(String email) {
-        Guest guest = new Guest();
-        guest.setUserNames("Guest User");
-        guest.setUserEmail(email);
-        guest.setUserPhone("3001234567");
-        Customer customer = new Customer();
-        customer.setGuest(guest);
-        return customer;
+    private CustomerAddressDTO address(String name) {
+        return new CustomerAddressDTO(name, "Calle 1", "Bogota", "Cundinamarca", "Colombia", "3001234567");
     }
 }

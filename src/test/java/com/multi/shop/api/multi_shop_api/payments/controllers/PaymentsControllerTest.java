@@ -87,7 +87,7 @@ class PaymentsControllerTest {
     void forbidsChangingATransactionWithoutAccessToken() throws Exception {
         when(service.updateProducts(any(), anyList(), isNull())).thenReturn(Optional.empty());
         when(service.deleteTransaction(any(), isNull())).thenReturn(Optional.empty());
-        when(customerService.addUserToTransaction(any(), any(), isNull())).thenReturn(Optional.empty());
+        when(customerService.addUserToTransaction(any(), any(), isNull(), isNull())).thenReturn(Optional.empty());
         when(stripeCheckoutService.createPaymentSession(any(), isNull())).thenReturn(Optional.empty());
 
         mockMvc.perform(put("/app/payments/update-products/transaction-id")
