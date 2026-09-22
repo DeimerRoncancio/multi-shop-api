@@ -9,6 +9,7 @@ import com.multi.shop.api.multi_shop_api.payments.services.StripeCheckoutService
 import com.multi.shop.api.multi_shop_api.payments.services.StripeWebhookService;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -56,7 +57,7 @@ public class PaymentsController {
     }
 
     @PostMapping("/create-transaction")
-    public ResponseEntity<TransactionAccessDTO> createTransaction(@RequestBody NewTransactionDTO dto) {
+    public ResponseEntity<TransactionAccessDTO> createTransaction(@Valid @RequestBody NewTransactionDTO dto) {
         return ResponseEntity.ok().body(service.createTransaction(dto));
     }
 
@@ -73,7 +74,7 @@ public class PaymentsController {
 
     @PutMapping("/add-user/{transactionId}")
     public ResponseEntity<String> addUser(
-        @RequestBody UserTransactionDTO userDTO,
+        @Valid @RequestBody UserTransactionDTO userDTO,
         @PathVariable String transactionId,
         @RequestHeader(value = "X-Checkout-Access-Token", required = false) String checkoutAccessToken,
         Principal principal

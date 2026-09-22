@@ -198,7 +198,7 @@ public class UserServiceImpl implements UserService {
     }
 
     public Image uploadProfileImage(MultipartFile file) {
-        if (file == null && file.isEmpty()) {
+        if (file == null || file.isEmpty()) {
             LOGGER.warn("File is null or empty");
             return null;
         }

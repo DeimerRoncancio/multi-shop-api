@@ -9,6 +9,7 @@ import com.multi.shop.api.multi_shop_api.payments.mappers.CheckoutMapper;
 import com.multi.shop.api.multi_shop_api.payments.repositories.PaymentsRepository;
 import com.multi.shop.api.multi_shop_api.payments.security.CheckoutAccessToken;
 import com.multi.shop.api.multi_shop_api.payments.services.PaymentService;
+import com.multi.shop.api.multi_shop_api.products.entities.Product;
 import com.multi.shop.api.multi_shop_api.products.repositories.ProductRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -69,10 +70,19 @@ public class PaymentsServiceImpl implements PaymentService {
     }
 
     private void replaceItems(Transaction transaction, List<ProductItemDTO> products) {
+        if (products == null || products.isEmpty())
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Transaction needs at least one product");
+
         transaction.getProductItems().clear();
-        products.forEach(item ->
-            transaction.addItem(productRepository.findById(item.id()).orElse(null), item.quantity())
-        );
+        products.forEach(item -> {
+            if (item.quantity() < 1)
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Quantity must be at least 1");
+
+            Product product = productRepository.findById(item.id())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Product not found: " + item.id()));
+
+            transaction.addItem(product, item.quantity());
+        });
         transaction.setTotalPrice(transaction.calculateTotalPrice());
     }
 

@@ -21,6 +21,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -30,6 +32,22 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class PaymentsControllerTest {
+    private static final String VALID_USER_BODY = """
+        {
+          "userNames": "Guest User",
+          "userEmail": "guest@example.com",
+          "userPhone": "3001234567",
+          "userAddress": {
+            "addressName": "Casa",
+            "address": "Calle 1",
+            "city": "Bogota",
+            "state": "Cundinamarca",
+            "country": "Colombia",
+            "addressNumber": "3001234567"
+          }
+        }
+        """;
+
     private PaymentService service;
     private CheckoutCustomerService customerService;
     private StripeCheckoutService stripeCheckoutService;
@@ -94,7 +112,7 @@ class PaymentsControllerTest {
                 .contentType("application/json").content("[]"))
             .andExpect(status().isForbidden());
         mockMvc.perform(put("/app/payments/add-user/transaction-id")
-                .contentType("application/json").content("{}"))
+                .contentType("application/json").content(VALID_USER_BODY))
             .andExpect(status().isForbidden());
         mockMvc.perform(post("/app/payments/create-payment-session/transaction-id"))
             .andExpect(status().isForbidden());
@@ -118,5 +136,42 @@ class PaymentsControllerTest {
         mockMvc.perform(get("/app/payments/checkout/transaction-id")
                 .header("X-Checkout-Access-Token", "invalid-token"))
             .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void refusesATransactionWithoutProducts() throws Exception {
+        mockMvc.perform(post("/app/payments/create-transaction")
+                .contentType("application/json").content("{\"productItems\": [], \"status\": \"pending\"}"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.productItems").exists());
+
+        verify(service, never()).createTransaction(any());
+    }
+
+    @Test
+    void refusesAQuantityBelowOne() throws Exception {
+        mockMvc.perform(post("/app/payments/create-transaction")
+                .contentType("application/json")
+                .content("{\"productItems\": [{\"id\": \"product-id\", \"quantity\": 0}], \"status\": \"pending\"}"))
+            .andExpect(status().isBadRequest());
+
+        verify(service, never()).createTransaction(any());
+    }
+
+    @Test
+    void refusesACustomerWithAnInvalidEmailOrAnIncompleteAddress() throws Exception {
+        mockMvc.perform(put("/app/payments/add-user/transaction-id")
+                .contentType("application/json")
+                .content(VALID_USER_BODY.replace("guest@example.com", "no-es-un-correo")))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.userEmail").exists());
+
+        mockMvc.perform(put("/app/payments/add-user/transaction-id")
+                .contentType("application/json")
+                .content(VALID_USER_BODY.replace("\"city\": \"Bogota\"", "\"city\": \" \"")))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$['userAddress.city']").exists());
+
+        verify(customerService, never()).addUserToTransaction(any(), any(), any(), any());
     }
 }

@@ -61,7 +61,11 @@ class PaymentsServiceImplTest {
             return transaction;
         });
 
-        TransactionAccessDTO access = service.createTransaction(new NewTransactionDTO(List.of(), "pending"));
+        when(productRepository.findById("product-id")).thenReturn(Optional.of(new Product()));
+
+        TransactionAccessDTO access = service.createTransaction(
+            new NewTransactionDTO(List.of(new ProductItemDTO("product-id", 1)), "pending")
+        );
 
         assertThat(access.transactionId()).isEqualTo("transaction-id");
         assertThat(access.checkoutAccessToken()).hasSize(43);
@@ -229,6 +233,52 @@ class PaymentsServiceImplTest {
         assertThat(transaction.getProductItems()).singleElement()
             .satisfies(item -> assertThat(item.getQuantity()).isEqualTo(3));
         assertThat(transaction.getTotalPrice()).isEqualTo(75000L);
+    }
+
+    @Test
+    void refusesProductsThatDoNotExist() {
+        Transaction transaction = new Transaction();
+        authorizeCheckout(transaction);
+        when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
+        when(productRepository.findById("no-existe")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.updateProducts(
+            "transaction-id",
+            List.of(new ProductItemDTO("no-existe", 1)),
+            CHECKOUT_ACCESS_TOKEN
+        ))
+            .isInstanceOf(ResponseStatusException.class)
+            .hasMessageContaining("Product not found");
+
+        assertThat(transaction.getProductItems()).isEmpty();
+    }
+
+    @Test
+    void refusesQuantitiesBelowOne() {
+        Transaction transaction = new Transaction();
+        authorizeCheckout(transaction);
+        when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
+
+        for (int quantity : new int[] {0, -5}) {
+            assertThatThrownBy(() -> service.updateProducts(
+                "transaction-id",
+                List.of(new ProductItemDTO("product-id", quantity)),
+                CHECKOUT_ACCESS_TOKEN
+            )).isInstanceOf(ResponseStatusException.class);
+        }
+
+        assertThat(transaction.getProductItems()).isEmpty();
+        verifyNoInteractions(productRepository);
+    }
+
+    @Test
+    void refusesAnEmptyProductList() {
+        Transaction transaction = new Transaction();
+        authorizeCheckout(transaction);
+        when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
+
+        assertThatThrownBy(() -> service.updateProducts("transaction-id", List.of(), CHECKOUT_ACCESS_TOKEN))
+            .isInstanceOf(ResponseStatusException.class);
     }
 
     @Test
