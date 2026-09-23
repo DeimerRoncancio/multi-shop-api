@@ -26,11 +26,13 @@ public class PaymentsServiceImpl implements PaymentService {
     private final PaymentsRepository repository;
     private final ProductRepository productRepository;
     private final CheckoutAccessToken checkoutAccessToken;
+    private final CheckoutMapper checkoutMapper;
 
-    public PaymentsServiceImpl(PaymentsRepository repository, ProductRepository productRepository, CheckoutAccessToken checkoutAccessToken) {
+    public PaymentsServiceImpl(PaymentsRepository repository, ProductRepository productRepository, CheckoutAccessToken checkoutAccessToken, CheckoutMapper checkoutMapper) {
         this.repository = repository;
         this.productRepository = productRepository;
         this.checkoutAccessToken = checkoutAccessToken;
+        this.checkoutMapper = checkoutMapper;
     }
 
     @Override
@@ -38,7 +40,7 @@ public class PaymentsServiceImpl implements PaymentService {
     public Optional<CheckoutSummaryDTO> getCheckoutSummary(String transactionId, String accessToken) {
         return repository.findById(transactionId)
             .filter(transaction -> checkoutAccessToken.grants(transaction, accessToken))
-            .map(CheckoutMapper.MAPPER::toCheckoutSummaryDTO);
+            .map(checkoutMapper::toCheckoutSummaryDTO);
     }
 
     @Override

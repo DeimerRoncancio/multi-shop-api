@@ -7,16 +7,13 @@ import com.multi.shop.api.multi_shop_api.products.entities.Variant;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
-import org.mapstruct.factory.Mappers;
 
 import com.multi.shop.api.multi_shop_api.products.entities.Product;
 
 import java.util.List;
 
-@Mapper
+@Mapper(componentModel = "spring")
 public interface ProductMapper {
-    ProductMapper MAPPER = Mappers.getMapper(ProductMapper.class);
-
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "variants", expression = "java(variantsList)")
     Product productDTOtoProduct(ProductDTO dto, List<Variant> variantsList);

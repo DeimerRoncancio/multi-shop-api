@@ -7,14 +7,11 @@ import com.multi.shop.api.multi_shop_api.payments.entities.Customer;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
-import org.mapstruct.factory.Mappers;
 
 import java.util.List;
 
-@Mapper
+@Mapper(componentModel = "spring")
 public interface CustomerMapper {
-    CustomerMapper MAPPER = Mappers.getMapper(CustomerMapper.class);
-
     @Mapping(target = "userNames", source = ".", qualifiedByName = "customerNames")
     @Mapping(target = "userEmail", source = ".", qualifiedByName = "customerEmail")
     @Mapping(target = "userPhone", source = ".", qualifiedByName = "customerPhone")

@@ -3,12 +3,15 @@ package com.multi.shop.api.multi_shop_api.users.services.impl;
 import com.multi.shop.api.multi_shop_api.images.entities.Image;
 import com.multi.shop.api.multi_shop_api.images.services.ImageService;
 import com.multi.shop.api.multi_shop_api.images.services.TransactionalImages;
+import com.multi.shop.api.multi_shop_api.users.mappers.UserMapper;
+import com.multi.shop.api.multi_shop_api.users.mappers.UserMapperImpl;
 import com.multi.shop.api.multi_shop_api.users.repositories.RoleRepository;
 import com.multi.shop.api.multi_shop_api.users.repositories.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -36,6 +39,9 @@ class UserServiceImplProfileImageTest {
     private TransactionalImages transactionalImages;
     @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Spy
+    private UserMapper userMapper = new UserMapperImpl();
 
     @InjectMocks
     private UserServiceImpl service;

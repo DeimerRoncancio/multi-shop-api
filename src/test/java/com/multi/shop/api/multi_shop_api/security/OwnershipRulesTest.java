@@ -1,6 +1,7 @@
 package com.multi.shop.api.multi_shop_api.security;
 
 import com.multi.shop.api.multi_shop_api.users.controllers.UserController;
+import com.multi.shop.api.multi_shop_api.users.mappers.UserMapperImpl;
 import com.multi.shop.api.multi_shop_api.users.entities.User;
 import com.multi.shop.api.multi_shop_api.users.enums.Field;
 import com.multi.shop.api.multi_shop_api.users.repositories.UserRepository;
@@ -131,7 +132,7 @@ class OwnershipRulesTest {
 
         @Bean
         UserController userController(UserService userService) {
-            return new UserController(userService);
+            return new UserController(userService, new UserMapperImpl());
         }
     }
 }

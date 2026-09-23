@@ -18,9 +18,11 @@ import java.util.Optional;
 @Service
 public class VariantServiceImpl implements VariantService {
     private final VariantRepository repository;
+    private final VariantMapper variantMapper;
 
-    public VariantServiceImpl(VariantRepository repository) {
+    public VariantServiceImpl(VariantRepository repository, VariantMapper variantMapper) {
         this.repository = repository;
+        this.variantMapper = variantMapper;
     }
 
     @Override
@@ -29,7 +31,7 @@ public class VariantServiceImpl implements VariantService {
         Page<Variant> variants = repository.findAll(pageable);
 
         return variants.map(var ->
-            VariantMapper.MAPPER.variantToDTO(var, VariantMapper.MAPPER.splitValues(var.getValues())));
+            variantMapper.variantToDTO(var, variantMapper.splitValues(var.getValues())));
     }
 
     @Override
@@ -37,14 +39,14 @@ public class VariantServiceImpl implements VariantService {
     public VariantResponseDTO findOne(String id) {
         Variant variant = repository.findById(id).orElseThrow(() -> new NotFoundException("Variant not found"));
 
-        return VariantMapper.MAPPER.variantToDTO(variant, VariantMapper.MAPPER.splitValues(variant.getValues()));
+        return variantMapper.variantToDTO(variant, variantMapper.splitValues(variant.getValues()));
     }
 
     @Override
     @Transactional
     public VariantDTO addVariant(VariantDTO newVariant) {
-        String values = VariantMapper.MAPPER.joinValues(newVariant.listValues());
-        repository.save(VariantMapper.MAPPER.dtoToVariant(newVariant, values));
+        String values = variantMapper.joinValues(newVariant.listValues());
+        repository.save(variantMapper.dtoToVariant(newVariant, values));
         return newVariant;
     }
 
@@ -52,7 +54,7 @@ public class VariantServiceImpl implements VariantService {
     @Transactional
     public Optional<VariantDTO> updateVariant(String id, VariantDTO variantDTO){
         return repository.findById(id).map(variantDb -> {
-            String values = VariantMapper.MAPPER.joinValues(variantDTO.listValues());
+            String values = variantMapper.joinValues(variantDTO.listValues());
 
             variantDb.setName(variantDTO.name());
             variantDb.setTag(variantDTO.tag());

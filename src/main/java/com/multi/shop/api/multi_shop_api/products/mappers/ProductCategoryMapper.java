@@ -6,16 +6,13 @@ import com.multi.shop.api.multi_shop_api.products.dtos.ProductItemDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
-import org.mapstruct.factory.Mappers;
 
 import com.multi.shop.api.multi_shop_api.products.entities.ProductCategory;
 
 import java.util.List;
 
-@Mapper
+@Mapper(componentModel = "spring")
 public interface ProductCategoryMapper {
-    ProductCategoryMapper mapper = Mappers.getMapper(ProductCategoryMapper.class);
-
     @Mapping(target = "id", ignore = true)
     ProductCategory categoryDTOtoCategory(ProductCategoryDTO dto);
 

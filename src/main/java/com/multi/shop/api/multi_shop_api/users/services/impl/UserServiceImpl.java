@@ -40,22 +40,24 @@ public class UserServiceImpl implements UserService {
     private final ImageService imageService;
     private final PasswordEncoder passwordEncoder;
     private final TransactionalImages transactionalImages;
+    private final UserMapper userMapper;
 
     public UserServiceImpl(UserRepository repository,
     RoleRepository roleRepository, ImageService imageService, PasswordEncoder passwordEncoder,
-    TransactionalImages transactionalImages) {
+    TransactionalImages transactionalImages, UserMapper userMapper) {
         this.repository = repository;
         this.roleRepository = roleRepository;
         this.imageService = imageService;
         this.passwordEncoder = passwordEncoder;
         this.transactionalImages = transactionalImages;
+        this.userMapper = userMapper;
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<UserResponseDTO> findAll(Pageable pageable) {
         Page<User> users = repository.findAll(pageable);
-        return users.map(UserMapper.MAPPER::userToResponseDTO);
+        return users.map(userMapper::userToResponseDTO);
     }
 
     @Override
@@ -65,20 +67,20 @@ public class UserServiceImpl implements UserService {
                 ? repository.findByAdminTrue(pageable)
                 : repository.findByAdminFalse(pageable);
 
-        return admins.map(UserMapper.MAPPER::userToResponseDTO);
+        return admins.map(userMapper::userToResponseDTO);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Optional<UserResponseDTO> findOne(String id){
         Optional<User> user = repository.findById(id);
-        return user.map(UserMapper.MAPPER::userToResponseDTO);
+        return user.map(userMapper::userToResponseDTO);
     }
 
     @Override
     @Transactional
     public RegisterUserDTO save(RegisterUserDTO userDTO) {
-        User user = UserMapper.MAPPER.registerDTOtoUser(userDTO);
+        User user = userMapper.registerDTOtoUser(userDTO);
 
         MultipartFile file = userDTO.profileImage();
         if (file != null && !file.isEmpty()) {
@@ -95,7 +97,7 @@ public class UserServiceImpl implements UserService {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setRoles(roles);
         repository.save(user);
-        return UserMapper.MAPPER.userToRegisterDTO(user);
+        return userMapper.userToRegisterDTO(user);
     }
 
     @Override
@@ -110,10 +112,10 @@ public class UserServiceImpl implements UserService {
                 roleRepository.findByRole("ROLE_ADMIN").ifPresent(roles::remove);
 
             user.setRoles(roles);
-            UserMapper.MAPPER.toUpdateUser(userDTO, user);
+            userMapper.toUpdateUser(userDTO, user);
 
             repository.save(user);
-            return UserMapper.MAPPER.userToUserDTO(user);
+            return userMapper.userToUserDTO(user);
         });
     }
 
@@ -192,7 +194,7 @@ public class UserServiceImpl implements UserService {
                 : repository.findByName(identifier, isAdmin, pageable);
         };
 
-        return users.map(UserMapper.MAPPER::userToResponseDTO);
+        return users.map(userMapper::userToResponseDTO);
     }
 
     @Override
@@ -225,6 +227,6 @@ public class UserServiceImpl implements UserService {
     @Transactional(readOnly = true)
     public List<UserResponseDTO> latestUsers() {
         return repository.findTop4ByOrderByCreatedAtDesc().stream()
-                .map(UserMapper.MAPPER::userToResponseDTO).toList();
+                .map(userMapper::userToResponseDTO).toList();
     }
 }

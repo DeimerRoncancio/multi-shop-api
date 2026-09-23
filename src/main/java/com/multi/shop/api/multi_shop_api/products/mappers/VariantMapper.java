@@ -6,14 +6,11 @@ import com.multi.shop.api.multi_shop_api.products.entities.Variant;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
-import org.mapstruct.factory.Mappers;
 
 import java.util.List;
 
-@Mapper
+@Mapper(componentModel = "spring")
 public interface VariantMapper {
-    VariantMapper MAPPER = Mappers.getMapper(VariantMapper.class);
-
     List<VariantDTO> toVariantDTOs(List<Variant> variants);
 
     @Mapping(target = "listValues", source = "values", qualifiedByName = "splitValues")

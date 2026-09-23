@@ -4,14 +4,16 @@ import com.multi.shop.api.multi_shop_api.payments.dtos.CheckoutProductItemDTO;
 import com.multi.shop.api.multi_shop_api.payments.dtos.CheckoutSummaryDTO;
 import com.multi.shop.api.multi_shop_api.payments.entities.ProductItem;
 import com.multi.shop.api.multi_shop_api.payments.entities.Transaction;
+import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = {CustomerMapper.class, TransactionMapper.class})
+@Mapper(
+    componentModel = "spring",
+    injectionStrategy = InjectionStrategy.CONSTRUCTOR,
+    uses = {CustomerMapper.class, TransactionMapper.class}
+)
 public interface CheckoutMapper {
-    CheckoutMapper MAPPER = Mappers.getMapper(CheckoutMapper.class);
-
     // Nivel 1: lo usa PaymentsServiceImpl.getCheckoutSummary
     @Mapping(target = "transactionId", source = "id")
     @Mapping(target = "customer", source = "customer")

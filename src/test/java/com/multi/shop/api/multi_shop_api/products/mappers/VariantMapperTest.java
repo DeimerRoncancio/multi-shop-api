@@ -9,29 +9,31 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class VariantMapperTest {
+    private static final VariantMapper MAPPER = new VariantMapperImpl();
+
     @Test
     void splitsTheValuesStoredInASingleColumn() {
-        assertThat(VariantMapper.MAPPER.splitValues("S|M|L")).containsExactly("S", "M", "L");
-        assertThat(VariantMapper.MAPPER.splitValues("Unica")).containsExactly("Unica");
+        assertThat(MAPPER.splitValues("S|M|L")).containsExactly("S", "M", "L");
+        assertThat(MAPPER.splitValues("Unica")).containsExactly("Unica");
     }
 
     @Test
     void returnsNoValuesWhenTheColumnIsEmptyOrNull() {
-        assertThat(VariantMapper.MAPPER.splitValues(null)).isEmpty();
-        assertThat(VariantMapper.MAPPER.splitValues("")).isEmpty();
-        assertThat(VariantMapper.MAPPER.splitValues("   ")).isEmpty();
+        assertThat(MAPPER.splitValues(null)).isEmpty();
+        assertThat(MAPPER.splitValues("")).isEmpty();
+        assertThat(MAPPER.splitValues("   ")).isEmpty();
     }
 
     @Test
     void joinsTheValuesBackIntoOneColumn() {
-        assertThat(VariantMapper.MAPPER.joinValues(List.of("S", "M", "L"))).isEqualTo("S|M|L");
-        assertThat(VariantMapper.MAPPER.joinValues(List.of())).isEmpty();
-        assertThat(VariantMapper.MAPPER.joinValues(null)).isEmpty();
+        assertThat(MAPPER.joinValues(List.of("S", "M", "L"))).isEqualTo("S|M|L");
+        assertThat(MAPPER.joinValues(List.of())).isEmpty();
+        assertThat(MAPPER.joinValues(null)).isEmpty();
     }
 
     @Test
     void mapsAVariantWithItsSeparatedValues() {
-        VariantDTO dto = VariantMapper.MAPPER.toVariantDTO(variant("variant-id", "Talla", "size", "talla", "S|M|L"));
+        VariantDTO dto = MAPPER.toVariantDTO(variant("variant-id", "Talla", "size", "talla", "S|M|L"));
 
         assertThat(dto.id()).isEqualTo("variant-id");
         assertThat(dto.name()).isEqualTo("Talla");
@@ -42,7 +44,7 @@ class VariantMapperTest {
 
     @Test
     void mapsEveryVariantOfAProduct() {
-        List<VariantDTO> dtos = VariantMapper.MAPPER.toVariantDTOs(List.of(
+        List<VariantDTO> dtos = MAPPER.toVariantDTOs(List.of(
             variant("1", "Talla", "size", "talla", "S|M"),
             variant("2", "Color", "color", "color", "Rojo")
         ));
@@ -54,7 +56,7 @@ class VariantMapperTest {
 
     @Test
     void mapsAVariantWithoutValues() {
-        VariantDTO dto = VariantMapper.MAPPER.toVariantDTO(variant("id", "Talla", "size", "talla", null));
+        VariantDTO dto = MAPPER.toVariantDTO(variant("id", "Talla", "size", "talla", null));
 
         assertThat(dto.listValues()).isEmpty();
     }

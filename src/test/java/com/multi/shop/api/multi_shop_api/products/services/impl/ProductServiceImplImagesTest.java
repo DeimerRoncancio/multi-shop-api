@@ -5,12 +5,17 @@ import com.multi.shop.api.multi_shop_api.images.services.ImageService;
 import com.multi.shop.api.multi_shop_api.images.services.TransactionalImages;
 import com.multi.shop.api.multi_shop_api.products.dtos.ProductDTO;
 import com.multi.shop.api.multi_shop_api.products.entities.Product;
+import com.multi.shop.api.multi_shop_api.products.mappers.ProductMapper;
+import com.multi.shop.api.multi_shop_api.products.mappers.ProductMapperImpl;
+import com.multi.shop.api.multi_shop_api.products.mappers.VariantMapper;
+import com.multi.shop.api.multi_shop_api.products.mappers.VariantMapperImpl;
 import com.multi.shop.api.multi_shop_api.products.repositories.ProductRepository;
 import com.multi.shop.api.multi_shop_api.products.services.ProductCategoryService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
@@ -38,6 +43,11 @@ class ProductServiceImplImagesTest {
     private ImageService imageService;
     @Mock
     private TransactionalImages transactionalImages;
+
+    @Spy
+    private ProductMapper productMapper = new ProductMapperImpl();
+    @Spy
+    private VariantMapper variantMapper = new VariantMapperImpl();
 
     @InjectMocks
     private ProductServiceImpl service;

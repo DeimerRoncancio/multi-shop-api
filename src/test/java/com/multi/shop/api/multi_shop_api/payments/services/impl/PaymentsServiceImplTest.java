@@ -12,7 +12,10 @@ import com.multi.shop.api.multi_shop_api.payments.entities.ProductItem;
 import com.multi.shop.api.multi_shop_api.payments.entities.ShippingAddress;
 import com.multi.shop.api.multi_shop_api.payments.entities.Transaction;
 import com.multi.shop.api.multi_shop_api.payments.enums.TransactionStatus;
-import com.multi.shop.api.multi_shop_api.payments.mappers.TransactionMapper;
+import com.multi.shop.api.multi_shop_api.payments.mappers.CheckoutMapper;
+import com.multi.shop.api.multi_shop_api.payments.mappers.CheckoutMapperImpl;
+import com.multi.shop.api.multi_shop_api.payments.mappers.CustomerMapperImpl;
+import com.multi.shop.api.multi_shop_api.payments.mappers.TransactionMapperImpl;
 import com.multi.shop.api.multi_shop_api.payments.repositories.PaymentsRepository;
 import com.multi.shop.api.multi_shop_api.payments.security.CheckoutAccessToken;
 import com.multi.shop.api.multi_shop_api.products.entities.Product;
@@ -50,6 +53,10 @@ class PaymentsServiceImplTest {
     private ProductRepository productRepository;
     @Spy
     private CheckoutAccessToken checkoutAccessToken = new CheckoutAccessToken();
+    @Spy
+    private CheckoutMapper checkoutMapper = new CheckoutMapperImpl(
+        new CustomerMapperImpl(), new TransactionMapperImpl()
+    );
 
     @InjectMocks
     private PaymentsServiceImpl service;
@@ -357,7 +364,7 @@ class PaymentsServiceImplTest {
             "Colombia",
             "3017654321"
         );
-        return TransactionMapper.MAPPER.toShippingAddress(address);
+        return new TransactionMapperImpl().toShippingAddress(address);
     }
 
     private Customer guestCustomer(String email) {

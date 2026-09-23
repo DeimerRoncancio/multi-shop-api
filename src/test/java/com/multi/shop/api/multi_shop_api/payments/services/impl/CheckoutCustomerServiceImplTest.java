@@ -25,6 +25,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import com.multi.shop.api.multi_shop_api.payments.mappers.CustomerMapper;
+import com.multi.shop.api.multi_shop_api.payments.mappers.CustomerMapperImpl;
+import com.multi.shop.api.multi_shop_api.payments.mappers.TransactionMapper;
+import com.multi.shop.api.multi_shop_api.payments.mappers.TransactionMapperImpl;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.server.ResponseStatusException;
@@ -53,6 +57,10 @@ class CheckoutCustomerServiceImplTest {
     private UserRepository userRepository;
     @Spy
     private CheckoutAccessToken checkoutAccessToken = new CheckoutAccessToken();
+    @Spy
+    private TransactionMapper transactionMapper = new TransactionMapperImpl();
+    @Spy
+    private CustomerMapper customerMapper = new CustomerMapperImpl();
 
     @InjectMocks
     private CheckoutCustomerServiceImpl service;

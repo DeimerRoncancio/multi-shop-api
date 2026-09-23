@@ -30,9 +30,11 @@ import java.util.Optional;
 @RequestMapping("/app/users")
 public class UserController {
     private final UserService service;
+    private final UserMapper userMapper;
 
-    public UserController(UserService service) {
+    public UserController(UserService service, UserMapper userMapper) {
         this.service = service;
+        this.userMapper = userMapper;
     }
 
     @GetMapping
@@ -68,7 +70,7 @@ public class UserController {
     @PutMapping("/update/{id}")
     @PreAuthorize("hasRole('ADMIN') or @authz.isSelf(#id, authentication)")
     public ResponseEntity<UserDTO> updateUser(@Valid @RequestBody UserDTO userDTO, @PathVariable String id) {
-        UserDTO user = UserMapper.MAPPER.userDTOtoOrAdmin(userDTO, false);
+        UserDTO user = userMapper.userDTOtoOrAdmin(userDTO, false);
         return update(id, user);
     }
 

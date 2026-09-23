@@ -33,13 +33,17 @@ public class CheckoutCustomerServiceImpl implements CheckoutCustomerService {
     private final AddressRepository addressRepository;
     private final UserRepository userRepository;
     private final CheckoutAccessToken checkoutAccessToken;
+    private final TransactionMapper transactionMapper;
+    private final CustomerMapper customerMapper;
 
-    public CheckoutCustomerServiceImpl(PaymentsRepository repository, CustomersRepository customersRepository, AddressRepository addressRepository, UserRepository userRepository, CheckoutAccessToken checkoutAccessToken) {
+    public CheckoutCustomerServiceImpl(PaymentsRepository repository, CustomersRepository customersRepository, AddressRepository addressRepository, UserRepository userRepository, CheckoutAccessToken checkoutAccessToken, TransactionMapper transactionMapper, CustomerMapper customerMapper) {
         this.repository = repository;
         this.customersRepository = customersRepository;
         this.addressRepository = addressRepository;
         this.userRepository = userRepository;
         this.checkoutAccessToken = checkoutAccessToken;
+        this.transactionMapper = transactionMapper;
+        this.customerMapper = customerMapper;
     }
 
     @Override
@@ -51,7 +55,7 @@ public class CheckoutCustomerServiceImpl implements CheckoutCustomerService {
                 if (transaction.getStatus() == TransactionStatus.APPROVED)
                     throw new ResponseStatusException(HttpStatus.CONFLICT, "Transaction is already paid");
 
-                ShippingAddress shippingAddress = TransactionMapper.MAPPER.toShippingAddress(dto.userAddress());
+                ShippingAddress shippingAddress = transactionMapper.toShippingAddress(dto.userAddress());
                 transaction.setShippingAddress(shippingAddress);
 
                 Customer customer = userRepository.findByIdentity(userIdentity)
@@ -68,7 +72,7 @@ public class CheckoutCustomerServiceImpl implements CheckoutCustomerService {
     public List<CustomerAddressDTO> getSavedAddresses(String userIdentity) {
         return userRepository.findByIdentity(userIdentity)
             .flatMap(user -> customersRepository.findByUserEmail(user.getEmail()))
-            .map(CustomerMapper.MAPPER::toCustomerAddressDTOs)
+            .map(customerMapper::toCustomerAddressDTOs)
             .orElse(List.of());
     }
 
@@ -106,7 +110,7 @@ public class CheckoutCustomerServiceImpl implements CheckoutCustomerService {
             : addressRepository.findByCustomerAndAddressName(customer, dto.addressName())
                 .orElseGet(Address::new);
 
-        TransactionMapper.MAPPER.updateAddress(dto, address);
+        transactionMapper.updateAddress(dto, address);
         address.setCustomer(customer);
 
         if (!customer.getAddress().contains(address)) customer.getAddress().add(address);

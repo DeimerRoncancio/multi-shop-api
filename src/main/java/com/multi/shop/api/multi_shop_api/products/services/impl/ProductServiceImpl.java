@@ -38,12 +38,16 @@ public class ProductServiceImpl implements ProductService {
     private final ProductCategoryService categoryService;
     private final ImageService imageService;
     private final TransactionalImages transactionalImages;
+    private final ProductMapper productMapper;
+    private final VariantMapper variantMapper;
 
-    public ProductServiceImpl(ProductRepository repository, ProductCategoryService categoryService, ImageService imageService, TransactionalImages transactionalImages) {
+    public ProductServiceImpl(ProductRepository repository, ProductCategoryService categoryService, ImageService imageService, TransactionalImages transactionalImages, ProductMapper productMapper, VariantMapper variantMapper) {
         this.repository = repository;
         this.categoryService = categoryService;
         this.imageService = imageService;
         this.transactionalImages = transactionalImages;
+        this.productMapper = productMapper;
+        this.variantMapper = variantMapper;
     }
 
     @Override
@@ -64,12 +68,12 @@ public class ProductServiceImpl implements ProductService {
         List<Variant> variants = new ArrayList<>();
         if (dto.variants() != null && !dto.variants().isEmpty()) {
             variants = dto.variants().stream().map(variantDto -> {
-                String listValues = VariantMapper.MAPPER.joinValues(variantDto.listValues());
+                String listValues = variantMapper.joinValues(variantDto.listValues());
                 return new Variant(variantDto.name(), variantDto.tag(), listValues, variantDto.type());
             }).toList();
         }
 
-        Product product = ProductMapper.MAPPER.productDTOtoProduct(dto, variants);
+        Product product = productMapper.productDTOtoProduct(dto, variants);
 
         List<ProductCategory> categoryList =  categoryService.findCategoriesByName(dto.categoriesList());
         product.setCategories(categoryList);
@@ -77,7 +81,7 @@ public class ProductServiceImpl implements ProductService {
         product.getProductImages().addAll(uploadImages(dto.images()));
 
         repository.save(product);
-        return ProductMapper.MAPPER.productToProductDTO(product);
+        return productMapper.productToProductDTO(product);
     }
 
     @Override
@@ -96,10 +100,10 @@ public class ProductServiceImpl implements ProductService {
 
             productDb.setCategories(productCategories);
             productDb.setProductImages(productImages);
-            ProductMapper.MAPPER.toUpdateProduct(dto, productDb);
+            productMapper.toUpdateProduct(dto, productDb);
 
             repository.save(productDb);
-            return ProductMapper.MAPPER.productToProductDTO(productDb);
+            return productMapper.productToProductDTO(productDb);
         });
     }
 
@@ -130,8 +134,8 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private ProductResponseDTO toResponseDTO(Product product) {
-        return ProductMapper.MAPPER.productToResponseDTO(
-            product, VariantMapper.MAPPER.toVariantDTOs(product.getVariants()));
+        return productMapper.productToResponseDTO(
+            product, variantMapper.toVariantDTOs(product.getVariants()));
     }
 
     @Override
@@ -198,8 +202,8 @@ public class ProductServiceImpl implements ProductService {
         if (variants == null || variants.isEmpty()) return;
         for (VariantDTO dto : variants) {
             if (dto.id() == null || dto.id().isEmpty()) {
-                String values = VariantMapper.MAPPER.joinValues(dto.listValues());
-                Variant newVariant = VariantMapper.MAPPER.dtoToVariant(dto, values);
+                String values = variantMapper.joinValues(dto.listValues());
+                Variant newVariant = variantMapper.dtoToVariant(dto, values);
 
                 currentVariants.add(newVariant);
             } else {
@@ -208,7 +212,7 @@ public class ProductServiceImpl implements ProductService {
                         .findFirst();
 
                 variantOp.ifPresent(variant -> {
-                    String values = VariantMapper.MAPPER.joinValues(dto.listValues());
+                    String values = variantMapper.joinValues(dto.listValues());
 
                     variant.setName(dto.name());
                     variant.setTag(dto.tag());

@@ -30,10 +30,12 @@ public class AuthController {
     private static final Logger log = LoggerFactory.getLogger(AuthController.class);
     private final UserService service;
     private final UserRepository repository;
+    private final AuthMapper authMapper;
 
-    public AuthController(UserService service, UserRepository repository) {
+    public AuthController(UserService service, UserRepository repository, AuthMapper authMapper) {
         this.service = service;
         this.repository = repository;
+        this.authMapper = authMapper;
     }
 
     @PostMapping
@@ -45,7 +47,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<RegisterUserDTO> register(@Valid @ModelAttribute RegisterUserDTO user) {
-        RegisterUserDTO newUser = AuthMapper.MAPPER.requestDTOtoNotAdmin(user, false);
+        RegisterUserDTO newUser = authMapper.requestDTOtoNotAdmin(user, false);
         return create(newUser);
     }
 
@@ -65,7 +67,7 @@ public class AuthController {
         Optional<User> optionalUser = repository.findByIdentity(identifier);
 
         return optionalUser
-            .map(AuthMapper.MAPPER::userToUserResponse)
+            .map(authMapper::userToUserResponse)
             .map(ResponseEntity::ok)
             .orElseThrow(() -> new NotFoundException("User Not found"));
     }

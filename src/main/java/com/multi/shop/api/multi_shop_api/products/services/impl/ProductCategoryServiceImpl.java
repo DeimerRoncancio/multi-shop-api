@@ -22,9 +22,11 @@ import java.util.Optional;
 @Service
 public class ProductCategoryServiceImpl implements ProductCategoryService {
     private final ProductCategoryRepository repository;
+    private final ProductCategoryMapper categoryMapper;
 
-    public ProductCategoryServiceImpl(ProductCategoryRepository repository) {
+    public ProductCategoryServiceImpl(ProductCategoryRepository repository, ProductCategoryMapper categoryMapper) {
         this.repository = repository;
+        this.categoryMapper = categoryMapper;
     }
     
     @Override
@@ -41,7 +43,7 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
                     product.getProductImages().get(0))
                 ).toList();
 
-            return ProductCategoryMapper.mapper.categoryToResponseDTO(category, items);
+            return categoryMapper.categoryToResponseDTO(category, items);
         });
     }
 
@@ -59,14 +61,14 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
                     product.getProductImages().get(0)))
                 .toList();
 
-            return ProductCategoryMapper.mapper.categoryToResponseDTO(category, items);
+            return categoryMapper.categoryToResponseDTO(category, items);
         });
     }
 
     @Override
     @Transactional
     public ProductCategoryDTO save(ProductCategoryDTO dto) {
-        ProductCategory category = ProductCategoryMapper.mapper.categoryDTOtoCategory(dto);
+        ProductCategory category = categoryMapper.categoryDTOtoCategory(dto);
         repository.save(category);
         return dto;
     }
@@ -75,7 +77,7 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
     @Transactional
     public Optional<ProductCategoryDTO> update(String id, ProductCategoryDTO dto) {
         return repository.findById(id).map(categoryDb -> {
-            ProductCategoryMapper.mapper.toUpdateCategory(dto, categoryDb);
+            categoryMapper.toUpdateCategory(dto, categoryDb);
             repository.save(categoryDb);
 
             return dto;
@@ -117,6 +119,6 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
     @Transactional(readOnly = true)
     public List<ProductCategoryDTO> latestCategories(){
         return repository.findTop3ByOrderByCreatedAtDesc().stream()
-                .map(ProductCategoryMapper.mapper::categoryDTOtoCategory).toList();
+                .map(categoryMapper::categoryDTOtoCategory).toList();
     }
 }
