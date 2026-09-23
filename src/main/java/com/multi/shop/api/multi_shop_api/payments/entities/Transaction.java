@@ -15,7 +15,7 @@ import java.util.stream.Stream;
 public class Transaction {
     @Id
     @UuidGenerator
-    @JoinColumn(name = "id", updatable = false, nullable = false)
+    @Column(name = "id", updatable = false, nullable = false)
     private String id;
 
     @Column(name = "created_at", nullable = false, updatable = false)

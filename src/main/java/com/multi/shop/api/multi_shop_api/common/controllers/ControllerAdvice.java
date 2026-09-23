@@ -17,7 +17,7 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class ControllerAdvice {
-    private static final Logger logger = LoggerFactory.getLogger(ControllerAdvice.class);
+    private static final Logger log = LoggerFactory.getLogger(ControllerAdvice.class);
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> validationExceptionsHandler(MethodArgumentNotValidException ex) {
@@ -30,20 +30,20 @@ public class ControllerAdvice {
 
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<Void> notFoundExceptionHandler(NotFoundException ex) {
-        logger.warn(ex.getMessage());
+        log.warn(ex.getMessage());
         return ResponseEntity.notFound().build();
     }
 
     @ExceptionHandler(InvalidPasswordException.class)
     public ResponseEntity<PasswordErrorDTO> invalidPasswordExceptionHandler(InvalidPasswordException ex) {
-        logger.warn(ex.getMessage());
+        log.warn(ex.getMessage());
         PasswordErrorDTO error = new PasswordErrorDTO(ex.getErrorCode());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 
     @ExceptionHandler(PasswordMatchException.class)
     public ResponseEntity<PasswordErrorDTO> passwordMatchExceptionHandler(PasswordMatchException ex) {
-        logger.warn(ex.getMessage());
+        log.warn(ex.getMessage());
         PasswordErrorDTO error = new PasswordErrorDTO(ex.getErrorCode());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }

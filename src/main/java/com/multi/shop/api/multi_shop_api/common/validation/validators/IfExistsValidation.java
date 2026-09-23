@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 import java.util.UUID;
 
 public class IfExistsValidation implements ConstraintValidator<IfExists, Object> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(IfExistsValidation.class);
+    private static final Logger log = LoggerFactory.getLogger(IfExistsValidation.class);
     private final CustomService customService;
     private final HttpServletRequest request;
     private String entity;
@@ -55,7 +55,7 @@ public class IfExistsValidation implements ConstraintValidator<IfExists, Object>
             UUID.fromString(id);
             return id;
         } catch (IllegalArgumentException e) {
-            LOGGER.warn("Invalid UUID in request path: {}", id);
+            log.warn("Invalid UUID in request path: {}", id);
             return null;
         }
     }

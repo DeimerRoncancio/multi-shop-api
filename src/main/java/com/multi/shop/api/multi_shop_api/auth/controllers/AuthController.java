@@ -27,7 +27,7 @@ import static com.multi.shop.api.multi_shop_api.security.JwtConfig.*;
 @RestController
 @RequestMapping("/app/users")
 public class AuthController {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AuthController.class);
+    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
     private final UserService service;
     private final UserRepository repository;
 
@@ -58,13 +58,11 @@ public class AuthController {
             Claims claims = Jwts.parser().verifyWith(SECRET_KEY).build().parseSignedClaims(token).getPayload();
             identifier = claims.getSubject();
         } catch(JwtException e) {
-            LOGGER.warn("Invalid JWT token: {}", e.getMessage());
+            log.warn("Invalid JWT token: {}", e.getMessage());
             return ResponseEntity.badRequest().build();
         }
 
-        Optional<User> optionalUser = isNumeric(identifier)
-            ? repository.findByPhoneNumber(Long.parseLong(identifier))
-            : repository.findByEmail(identifier);
+        Optional<User> optionalUser = repository.findByIdentity(identifier);
 
         return optionalUser
             .map(AuthMapper.MAPPER::userToUserResponse)
@@ -80,9 +78,5 @@ public class AuthController {
         } catch(JwtException e) {
             return ResponseEntity.badRequest().build();
         }
-    }
-
-    public boolean isNumeric(String str) {
-        return str != null && str.matches("\\d+");
     }
 }

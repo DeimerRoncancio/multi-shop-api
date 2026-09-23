@@ -29,7 +29,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
-    private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+    private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
     private final AuthenticationManager authManager;
 
     public JwtAuthenticationFilter(AuthenticationManager authManager) {
@@ -43,11 +45,11 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         String password = null;
 
         try {
-            LoginAccountDTO credentials = new ObjectMapper().readValue(request.getInputStream(), LoginAccountDTO.class);
+            LoginAccountDTO credentials = MAPPER.readValue(request.getInputStream(), LoginAccountDTO.class);
             identifier = credentials.identifier();
             password = credentials.password();
         } catch(IOException e) {
-            logger.warn("Exception by bringing user: {}", String.valueOf(e));
+            log.warn("Exception by bringing user: {}", String.valueOf(e));
         }
         
         return authManager.authenticate(new UsernamePasswordAuthenticationToken(
@@ -69,7 +71,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         body.put("token", token);
     
         response.addHeader(HEADER_AUTHORIZATION, PREFIX_TOKEN + token);
-        response.getWriter().write(new ObjectMapper().writeValueAsString(body));
+        response.getWriter().write(MAPPER.writeValueAsString(body));
         response.setContentType(CONTENT_TYPE);
         response.setStatus(200);
     }
@@ -81,7 +83,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         body.put("message", "Error en la autenticación. Usuario o contraseña incorrectos.");
         body.put("error", failed.getMessage());
 
-        response.getWriter().write(new ObjectMapper().writeValueAsString(body));
+        response.getWriter().write(MAPPER.writeValueAsString(body));
         response.setContentType(CONTENT_TYPE);
         response.setStatus(401);
     }
@@ -98,10 +100,6 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
     public Claims getRoles(Authentication authResult) throws IOException {
         Collection<? extends GrantedAuthority> roles = authResult.getAuthorities();
-        return Jwts.claims().add("authorities", new ObjectMapper().writeValueAsString(roles)).build();
-    }
-
-    public boolean isNumeric(String str) {
-        return str != null && str.matches("\\d+");
+        return Jwts.claims().add("authorities", MAPPER.writeValueAsString(roles)).build();
     }
 }

@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class ProductServiceImpl implements ProductService {
-    private final Logger logger = LoggerFactory.getLogger(ProductServiceImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(ProductServiceImpl.class);
     private final ProductRepository repository;
     private final ProductCategoryService categoryService;
     private final ImageService imageService;
@@ -238,7 +238,7 @@ public class ProductServiceImpl implements ProductService {
             transactionalImages.deleteOnRollback(image);
             return image;
         } catch (IOException e) {
-            logger.warn("Exception trying add image: {}", String.valueOf(e));
+            log.warn("Exception trying add image: {}", String.valueOf(e));
             throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "The image could not be uploaded");
         }
     }

@@ -31,6 +31,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 public class JwtValidationFilter extends BasicAuthenticationFilter {
+    private static final ObjectMapper MAPPER = new ObjectMapper()
+        .addMixIn(SimpleGrantedAuthority.class, SimpleGrantedAuthorityCreator.class);
+
     public JwtValidationFilter(AuthenticationManager authenticationManager) {
         super(authenticationManager);
     }
@@ -63,7 +66,7 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
             body.put("error", e.getMessage());
             body.put("message", "El token es invalido");
 
-            response.getWriter().write(new ObjectMapper().writeValueAsString(body));
+            response.getWriter().write(MAPPER.writeValueAsString(body));
             response.setContentType(CONTENT_TYPE);
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
         }
@@ -80,8 +83,8 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
 
     public Collection<? extends GrantedAuthority> getAuthorities(Object claimAuthorities) 
     throws JsonMappingException, JsonProcessingException {
-        return Arrays.asList(new ObjectMapper()
-            .addMixIn(SimpleGrantedAuthority.class, SimpleGrantedAuthorityCreator.class)
-            .readValue(claimAuthorities.toString(),SimpleGrantedAuthority[].class));
+        return Arrays.asList(
+            MAPPER.readValue(claimAuthorities.toString(), SimpleGrantedAuthority[].class)
+        );
     }
 }

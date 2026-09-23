@@ -1,8 +1,8 @@
 package com.multi.shop.api.multi_shop_api.payments.entities;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
 import org.hibernate.annotations.UuidGenerator;
 
@@ -11,10 +11,9 @@ import org.hibernate.annotations.UuidGenerator;
 public class Guest {
     @Id
     @UuidGenerator
-    @JoinColumn(name = "id", updatable = false, nullable = false)
+    @Column(name = "id", updatable = false, nullable = false)
     private String id;
     private String userNames;
-    @JoinColumn(name = "userEmail")
     private String userEmail;
     private String userPhone;
 

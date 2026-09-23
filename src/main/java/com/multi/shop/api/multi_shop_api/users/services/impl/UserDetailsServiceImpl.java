@@ -40,13 +40,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
     
     public UserInfo getUserInfo(String identifier) {
-        Optional<User> optionalUser;
-        
-        if (isNumeric(identifier)) {
-            optionalUser = repository.findByPhoneNumber(Long.parseLong(identifier));
-        } else {
-            optionalUser = repository.findByEmail(identifier);
-        }
+        Optional<User> optionalUser = repository.findByIdentity(identifier);
         
         if (optionalUser.isEmpty())
             throw new UsernameNotFoundException(" ");
@@ -58,9 +52,5 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         return user.getRoles().stream()
             .map(role -> new SimpleGrantedAuthority(role.getRole()))
             .collect(Collectors.toList());
-    }
-
-    public boolean isNumeric(String str) {
-        return str != null && str.matches("\\d+");
     }
 }

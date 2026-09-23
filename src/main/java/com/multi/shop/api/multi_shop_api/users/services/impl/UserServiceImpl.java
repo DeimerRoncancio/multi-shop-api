@@ -33,7 +33,7 @@ import java.util.*;
 
 @Service
 public class UserServiceImpl implements UserService {
-    private final Logger LOGGER = LoggerFactory.getLogger(UserServiceImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
 
     private final UserRepository repository;
     private final RoleRepository roleRepository;
@@ -203,7 +203,7 @@ public class UserServiceImpl implements UserService {
 
     public Image uploadProfileImage(MultipartFile file) {
         if (file == null || file.isEmpty()) {
-            LOGGER.warn("File is null or empty");
+            log.warn("File is null or empty");
             return null;
         }
 
@@ -212,7 +212,7 @@ public class UserServiceImpl implements UserService {
             transactionalImages.deleteOnRollback(image);
             return image;
         } catch (IOException e) {
-            LOGGER.error("Exception to try upload image: {}", String.valueOf(e));
+            log.error("Exception to try upload image: {}", String.valueOf(e));
             return null;
         }
     }

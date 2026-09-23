@@ -11,7 +11,7 @@ import java.io.IOException;
 
 @Component
 public class TransactionalImages {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TransactionalImages.class);
+    private static final Logger log = LoggerFactory.getLogger(TransactionalImages.class);
 
     private final ImageService imageService;
 
@@ -50,7 +50,7 @@ public class TransactionalImages {
         try {
             imageService.deleteImage(image);
         } catch (IOException | RuntimeException exception) {
-            LOGGER.warn("Exception trying to delete image {}: {}", image.getImageId(), exception.getMessage());
+            log.warn("Exception trying to delete image {}: {}", image.getImageId(), exception.getMessage());
         }
     }
 }

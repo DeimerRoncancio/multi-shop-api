@@ -12,7 +12,7 @@ import java.util.List;
 public class Customer {
     @Id
     @UuidGenerator
-    @JoinColumn(name = "id", updatable = false, nullable = false)
+    @Column(name = "id", updatable = false, nullable = false)
     private String id;
 
     @OneToOne(cascade = CascadeType.ALL)

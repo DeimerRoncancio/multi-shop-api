@@ -9,7 +9,7 @@ import org.hibernate.annotations.UuidGenerator;
 public class ProductItem {
     @Id
     @UuidGenerator
-    @JoinColumn(name = "id", updatable = false, nullable = false)
+    @Column(name = "id", updatable = false, nullable = false)
     String id;
 
     @ManyToOne
