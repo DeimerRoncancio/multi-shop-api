@@ -8,7 +8,7 @@ import com.multi.shop.api.multi_shop_api.products.entities.Product;
 import com.stripe.Stripe;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.net.Webhook;
-import java.util.Date;
+import java.time.Instant;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -50,7 +50,7 @@ class StripeWebhookServiceImplTest {
         when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
 
         sendWebhook("checkout.session.completed", "paid", 7_600_000L);
-        Date approvedAt = transaction.getTransactionDate();
+        Instant approvedAt = transaction.getTransactionDate();
         sendWebhook("checkout.session.completed", "paid", 7_600_000L);
 
         assertThat(transaction.getStatus()).isEqualTo(TransactionStatus.APPROVED);
@@ -60,7 +60,7 @@ class StripeWebhookServiceImplTest {
     @Test
     void approvingAfterACancelledAttemptRefreshesTheDate() throws Exception {
         Transaction transaction = processingTransaction();
-        Date cancelledAt = new Date(0);
+        Instant cancelledAt = Instant.EPOCH;
         transaction.setTransactionDate(cancelledAt);
         when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
 
@@ -73,7 +73,7 @@ class StripeWebhookServiceImplTest {
     @Test
     void cancellingAgainAfterARetryRefreshesTheDate() throws Exception {
         Transaction transaction = processingTransaction();
-        Date firstCancelAt = new Date(0);
+        Instant firstCancelAt = Instant.EPOCH;
         transaction.setTransactionDate(firstCancelAt);
         when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
 
@@ -89,7 +89,7 @@ class StripeWebhookServiceImplTest {
         when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
 
         sendWebhook("checkout.session.expired", "unpaid", 7_600_000L);
-        Date rejectedAt = transaction.getTransactionDate();
+        Instant rejectedAt = transaction.getTransactionDate();
         sendWebhook("checkout.session.expired", "unpaid", 7_600_000L);
 
         assertThat(transaction.getTransactionDate()).isSameAs(rejectedAt);

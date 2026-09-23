@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -49,6 +50,7 @@ public class PaymentsServiceImpl implements PaymentService {
 
         replaceItems(transaction, dto.productItems());
         transaction.setStatus(TransactionStatus.PENDING);
+        transaction.setCreatedAt(Instant.now());
         repository.save(transaction);
         return new TransactionAccessDTO(transaction.getId(), accessToken);
     }

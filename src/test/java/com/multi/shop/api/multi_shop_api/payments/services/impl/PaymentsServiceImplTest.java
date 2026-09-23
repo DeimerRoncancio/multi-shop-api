@@ -65,7 +65,7 @@ class PaymentsServiceImplTest {
         when(productRepository.findById("product-id")).thenReturn(Optional.of(new Product()));
 
         TransactionAccessDTO access = service.createTransaction(
-            new NewTransactionDTO(List.of(new ProductItemDTO("product-id", 1)), "pending")
+            new NewTransactionDTO(List.of(new ProductItemDTO("product-id", 1)))
         );
 
         assertThat(access.transactionId()).isEqualTo("transaction-id");
@@ -73,6 +73,7 @@ class PaymentsServiceImplTest {
         verify(repository).save(org.mockito.ArgumentMatchers.argThat(transaction ->
             transaction.getCheckoutAccessTokenDigest() != null
                 && !transaction.getCheckoutAccessTokenDigest().equals(access.checkoutAccessToken())
+                && transaction.getCreatedAt() != null
         ));
     }
 

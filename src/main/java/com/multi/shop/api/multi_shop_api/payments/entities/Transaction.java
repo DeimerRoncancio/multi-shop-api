@@ -5,8 +5,8 @@ import com.multi.shop.api.multi_shop_api.products.entities.Product;
 import jakarta.persistence.*;
 import org.hibernate.annotations.UuidGenerator;
 
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -17,7 +17,13 @@ public class Transaction {
     @UuidGenerator
     @JoinColumn(name = "id", updatable = false, nullable = false)
     private String id;
-    private Date transactionDate;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @Column(name = "transaction_date")
+    private Instant transactionDate;
+
     private Long totalPrice;
     @Enumerated(EnumType.STRING)
     private TransactionStatus status;
@@ -42,7 +48,7 @@ public class Transaction {
         this.productItems = new ArrayList<>();
     }
 
-    public Transaction(String id, Date transactionDate, Long totalPrice, TransactionStatus status) {
+    public Transaction(String id, Instant transactionDate, Long totalPrice, TransactionStatus status) {
         this.id = id;
         this.transactionDate = transactionDate;
         this.totalPrice = totalPrice;
@@ -57,11 +63,19 @@ public class Transaction {
         this.id = id;
     }
 
-    public Date getTransactionDate() {
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Instant getTransactionDate() {
         return transactionDate;
     }
 
-    public void setTransactionDate(Date transactionDate) {
+    public void setTransactionDate(Instant transactionDate) {
         this.transactionDate = transactionDate;
     }
 

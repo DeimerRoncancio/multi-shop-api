@@ -8,6 +8,5 @@ import java.util.List;
 public record NewTransactionDTO(
     @NotEmpty
     @Valid
-    List<ProductItemDTO> productItems,
-    String status
+    List<ProductItemDTO> productItems
 ) {}

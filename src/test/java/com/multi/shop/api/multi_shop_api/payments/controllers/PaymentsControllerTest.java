@@ -142,7 +142,7 @@ class PaymentsControllerTest {
     @Test
     void refusesATransactionWithoutProducts() throws Exception {
         mockMvc.perform(post("/app/payments/create-transaction")
-                .contentType("application/json").content("{\"productItems\": [], \"status\": \"pending\"}"))
+                .contentType("application/json").content("{\"productItems\": []}"))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.productItems").exists());
 
@@ -153,7 +153,7 @@ class PaymentsControllerTest {
     void refusesAQuantityBelowOne() throws Exception {
         mockMvc.perform(post("/app/payments/create-transaction")
                 .contentType("application/json")
-                .content("{\"productItems\": [{\"id\": \"product-id\", \"quantity\": 0}], \"status\": \"pending\"}"))
+                .content("{\"productItems\": [{\"id\": \"product-id\", \"quantity\": 0}]}"))
             .andExpect(status().isBadRequest());
 
         verify(service, never()).createTransaction(any());

@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.Optional;
 
 @Service
@@ -74,7 +74,7 @@ public class StripeWebhookServiceImpl implements StripeWebhookService {
             }
 
             transaction.setStatus(TransactionStatus.APPROVED);
-            transaction.setTransactionDate(new Date());
+            transaction.setTransactionDate(Instant.now());
         });
     }
 
@@ -85,7 +85,7 @@ public class StripeWebhookServiceImpl implements StripeWebhookService {
             if (transaction.getStripeSessionId() != null && !transaction.getStripeSessionId().equals(session.getId())) return;
 
             transaction.setStatus(TransactionStatus.REJECTED);
-            transaction.setTransactionDate(new Date());
+            transaction.setTransactionDate(Instant.now());
         });
     }
 
