@@ -2,6 +2,7 @@ package com.multi.shop.api.multi_shop_api.products.services.impl;
 
 import com.multi.shop.api.multi_shop_api.products.dtos.ProductCategoryDTO;
 import com.multi.shop.api.multi_shop_api.products.dtos.CategoryResponseDTO;
+import com.multi.shop.api.multi_shop_api.images.services.ImageNames;
 import com.multi.shop.api.multi_shop_api.products.dtos.ProductItemDTO;
 import com.multi.shop.api.multi_shop_api.products.services.ProductCategoryService;
 import org.springframework.data.domain.Page;
@@ -40,7 +41,7 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
                     product.getId(),
                     product.getProductName(),
                     product.getPrice(),
-                    product.getProductImages().get(0))
+                    ImageNames.main(product.getProductImages()))
                 ).toList();
 
             return categoryMapper.categoryToResponseDTO(category, items);
@@ -58,7 +59,9 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
                     product.getId(),
                     product.getProductName(),
                     product.getPrice(),
-                    product.getProductImages().get(0)))
+                    // main() = la imagen 1, o null si no hay. get(0) devolvía
+                    // cualquiera y reventaba con productos sin fotos.
+                    ImageNames.main(product.getProductImages())))
                 .toList();
 
             return categoryMapper.categoryToResponseDTO(category, items);

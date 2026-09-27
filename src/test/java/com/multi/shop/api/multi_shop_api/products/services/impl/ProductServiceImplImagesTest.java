@@ -122,6 +122,58 @@ class ProductServiceImplImagesTest {
         assertThat(currentImages).containsExactly(current);
     }
 
+    @Test
+    void renombraLasImagenesConElNombreDelProductoYLasNumeraDesdeUno() {
+        Product product = new Product();
+        product.setProductName("Nevecón Moderno");
+        product.getProductImages().addAll(List.of(
+            image("IMG_2031.jpg"),
+            image("captura.PNG")));
+
+        service.renameImages(product);
+
+        assertThat(product.getProductImages())
+            .extracting(Image::getName)
+            .containsExactly("nevecon-moderno-1.jpg", "nevecon-moderno-2.png");
+    }
+
+    @Test
+    void renumeraSinDejarHuecosCuandoSeBorraUnaImagen() {
+        Product product = new Product();
+        product.setProductName("Arrocera");
+        product.getProductImages().addAll(List.of(
+            image("arrocera-3.webp"),
+            image("arrocera-1.webp")));
+
+        service.renameImages(product);
+
+        assertThat(product.getProductImages())
+            .extracting(Image::getName)
+            .containsExactly("arrocera-1.webp", "arrocera-2.webp");
+    }
+
+    @Test
+    void lasImagenesNuevasQuedanDespuesDeLasQueYaEstaban() {
+        Product product = new Product();
+        product.setProductName("Arrocera");
+        product.getProductImages().addAll(List.of(
+            image("arrocera-1.webp"),
+            image("arrocera-2.webp"),
+            image("recien-subida.jpg")));
+
+        service.renameImages(product);
+
+        assertThat(product.getProductImages())
+            .extracting(Image::getName)
+            .containsExactly("arrocera-1.webp", "arrocera-2.webp", "arrocera-3.jpg");
+    }
+
+    private static Image image(String name) {
+        Image image = new Image();
+        image.setName(name);
+        return image;
+    }
+
     private static MultipartFile file(String name, byte[] content) {
         return new MockMultipartFile("images", name, "image/png", content);
     }

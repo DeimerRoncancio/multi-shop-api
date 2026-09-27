@@ -1,5 +1,6 @@
 package com.multi.shop.api.multi_shop_api.products.services.impl;
 
+import com.multi.shop.api.multi_shop_api.images.services.ImageNames;
 import com.multi.shop.api.multi_shop_api.images.services.ImageService;
 import com.multi.shop.api.multi_shop_api.images.services.TransactionalImages;
 import com.multi.shop.api.multi_shop_api.products.dtos.ProductDTO;
@@ -79,6 +80,7 @@ public class ProductServiceImpl implements ProductService {
         product.setCategories(categoryList);
 
         product.getProductImages().addAll(uploadImages(dto.images()));
+        renameImages(product);
 
         repository.save(product);
         return productMapper.productToProductDTO(product);
@@ -101,6 +103,7 @@ public class ProductServiceImpl implements ProductService {
             productDb.setCategories(productCategories);
             productDb.setProductImages(productImages);
             productMapper.toUpdateProduct(dto, productDb);
+            renameImages(productDb);
 
             repository.save(productDb);
             return productMapper.productToProductDTO(productDb);
@@ -225,6 +228,19 @@ public class ProductServiceImpl implements ProductService {
 
     public void deleteImage(Image image) {
         transactionalImages.deleteAfterCommit(image);
+    }
+
+    public void renameImages(Product product) {
+        List<Image> ordered = ImageNames.sorted(product.getProductImages());
+
+        for (int index = 0; index < ordered.size(); index++) {
+            Image image = ordered.get(index);
+            image.setName(ImageNames.build(product.getProductName(), index + 1, image.getName()));
+        }
+
+        List<Image> images = product.getProductImages();
+        images.clear();
+        images.addAll(ordered);
     }
 
     public List<Image> uploadImages(List<MultipartFile> files) {
