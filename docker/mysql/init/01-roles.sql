@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS roles (
+    id VARCHAR(255) NOT NULL PRIMARY KEY,
+    role VARCHAR(255) UNIQUE
+);
+
+INSERT IGNORE INTO roles (id, role) VALUES
+    (UUID(), 'ROLE_USER'),
+    (UUID(), 'ROLE_ADMIN');

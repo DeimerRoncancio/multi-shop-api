@@ -1,0 +1,40 @@
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: multishop
+      MYSQL_USER: multishop
+      MYSQL_PASSWORD: multishop
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3307:3306"
+    volumes:
+      - db-data:/var/lib/mysql
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-umultishop", "-pmultishop"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  api:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      PORT: 8080
+      DATABASE_NAME: multishop
+      DATABASE_URL: jdbc:mysql://db:3306/multishop
+      DATABASE_USERNAME: multishop
+      DATABASE_PASSWORD: multishop
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      STRIPE_SUCCESS_URL: ${STRIPE_SUCCESS_URL:-http://localhost:5173/cart/success}
+      STRIPE_CANCEL_URL: ${STRIPE_CANCEL_URL:-http://localhost:5173/cart/cancel}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:5174}
+    ports:
+      - "8080:8080"
+
+volumes:
+  db-data:

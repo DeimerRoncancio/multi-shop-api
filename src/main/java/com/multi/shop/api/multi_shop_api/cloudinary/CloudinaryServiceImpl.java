@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -18,11 +19,15 @@ import com.cloudinary.utils.ObjectUtils;
 public class CloudinaryServiceImpl implements CloudinaryService {
     private final Cloudinary cloudinary;
 
-    public CloudinaryServiceImpl() {
+    public CloudinaryServiceImpl(
+        @Value("${cloudinary.cloud-name}") String cloudName,
+        @Value("${cloudinary.api-key}") String apiKey,
+        @Value("${cloudinary.api-secret}") String apiSecret
+    ) {
         Map<String, String> valuesMap = new HashMap<> ();
-        valuesMap.put("cloud_name", "ddyibxicu");
-        valuesMap.put("api_key", "136526763544122");
-        valuesMap.put("api_secret", "bDgoglF6cLqEvwbSCsdJO47Ww1I");
+        valuesMap.put("cloud_name", cloudName);
+        valuesMap.put("api_key", apiKey);
+        valuesMap.put("api_secret", apiSecret);
         cloudinary = new Cloudinary(valuesMap);
     }
 

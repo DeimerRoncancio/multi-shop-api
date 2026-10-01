@@ -40,6 +40,7 @@ public class SpringSecurityConfig {
     SecurityFilterChain filterChain(HttpSecurity http, CorsConfigurationSource corsConfigurationSource) throws Exception {
         return http.authorizeHttpRequests(authz -> authz
                         .requestMatchers("/error").permitAll()
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers(HttpMethod.GET, "/app/categories", "/app/categories/{id}").permitAll()
                         .requestMatchers(HttpMethod.GET, "/app/products", "/app/products/{id}").permitAll()
                         .requestMatchers(HttpMethod.GET, "/app/users/token-validation").permitAll()
