@@ -1,0 +1,43 @@
+{
+  "content" : [ {
+    "id" : "<uuid>",
+    "name" : "Bruno",
+    "imageUser" : {
+      "name" : "nueva.png",
+      "imageUrl" : "http://res.cloudinary.com/prueba/image/upload/foto-6.png",
+      "imageId" : "foto-6"
+    },
+    "secondName" : null,
+    "lastnames" : "Contrato",
+    "phoneNumber" : 3009990001,
+    "gender" : null,
+    "email" : "bruno.contrato@example.com",
+    "admin" : false,
+    "enabled" : true
+  } ],
+  "pageable" : {
+    "pageNumber" : 0,
+    "pageSize" : 10,
+    "sort" : {
+      "empty" : true,
+      "unsorted" : true,
+      "sorted" : false
+    },
+    "offset" : 0,
+    "unpaged" : false,
+    "paged" : true
+  },
+  "last" : true,
+  "totalElements" : 1,
+  "totalPages" : 1,
+  "size" : 10,
+  "number" : 0,
+  "sort" : {
+    "empty" : true,
+    "unsorted" : true,
+    "sorted" : false
+  },
+  "first" : true,
+  "numberOfElements" : 1,
+  "empty" : false
+}

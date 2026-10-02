@@ -1,0 +1,224 @@
+package com.multi.shop.api.multi_shop_api.transactions.services.impl;
+
+import com.multi.shop.api.multi_shop_api.transactions.entities.ProductItem;
+import com.multi.shop.api.multi_shop_api.transactions.entities.Transaction;
+import com.multi.shop.api.multi_shop_api.transactions.enums.TransactionStatus;
+import com.multi.shop.api.multi_shop_api.transactions.repositories.PaymentsRepository;
+import com.multi.shop.api.multi_shop_api.catalog.api.CatalogApi;
+import com.multi.shop.api.multi_shop_api.catalog.api.CatalogProduct;
+import com.stripe.Stripe;
+import com.stripe.exception.SignatureVerificationException;
+import com.stripe.net.Webhook;
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
+class StripeWebhookServiceImplTest {
+    private static final String WEBHOOK_SECRET = "whsec_test";
+
+    @Mock
+    private PaymentsRepository repository;
+
+    @Mock
+    private CatalogApi catalogApi;
+
+    private final Map<String, CatalogProduct> products = new HashMap<>();
+
+    @BeforeEach
+    void catalogKnowsTheTestProducts() {
+        lenient().when(catalogApi.findProducts(any())).thenReturn(products);
+    }
+
+    @InjectMocks
+    private StripeWebhookServiceImpl service;
+
+    @Test
+    void approvesTheTransactionWhenStripeConfirmsThePayment() throws Exception {
+        Transaction transaction = processingTransaction();
+        when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
+
+        sendWebhook("checkout.session.completed", "paid", 7_600_000L);
+
+        assertThat(transaction.getStatus()).isEqualTo(TransactionStatus.APPROVED);
+        assertThat(transaction.getTransactionDate()).isNotNull();
+    }
+
+    @Test
+    void approvingTheSamePaymentTwiceKeepsItApproved() throws Exception {
+        Transaction transaction = processingTransaction();
+        when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
+
+        sendWebhook("checkout.session.completed", "paid", 7_600_000L);
+        Instant approvedAt = transaction.getTransactionDate();
+        sendWebhook("checkout.session.completed", "paid", 7_600_000L);
+
+        assertThat(transaction.getStatus()).isEqualTo(TransactionStatus.APPROVED);
+        assertThat(transaction.getTransactionDate()).isSameAs(approvedAt);
+    }
+
+    @Test
+    void approvingAfterACancelledAttemptRefreshesTheDate() throws Exception {
+        Transaction transaction = processingTransaction();
+        Instant cancelledAt = Instant.EPOCH;
+        transaction.setTransactionDate(cancelledAt);
+        when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
+
+        sendWebhook("checkout.session.completed", "paid", 7_600_000L);
+
+        assertThat(transaction.getStatus()).isEqualTo(TransactionStatus.APPROVED);
+        assertThat(transaction.getTransactionDate()).isAfter(cancelledAt);
+    }
+
+    @Test
+    void cancellingAgainAfterARetryRefreshesTheDate() throws Exception {
+        Transaction transaction = processingTransaction();
+        Instant firstCancelAt = Instant.EPOCH;
+        transaction.setTransactionDate(firstCancelAt);
+        when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
+
+        sendWebhook("checkout.session.expired", "unpaid", 7_600_000L);
+
+        assertThat(transaction.getStatus()).isEqualTo(TransactionStatus.REJECTED);
+        assertThat(transaction.getTransactionDate()).isAfter(firstCancelAt);
+    }
+
+    @Test
+    void aRepeatedExpirationDoesNotChangeTheRejectionDate() throws Exception {
+        Transaction transaction = processingTransaction();
+        when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
+
+        sendWebhook("checkout.session.expired", "unpaid", 7_600_000L);
+        Instant rejectedAt = transaction.getTransactionDate();
+        sendWebhook("checkout.session.expired", "unpaid", 7_600_000L);
+
+        assertThat(transaction.getTransactionDate()).isSameAs(rejectedAt);
+    }
+
+    @Test
+    void waitsWhenTheCheckoutIsCompletedButNotPaidYet() throws Exception {
+        Transaction transaction = processingTransaction();
+
+        sendWebhook("checkout.session.completed", "unpaid", 7_600_000L);
+
+        assertThat(transaction.getStatus()).isEqualTo(TransactionStatus.PROCESSING);
+        verify(repository, never()).findById(any());
+    }
+
+    @Test
+    void doesNotApproveWhenTheChargedAmountDiffersFromTheTransaction() throws Exception {
+        Transaction transaction = processingTransaction();
+        when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
+
+        sendWebhook("checkout.session.completed", "paid", 100L);
+
+        assertThat(transaction.getStatus()).isEqualTo(TransactionStatus.PROCESSING);
+    }
+
+    @Test
+    void rejectsTheTransactionWhenTheSessionExpires() throws Exception {
+        Transaction transaction = processingTransaction();
+        when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
+
+        sendWebhook("checkout.session.expired", "unpaid", 7_600_000L);
+
+        assertThat(transaction.getStatus()).isEqualTo(TransactionStatus.REJECTED);
+    }
+
+    @Test
+    void ignoresTheExpirationOfAnOldSessionWhenTheCustomerRetriedThePayment() throws Exception {
+        Transaction transaction = processingTransaction();
+        transaction.setStripeSessionId("cs_retry");
+        when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
+
+        sendWebhook("checkout.session.expired", "unpaid", 7_600_000L);
+
+        assertThat(transaction.getStatus()).isEqualTo(TransactionStatus.PROCESSING);
+    }
+
+    @Test
+    void aLateFailureDoesNotUndoAnApprovedPayment() throws Exception {
+        Transaction transaction = processingTransaction();
+        transaction.setStatus(TransactionStatus.APPROVED);
+        when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
+
+        sendWebhook("checkout.session.async_payment_failed", "unpaid", 7_600_000L);
+
+        assertThat(transaction.getStatus()).isEqualTo(TransactionStatus.APPROVED);
+    }
+
+    @Test
+    void refusesAWebhookWithAnInvalidSignature() {
+        String payload = sessionEvent("checkout.session.completed", "paid", 7_600_000L);
+
+        assertThatThrownBy(() -> service.webhookEvent(payload, sign(payload, "other-secret"), WEBHOOK_SECRET))
+            .isInstanceOf(SignatureVerificationException.class);
+        verify(repository, never()).findById(any());
+    }
+
+    private Transaction processingTransaction() {
+        Transaction transaction = new Transaction();
+        transaction.setId("transaction-id");
+        transaction.setStatus(TransactionStatus.PROCESSING);
+        transaction.setStripeSessionId("cs_test");
+        transaction.getProductItems().add(productItem("Hamburguesa", "Clásica", 38000L, 2));
+        return transaction;
+    }
+
+    private void sendWebhook(String type, String paymentStatus, long amountTotal) throws Exception {
+        String payload = sessionEvent(type, paymentStatus, amountTotal);
+        service.webhookEvent(payload, sign(payload, WEBHOOK_SECRET), WEBHOOK_SECRET);
+    }
+
+    private String sessionEvent(String type, String paymentStatus, long amountTotal) {
+        return """
+            {
+              "id": "evt_test",
+              "object": "event",
+              "api_version": "%s",
+              "type": "%s",
+              "data": {
+                "object": {
+                  "id": "cs_test",
+                  "object": "checkout.session",
+                  "client_reference_id": "transaction-id",
+                  "metadata": {"transactionId": "transaction-id"},
+                  "payment_status": "%s",
+                  "amount_total": %d,
+                  "currency": "cop"
+                }
+              }
+            }
+            """.formatted(Stripe.API_VERSION, type, paymentStatus, amountTotal);
+    }
+
+    private String sign(String payload, String secret) throws Exception {
+        long timestamp = Webhook.Util.getTimeNow();
+        String signature = Webhook.Util.computeHmacSha256(secret, timestamp + "." + payload);
+        return "t=" + timestamp + ",v1=" + signature;
+    }
+
+    private ProductItem productItem(String name, String description, Long price, int quantity) {
+        String id = "product-" + name;
+        products.put(id, new CatalogProduct(id, name, description, price));
+        ProductItem item = new ProductItem();
+        item.setProductId(id);
+        item.setQuantity(quantity);
+        return item;
+    }
+}

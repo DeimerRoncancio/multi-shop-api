@@ -1,0 +1,4 @@
+{
+  "transactionId" : "<uuid>",
+  "checkoutAccessToken" : "<token>"
+}

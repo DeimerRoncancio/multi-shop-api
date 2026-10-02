@@ -1,13 +1,12 @@
 package com.multi.shop.api.multi_shop_api;
 
-import com.multi.shop.api.multi_shop_api.cloudinary.CloudinaryService;
+import com.multi.shop.api.multi_shop_api.media.cloudinary.CloudinaryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.testcontainers.containers.MySQLContainer;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.Map;
@@ -36,9 +35,12 @@ import static org.mockito.Mockito.when;
 @Testcontainers(disabledWithoutDocker = true)
 public abstract class IntegrationTestBase {
 
-    @Container
     @ServiceConnection
     static final MySQLContainer<?> MYSQL = new MySQLContainer<>("mysql:8.0");
+
+    static {
+        MYSQL.start();
+    }
 
     @MockitoBean
     protected CloudinaryService cloudinaryService;

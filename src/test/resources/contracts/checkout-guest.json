@@ -1,0 +1,25 @@
+{
+  "transactionId" : "<uuid>",
+  "status" : "PENDING",
+  "totalPrice" : 110000,
+  "customer" : {
+    "userNames" : "Invitada Contrato",
+    "userEmail" : "invitada@example.com",
+    "userPhone" : "3001112233"
+  },
+  "addresses" : [ ],
+  "selectedAddress" : {
+    "addressName" : "Casa",
+    "address" : "Calle 1 # 2-3",
+    "city" : "Bogotá",
+    "state" : "Cundinamarca",
+    "country" : "Colombia",
+    "addressNumber" : "101"
+  },
+  "items" : [ {
+    "id" : "<uuid>",
+    "productName" : "Camisa Contrato",
+    "price" : 55000,
+    "quantity" : 2
+  } ]
+}

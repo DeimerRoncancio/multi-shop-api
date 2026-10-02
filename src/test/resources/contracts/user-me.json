@@ -1,0 +1,16 @@
+{
+  "id" : "<uuid>",
+  "name" : "Bruno",
+  "imageUser" : {
+    "name" : "perfil.png",
+    "imageUrl" : "http://res.cloudinary.com/prueba/image/upload/foto-5.png",
+    "imageId" : "foto-5"
+  },
+  "secondName" : null,
+  "lastnames" : "Contrato",
+  "phoneNumber" : 3009990001,
+  "gender" : null,
+  "email" : "bruno.contrato@example.com",
+  "admin" : false,
+  "enabled" : true
+}

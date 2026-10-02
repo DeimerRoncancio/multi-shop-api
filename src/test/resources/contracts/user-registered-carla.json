@@ -1,0 +1,16 @@
+{
+  "name" : "Carla",
+  "imageUser" : {
+    "name" : "perfil.png",
+    "imageUrl" : "http://res.cloudinary.com/prueba/image/upload/foto-8.png",
+    "imageId" : "foto-8"
+  },
+  "secondName" : null,
+  "lastnames" : "Contrato",
+  "phoneNumber" : 3009990002,
+  "gender" : null,
+  "email" : "carla.contrato@example.com",
+  "roles" : [ {
+    "role" : "ROLE_USER"
+  } ]
+}

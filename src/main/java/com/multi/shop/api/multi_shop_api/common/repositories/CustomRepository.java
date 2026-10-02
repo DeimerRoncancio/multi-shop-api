@@ -1,7 +1,5 @@
 package com.multi.shop.api.multi_shop_api.common.repositories;
 
-import com.multi.shop.api.multi_shop_api.users.entities.User;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 import jakarta.persistence.EntityManager;

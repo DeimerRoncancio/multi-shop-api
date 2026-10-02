@@ -1,0 +1,18 @@
+{
+  "productName" : "Camisa Contrato",
+  "description" : "Camisa de algodón",
+  "price" : 55000,
+  "productImages" : [ {
+    "name" : "camisa-contrato-1.png",
+    "imageUrl" : "http://res.cloudinary.com/prueba/image/upload/foto-3.png",
+    "imageId" : "foto-3"
+  }, {
+    "name" : "camisa-contrato-2.png",
+    "imageUrl" : "http://res.cloudinary.com/prueba/image/upload/foto-4.png",
+    "imageId" : "foto-4"
+  } ],
+  "categories" : [ {
+    "categoryName" : "Contrato Ropa"
+  } ],
+  "variants" : [ ]
+}
