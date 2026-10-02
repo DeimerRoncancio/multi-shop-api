@@ -223,6 +223,8 @@ class StripeCheckoutServiceImplTest {
         products.put(id, new CatalogProduct(id, name, description, price));
         ProductItem item = new ProductItem();
         item.setProductId(id);
+        item.setProductName(name);
+        item.setUnitPrice(price);
         item.setQuantity(quantity);
         return item;
     }

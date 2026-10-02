@@ -11,6 +11,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -81,6 +82,18 @@ class FrontendRoutesIntegrationTest extends IntegrationTestBase {
         mvc.perform(post("/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"identifier\":\"nadie@example.com\",\"password\":\"ClaveSegura123\"}"))
-            .andExpect(status().isUnauthorized());
+            .andExpect(status().isUnauthorized())
+            .andExpect(header().string("Content-Type", "application/json;charset=UTF-8"))
+            .andExpect(jsonPath("$.message").value("Error en la autenticación. Usuario o contraseña incorrectos."));
+    }
+
+    @Test
+    void invalidTokenMessageIsUtf8() throws Exception {
+        mvc.perform(get("/app/users/me")
+                .header("Authorization", "Bearer token.que.no.vale")
+                .header("Token", "token.que.no.vale"))
+            .andExpect(status().isUnauthorized())
+            .andExpect(header().string("Content-Type", "application/json;charset=UTF-8"))
+            .andExpect(jsonPath("$.message").value("El token es invalido"));
     }
 }

@@ -14,6 +14,12 @@ public class ProductItem {
     @Column(name = "product_id")
     private String productId;
 
+    @Column(name = "product_name")
+    private String productName;
+
+    @Column(name = "unit_price")
+    private Long unitPrice;
+
     @ManyToOne
     @JoinColumn(name = "transaction_id")
     private Transaction transaction;
@@ -26,6 +32,22 @@ public class ProductItem {
 
     public void setProductId(String productId) {
         this.productId = productId;
+    }
+
+    public String getProductName() {
+        return productName;
+    }
+
+    public void setProductName(String productName) {
+        this.productName = productName;
+    }
+
+    public Long getUnitPrice() {
+        return unitPrice;
+    }
+
+    public void setUnitPrice(Long unitPrice) {
+        this.unitPrice = unitPrice;
     }
 
     public Transaction getTransaction() {

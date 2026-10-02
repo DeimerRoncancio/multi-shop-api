@@ -2,6 +2,7 @@ package com.multi.shop.api.multi_shop_api.identity.security.filters;
 
 import static com.multi.shop.api.multi_shop_api.identity.security.JwtConfig.*;
 
+import java.nio.charset.StandardCharsets;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
@@ -66,8 +67,9 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
             body.put("error", e.getMessage());
             body.put("message", "El token es invalido");
 
-            response.getWriter().write(MAPPER.writeValueAsString(body));
             response.setContentType(CONTENT_TYPE);
+            response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+            response.getWriter().write(MAPPER.writeValueAsString(body));
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
         }
     }

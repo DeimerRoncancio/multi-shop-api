@@ -1,6 +1,5 @@
 package com.multi.shop.api.multi_shop_api.transactions.services.impl;
 
-import com.multi.shop.api.multi_shop_api.catalog.api.CatalogApi;
 import com.multi.shop.api.multi_shop_api.transactions.entities.Transaction;
 import com.multi.shop.api.multi_shop_api.transactions.enums.TransactionStatus;
 import com.multi.shop.api.multi_shop_api.transactions.repositories.PaymentsRepository;
@@ -25,11 +24,9 @@ public class StripeWebhookServiceImpl implements StripeWebhookService {
     private static final Logger log = LoggerFactory.getLogger(StripeWebhookServiceImpl.class);
 
     private final PaymentsRepository repository;
-    private final CatalogApi catalogApi;
 
-    public StripeWebhookServiceImpl(PaymentsRepository repository, CatalogApi catalogApi) {
+    public StripeWebhookServiceImpl(PaymentsRepository repository) {
         this.repository = repository;
-        this.catalogApi = catalogApi;
     }
 
     @Override
@@ -68,7 +65,7 @@ public class StripeWebhookServiceImpl implements StripeWebhookService {
         transactionOf(session).ifPresent(transaction -> {
             if (transaction.getStatus() == TransactionStatus.APPROVED) return;
 
-            long expectedAmount = transaction.payableAmountInCents(catalogApi.findProducts(transaction.productIds()));
+            long expectedAmount = transaction.payableAmountInCents();
 
             if (session.getAmountTotal() == null || session.getAmountTotal() != expectedAmount) {
                 log.warn("Stripe session {} charged {} but transaction {} expects {}",

@@ -8,7 +8,6 @@ import org.hibernate.annotations.UuidGenerator;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 
@@ -143,9 +142,11 @@ public class Transaction {
         this.productItems = productItems;
     }
 
-    public void addItem(String productId, int quantity) {
+    public void addItem(CatalogProduct product, int quantity) {
         ProductItem item = new ProductItem();
-        item.setProductId(productId);
+        item.setProductId(product.id());
+        item.setProductName(product.productName());
+        item.setUnitPrice(product.price());
         item.setTransaction(this);
         item.setQuantity(quantity);
         productItems.add(item);
@@ -159,27 +160,22 @@ public class Transaction {
             .toList();
     }
 
-    public Long calculateTotalPrice(Map<String, CatalogProduct> products) {
+    public Long calculateTotalPrice() {
         return productItems.stream()
-            .filter(item -> priceOf(item, products) != null)
-            .mapToLong(item -> priceOf(item, products) * item.getQuantity())
+            .filter(item -> item.getUnitPrice() != null)
+            .mapToLong(item -> item.getUnitPrice() * item.getQuantity())
             .sum();
     }
 
-    public Stream<ProductItem> payableItems(Map<String, CatalogProduct> products) {
+    public Stream<ProductItem> payableItems() {
         return productItems.stream()
-            .filter(item -> priceOf(item, products) != null)
+            .filter(item -> item.getUnitPrice() != null)
             .filter(item -> item.getQuantity() > 0);
     }
 
-    public long payableAmountInCents(Map<String, CatalogProduct> products) {
-        return payableItems(products)
-            .mapToLong(item -> priceOf(item, products) * 100 * item.getQuantity())
+    public long payableAmountInCents() {
+        return payableItems()
+            .mapToLong(item -> item.getUnitPrice() * 100 * item.getQuantity())
             .sum();
-    }
-
-    private static Long priceOf(ProductItem item, Map<String, CatalogProduct> products) {
-        CatalogProduct product = item.getProductId() == null ? null : products.get(item.getProductId());
-        return product == null ? null : product.price();
     }
 }

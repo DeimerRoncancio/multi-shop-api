@@ -157,6 +157,15 @@ class ApiContractIntegrationTest extends IntegrationTestBase {
         assertThat(jdbc.queryForObject("SELECT total_price FROM transactions WHERE id = ?", Long.class, userTransaction))
             .isEqualTo(165000L);
 
+        jdbc.update("UPDATE products SET price = 99000 WHERE id = ?", productId);
+        JsonNode frozen = mapper.readTree(send(get("/app/payments/checkout/" + userTransaction)
+            .header("X-Checkout-Access-Token", userAccessToken), null)
+            .andExpect(status().isOk()).andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8));
+        assertThat(frozen.get("totalPrice").asLong()).isEqualTo(165000L);
+        assertThat(frozen.get("items").get(0).get("price").asLong()).isEqualTo(55000L);
+        assertThat(frozen.get("items").get(0).get("productName").asText()).isEqualTo("Camisa Contrato");
+        jdbc.update("UPDATE products SET price = 55000 WHERE id = ?", productId);
+
         JsonNode quantity = mapper.readTree(send(get("/app/quantity"), adminToken).andExpect(status().isOk())
             .andReturn().getResponse().getContentAsString());
         assertThat(quantity.fieldNames()).toIterable().containsExactlyInAnyOrder("users", "products", "categories");

@@ -97,7 +97,7 @@ public class StripeCheckoutServiceImpl implements StripeCheckoutService {
 
     SessionCreateParams buildSessionParams(Transaction transaction) {
         Map<String, CatalogProduct> products = catalogApi.findProducts(transaction.productIds());
-        List<SessionCreateParams.LineItem> lineItems = transaction.payableItems(products)
+        List<SessionCreateParams.LineItem> lineItems = transaction.payableItems()
             .map(item -> toLineItem(item, products.get(item.getProductId())))
             .toList();
 
@@ -115,13 +115,13 @@ public class StripeCheckoutServiceImpl implements StripeCheckoutService {
     }
 
     private SessionCreateParams.LineItem toLineItem(ProductItem item, CatalogProduct product) {
-        String description = product.description() == null || product.description().isBlank()
-            ? product.productName()
+        String description = product == null || product.description() == null || product.description().isBlank()
+            ? item.getProductName()
             : product.description().trim();
 
         SessionCreateParams.LineItem.PriceData.ProductData productData = SessionCreateParams
             .LineItem.PriceData.ProductData.builder()
-            .setName(product.productName())
+            .setName(item.getProductName())
             .setDescription(description)
             .build();
 
@@ -129,7 +129,7 @@ public class StripeCheckoutServiceImpl implements StripeCheckoutService {
             .LineItem.PriceData.builder()
             .setCurrency(stripeCurrency)
             .setProductData(productData)
-            .setUnitAmount(product.price() * 100)
+            .setUnitAmount(item.getUnitPrice() * 100)
             .build();
 
         return SessionCreateParams.LineItem.builder()

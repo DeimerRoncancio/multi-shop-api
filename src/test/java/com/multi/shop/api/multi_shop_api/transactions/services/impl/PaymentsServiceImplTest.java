@@ -13,7 +13,6 @@ import com.multi.shop.api.multi_shop_api.transactions.entities.ShippingAddress;
 import com.multi.shop.api.multi_shop_api.transactions.entities.Transaction;
 import com.multi.shop.api.multi_shop_api.transactions.enums.TransactionStatus;
 import com.multi.shop.api.multi_shop_api.transactions.mappers.CheckoutMapper;
-import com.multi.shop.api.multi_shop_api.transactions.mappers.CheckoutItemMapper;
 import com.multi.shop.api.multi_shop_api.transactions.mappers.CheckoutMapperImpl;
 import com.multi.shop.api.multi_shop_api.transactions.mappers.CustomerSummaryMapper;
 import com.multi.shop.api.multi_shop_api.transactions.mappers.CustomerMapperImpl;
@@ -28,7 +27,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -62,7 +60,7 @@ class PaymentsServiceImplTest {
     void createService() {
         CheckoutMapper checkoutMapper = new CheckoutMapperImpl(
             new CustomerMapperImpl(), new TransactionMapperImpl(),
-            new CustomerSummaryMapper(identityApi), new CheckoutItemMapper(catalogApi)
+            new CustomerSummaryMapper(identityApi)
         );
         service = new PaymentsServiceImpl(repository, catalogApi, new CheckoutAccessToken(), checkoutMapper);
     }
@@ -102,10 +100,10 @@ class PaymentsServiceImplTest {
         address.setAddressNumber("3001234567");
         customer.getAddress().add(address);
 
-        when(catalogApi.findProducts(List.of("product-id"))).thenReturn(Map.of(
-            "product-id", new CatalogProduct("product-id", "Cafe", null, 25000L)));
         ProductItem productItem = new ProductItem();
         productItem.setProductId("product-id");
+        productItem.setProductName("Cafe");
+        productItem.setUnitPrice(25000L);
         productItem.setQuantity(2);
 
         Transaction transaction = new Transaction();

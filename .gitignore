@@ -35,3 +35,4 @@ build/
 
 ### CodeGraph ###
 .codegraph/
+api-gateway/target/

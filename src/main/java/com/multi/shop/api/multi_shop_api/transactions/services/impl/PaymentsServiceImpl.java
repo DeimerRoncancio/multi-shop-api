@@ -18,9 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -78,7 +76,6 @@ public class PaymentsServiceImpl implements PaymentService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Transaction needs at least one product");
 
         transaction.getProductItems().clear();
-        Map<String, CatalogProduct> catalogProducts = new HashMap<>();
         products.forEach(item -> {
             if (item.quantity() < 1)
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Quantity must be at least 1");
@@ -86,10 +83,9 @@ public class PaymentsServiceImpl implements PaymentService {
             CatalogProduct product = catalogApi.findProduct(item.id())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Product not found: " + item.id()));
 
-            catalogProducts.put(product.id(), product);
-            transaction.addItem(product.id(), item.quantity());
+            transaction.addItem(product, item.quantity());
         });
-        transaction.setTotalPrice(transaction.calculateTotalPrice(catalogProducts));
+        transaction.setTotalPrice(transaction.calculateTotalPrice());
     }
 
     @Override

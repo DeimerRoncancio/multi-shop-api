@@ -24,7 +24,7 @@ services:
         condition: service_healthy
     env_file: .env
     environment:
-      PORT: 8080
+      PORT: 8081
       DATABASE_NAME: multishop
       DATABASE_URL: jdbc:mysql://db:3306/multishop
       DATABASE_USERNAME: multishop
@@ -32,6 +32,19 @@ services:
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       STRIPE_SUCCESS_URL: ${STRIPE_SUCCESS_URL:-http://localhost:5173/cart/success}
       STRIPE_CANCEL_URL: ${STRIPE_CANCEL_URL:-http://localhost:5173/cart/cancel}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:5174}
+    expose:
+      - "8081"
+
+  gateway:
+    build:
+      context: .
+      dockerfile: api-gateway/Dockerfile
+    depends_on:
+      - api
+    environment:
+      PORT: 8080
+      MONOLITH_URL: http://api:8081
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:5174}
     ports:
       - "8080:8080"

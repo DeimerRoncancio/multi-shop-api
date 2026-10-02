@@ -4,16 +4,11 @@ import com.multi.shop.api.multi_shop_api.transactions.entities.ProductItem;
 import com.multi.shop.api.multi_shop_api.transactions.entities.Transaction;
 import com.multi.shop.api.multi_shop_api.transactions.enums.TransactionStatus;
 import com.multi.shop.api.multi_shop_api.transactions.repositories.PaymentsRepository;
-import com.multi.shop.api.multi_shop_api.catalog.api.CatalogApi;
-import com.multi.shop.api.multi_shop_api.catalog.api.CatalogProduct;
 import com.stripe.Stripe;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.net.Webhook;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -23,7 +18,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -34,16 +28,6 @@ class StripeWebhookServiceImplTest {
 
     @Mock
     private PaymentsRepository repository;
-
-    @Mock
-    private CatalogApi catalogApi;
-
-    private final Map<String, CatalogProduct> products = new HashMap<>();
-
-    @BeforeEach
-    void catalogKnowsTheTestProducts() {
-        lenient().when(catalogApi.findProducts(any())).thenReturn(products);
-    }
 
     @InjectMocks
     private StripeWebhookServiceImpl service;
@@ -214,10 +198,10 @@ class StripeWebhookServiceImplTest {
     }
 
     private ProductItem productItem(String name, String description, Long price, int quantity) {
-        String id = "product-" + name;
-        products.put(id, new CatalogProduct(id, name, description, price));
         ProductItem item = new ProductItem();
-        item.setProductId(id);
+        item.setProductId("product-" + name);
+        item.setProductName(name);
+        item.setUnitPrice(price);
         item.setQuantity(quantity);
         return item;
     }
