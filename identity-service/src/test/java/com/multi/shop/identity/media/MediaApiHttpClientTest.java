@@ -2,13 +2,22 @@ package com.multi.shop.identity.media;
 
 import com.multi.shop.identity.FakeMediaService;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.autoconfigure.http.HttpMessageConvertersAutoConfiguration;
+import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.cloud.openfeign.FeignAutoConfiguration;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
-import org.springframework.web.client.RestClient;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
@@ -17,20 +26,36 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@SpringBootTest(classes = MediaApiHttpClientTest.FeignOnly.class, webEnvironment = SpringBootTest.WebEnvironment.NONE)
 class MediaApiHttpClientTest {
     private static final FakeMediaService MEDIA = new FakeMediaService();
 
-    private MediaApiHttpClient client;
-
-    @BeforeAll
-    static void startMedia() {
+    static {
         MEDIA.start();
     }
 
+    @Configuration
+    @EnableFeignClients(clients = MediaClient.class)
+    @ImportAutoConfiguration({
+        JacksonAutoConfiguration.class,
+        HttpMessageConvertersAutoConfiguration.class,
+        FeignAutoConfiguration.class
+    })
+    @Import(MediaApiHttpClient.class)
+    static class FeignOnly {
+    }
+
+    @DynamicPropertySource
+    static void mediaService(DynamicPropertyRegistry registry) {
+        registry.add("media.service.url", MEDIA::url);
+    }
+
+    @Autowired
+    private MediaApiHttpClient client;
+
     @BeforeEach
-    void createClient() {
+    void resetMedia() {
         MEDIA.reset();
-        client = new MediaApiHttpClient(RestClient.builder(), MEDIA.url());
     }
 
     @AfterEach
