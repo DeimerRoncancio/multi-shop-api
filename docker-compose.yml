@@ -22,6 +22,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      media:
+        condition: service_started
     env_file: .env
     environment:
       PORT: 8081
@@ -33,8 +35,28 @@ services:
       STRIPE_SUCCESS_URL: ${STRIPE_SUCCESS_URL:-http://localhost:5173/cart/success}
       STRIPE_CANCEL_URL: ${STRIPE_CANCEL_URL:-http://localhost:5173/cart/cancel}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:5174}
+      MEDIA_SERVICE_URL: http://media:8082
+      CLOUDINARY_CLOUD_NAME: ""
+      CLOUDINARY_API_KEY: ""
+      CLOUDINARY_API_SECRET: ""
     expose:
       - "8081"
+
+  media:
+    build:
+      context: .
+      dockerfile: media-service/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      PORT: 8082
+      DATABASE_URL: jdbc:mysql://db:3306/multishop_media
+      DATABASE_USERNAME: media
+      DATABASE_PASSWORD: media
+    ports:
+      - "127.0.0.1:8082:8082"
 
   gateway:
     build:

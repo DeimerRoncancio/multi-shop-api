@@ -2,7 +2,6 @@ package com.multi.shop.api.multi_shop_api;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.skyscreamer.jsonassert.JSONCompareMode;
@@ -18,13 +17,8 @@ import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequ
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
@@ -50,19 +44,6 @@ class ApiContractIntegrationTest extends IntegrationTestBase {
 
     @Autowired
     private JdbcTemplate jdbc;
-
-    private final AtomicInteger uploads = new AtomicInteger();
-
-    @BeforeEach
-    void numberedUploads() throws Exception {
-        when(cloudinaryService.upload(any())).thenAnswer(invocation -> {
-            int number = uploads.incrementAndGet();
-            return Map.of(
-                "url", "http://res.cloudinary.com/prueba/image/upload/foto-" + number + ".png",
-                "public_id", "foto-" + number
-            );
-        });
-    }
 
     @Test
     void storeResponsesKeepTheirShape() throws Exception {
@@ -100,7 +81,7 @@ class ApiContractIntegrationTest extends IntegrationTestBase {
                 request.setMethod("PUT");
                 return request;
             }), adminToken).andExpect(status().isCreated()));
-        verify(cloudinaryService).delete("foto-2");
+        assertThat(MEDIA.deletedImageIds()).contains("foto-2");
         assertThat(imageNamesOf(productId)).containsExactlyInAnyOrder("camisa-contrato-1.png", "camisa-contrato-2.png");
 
         String userToken = registerUser("Bruno", "bruno.contrato@example.com", "3009990001");
@@ -114,7 +95,7 @@ class ApiContractIntegrationTest extends IntegrationTestBase {
                 request.setMethod("PUT");
                 return request;
             }), userToken).andExpect(status().isCreated()));
-        verify(cloudinaryService).delete("foto-5");
+        assertThat(MEDIA.deletedImageIds()).contains("foto-5");
 
         expect("user-search", send(get("/app/users/search?identifier=contrato&isAdmin=false&field=EMAIL"), adminToken).andExpect(status().isOk()));
 
@@ -180,26 +161,66 @@ class ApiContractIntegrationTest extends IntegrationTestBase {
             .param("categoriesList", "Contrato Ropa"), adminToken).andExpect(status().isOk());
         String capId = jdbc.queryForObject(
             "SELECT id FROM products WHERE product_name = 'Gorra Contrato'", String.class);
-        long imagesBefore = jdbc.queryForObject("SELECT COUNT(*) FROM images", Long.class);
+        int imagesBefore = MEDIA.images().size();
 
         send(delete("/app/products/" + capId), adminToken).andExpect(status().isOk());
-        verify(cloudinaryService).delete("foto-7");
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM images", Long.class)).isEqualTo(imagesBefore - 1);
+        assertThat(MEDIA.deletedImageIds()).contains("foto-7");
+        assertThat(MEDIA.images()).hasSize(imagesBefore - 1);
 
         String carlaToken = registerUser("Carla", "carla.contrato@example.com", "3009990002");
         String carlaId = jdbc.queryForObject(
             "SELECT id FROM users WHERE email = 'carla.contrato@example.com'", String.class);
         send(delete("/app/users/" + carlaId), carlaToken).andExpect(status().isOk());
-        verify(cloudinaryService).delete("foto-8");
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM images WHERE image_id = 'foto-8'", Long.class)).isZero();
+        assertThat(MEDIA.deletedImageIds()).contains("foto-8");
+
+        assertThat(MEDIA.images()).extracting(FakeMediaService.Image::status).containsOnly("CONFIRMED");
+        assertThat(MEDIA.deletedImageIds()).containsExactly("foto-2", "foto-5", "foto-7", "foto-8");
+    }
+
+    @Test
+    void keepsNothingHalfSavedWhenTheMediaServiceFails() throws Exception {
+        String adminToken = registerAdmin("Fallos", "admin.fallos@example.com", "3009990003");
+        send(post("/app/categories").contentType(MediaType.APPLICATION_JSON)
+            .content("{\"categoryName\":\"Contrato Fallos\"}"), adminToken).andExpect(status().isCreated());
+        int imagesBefore = MEDIA.images().size();
+
+        MEDIA.setRefuseConfirm(true);
+        send(multipart("/app/products")
+            .file(png("images", "foto.png"))
+            .param("productName", "Producto Sin Confirmar")
+            .param("description", "No se guarda")
+            .param("price", "1000")
+            .param("categoriesList", "Contrato Fallos"), adminToken).andExpect(status().isBadGateway());
+        MEDIA.setRefuseConfirm(false);
+
+        assertThat(jdbc.queryForObject(
+            "SELECT COUNT(*) FROM products WHERE product_name = 'Producto Sin Confirmar'", Long.class)).isZero();
+        assertThat(MEDIA.images()).hasSize(imagesBefore);
+        assertThat(MEDIA.deletedImageIds()).hasSize(1);
+
+        MEDIA.setDown(true);
+        send(multipart("/app/products")
+            .file(png("images", "foto.png"))
+            .param("productName", "Producto Sin Media")
+            .param("description", "No se guarda")
+            .param("price", "1000")
+            .param("categoriesList", "Contrato Fallos"), adminToken).andExpect(status().isBadGateway());
+        MEDIA.setDown(false);
+
+        assertThat(jdbc.queryForObject(
+            "SELECT COUNT(*) FROM products WHERE product_name = 'Producto Sin Media'", Long.class)).isZero();
     }
 
     private String registerAdmin() throws Exception {
-        registerUser("Admin", "admin.contrato@example.com", "3009990000");
-        String id = jdbc.queryForObject("SELECT id FROM users WHERE email = 'admin.contrato@example.com'", String.class);
+        return registerAdmin("Admin", "admin.contrato@example.com", "3009990000");
+    }
+
+    private String registerAdmin(String name, String email, String phone) throws Exception {
+        registerUser(name, email, phone);
+        String id = jdbc.queryForObject("SELECT id FROM users WHERE email = ?", String.class, email);
         jdbc.update("UPDATE users SET admin = true WHERE id = ?", id);
         jdbc.update("INSERT INTO roles_to_users (id_user, id_role) VALUES (?, 'rol-admin')", id);
-        return login("admin.contrato@example.com");
+        return login(email);
     }
 
     private String registerUser(String name, String email, String phone) throws Exception {
@@ -253,11 +274,10 @@ class ApiContractIntegrationTest extends IntegrationTestBase {
     }
 
     private java.util.List<String> imageNamesOf(String productId) {
-        return jdbc.queryForList("""
-            SELECT i.name FROM images i
-            JOIN images_to_products ip ON ip.id_image = i.id
-            WHERE ip.id_product = ?
-            """, String.class, productId);
+        return jdbc.queryForList("SELECT id_image FROM images_to_products WHERE id_product = ?", String.class, productId)
+            .stream()
+            .map(id -> MEDIA.image(id).orElseThrow().name())
+            .toList();
     }
 
     private static String customer(String names, String email) {

@@ -29,6 +29,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -51,13 +52,16 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public Page<ProductResponseDTO> findAll(Pageable pageable) {
-        return repository.findAll(pageable).map(this::toResponseDTO);
+        Page<Product> products = repository.findAll(pageable);
+        Map<String, StoredImage> images = imagesOf(products.getContent());
+
+        return products.map(product -> toResponseDTO(product, images));
     }
 
     @Override
     @Transactional(readOnly = true)
     public Optional<ProductResponseDTO> findOne(String id) {
-        return repository.findById(id).map(this::toResponseDTO);
+        return repository.findById(id).map(product -> toResponseDTO(product, imagesOf(List.of(product))));
     }
 
     @Override
@@ -122,19 +126,38 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public Page<ProductResponseDTO> search(String query, List<String> categories, Pageable pageable) {
         Page<Product> products = repository.findByProductNameOrCategories(query, categories, pageable);
+        Map<String, StoredImage> images = imagesOf(products.getContent());
 
-        return products.map(this::toResponseDTO);
+        return products.map(product -> toResponseDTO(product, images));
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<ProductResponseDTO> latestProducts() {
-        return repository.findTop5ByOrderByCreatedAtDesc().stream().map(this::toResponseDTO).toList();
+        List<Product> products = repository.findTop5ByOrderByCreatedAtDesc();
+        Map<String, StoredImage> images = imagesOf(products);
+
+        return products.stream().map(product -> toResponseDTO(product, images)).toList();
     }
 
-    private ProductResponseDTO toResponseDTO(Product product) {
+    private ProductResponseDTO toResponseDTO(Product product, Map<String, StoredImage> images) {
+        List<StoredImage> productImages = product.getImageIds().stream()
+            .map(images::get)
+            .filter(Objects::nonNull)
+            .toList();
+
         return productMapper.productToResponseDTO(
-            product, variantMapper.toVariantDTOs(product.getVariants()), mediaApi.findAll(product.getImageIds()));
+            product, variantMapper.toVariantDTOs(product.getVariants()), productImages);
+    }
+
+    private Map<String, StoredImage> imagesOf(List<Product> products) {
+        List<String> ids = products.stream()
+            .flatMap(product -> product.getImageIds().stream())
+            .distinct()
+            .toList();
+
+        return mediaApi.findAll(ids).stream()
+            .collect(Collectors.toMap(StoredImage::id, Function.identity(), (first, second) -> first));
     }
 
     @Override

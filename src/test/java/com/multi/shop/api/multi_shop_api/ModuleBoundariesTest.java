@@ -50,6 +50,11 @@ class ModuleBoundariesTest {
         .should().dependOnClassesThat(resideInAnyPackage("..entities..", "..repositories..", "..services..", "..mappers.."))
         .because("an api only shares records and interfaces, never entities or implementations");
 
+    @ArchTest
+    static final ArchRule cloudinaryLivesInTheMediaService = noClasses()
+        .should().dependOnClassesThat().resideInAPackage("com.cloudinary..")
+        .because("only media-service talks to Cloudinary");
+
     private static ArchRule module(String name, String... allowedApis) {
         List<String> allowed = List.of(allowedApis);
 

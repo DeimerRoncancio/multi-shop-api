@@ -1,19 +1,13 @@
 package com.multi.shop.api.multi_shop_api;
 
-import com.multi.shop.api.multi_shop_api.media.cloudinary.CloudinaryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
-
-import java.util.Map;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
 
 @SpringBootTest(properties = {
     "server.port=0",
@@ -26,9 +20,6 @@ import static org.mockito.Mockito.when;
     "stripe.success.url=http://localhost:5173/cart/success",
     "stripe.cancel.url=http://localhost:5173/cart/cancel",
     "stripe.webhook.secret=whsec_falsa",
-    "cloudinary.cloud-name=prueba",
-    "cloudinary.api-key=prueba",
-    "cloudinary.api-secret=prueba",
     "app.cors.allowed-origins=http://localhost:5173"
 })
 @AutoConfigureMockMvc
@@ -38,19 +29,20 @@ public abstract class IntegrationTestBase {
     @ServiceConnection
     static final MySQLContainer<?> MYSQL = new MySQLContainer<>("mysql:8.0");
 
+    protected static final FakeMediaService MEDIA = new FakeMediaService();
+
     static {
         MYSQL.start();
+        MEDIA.start();
     }
 
-    @MockitoBean
-    protected CloudinaryService cloudinaryService;
+    @DynamicPropertySource
+    static void mediaService(DynamicPropertyRegistry registry) {
+        registry.add("media.service.url", MEDIA::url);
+    }
 
     @BeforeEach
-    void fakeCloudinary() throws Exception {
-        when(cloudinaryService.upload(any())).thenReturn(Map.of(
-            "url", "http://res.cloudinary.com/prueba/image/upload/foto.png",
-            "public_id", "foto-prueba"
-        ));
-        when(cloudinaryService.delete(anyString())).thenReturn(Map.of("result", "ok"));
+    void resetMedia() {
+        MEDIA.reset();
     }
 }

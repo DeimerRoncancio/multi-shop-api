@@ -36,3 +36,4 @@ build/
 ### CodeGraph ###
 .codegraph/
 api-gateway/target/
+media-service/target/

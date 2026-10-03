@@ -4,6 +4,7 @@ import com.multi.shop.api.multi_shop_api.catalog.dtos.ProductCategoryDTO;
 import com.multi.shop.api.multi_shop_api.catalog.dtos.CategoryResponseDTO;
 import com.multi.shop.api.multi_shop_api.catalog.services.ImageNames;
 import com.multi.shop.api.multi_shop_api.media.api.MediaApi;
+import com.multi.shop.api.multi_shop_api.media.api.StoredImage;
 import com.multi.shop.api.multi_shop_api.catalog.dtos.ProductItemDTO;
 import com.multi.shop.api.multi_shop_api.catalog.services.ProductCategoryService;
 import org.springframework.data.domain.Page;
@@ -19,7 +20,10 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductCategoryServiceImpl implements ProductCategoryService {
@@ -37,18 +41,9 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
     @Transactional(readOnly = true)
     public Page<CategoryResponseDTO> findAll(Pageable pageable) {
         Page<ProductCategory> categories = repository.findAll(pageable);
+        Map<String, StoredImage> images = imagesOf(categories.getContent());
 
-        return categories.map(category -> {
-            List<ProductItemDTO> items = category.getProducts().stream()
-                .map(product -> new ProductItemDTO(
-                    product.getId(),
-                    product.getProductName(),
-                    product.getPrice(),
-                    ImageNames.main(mediaApi.findAll(product.getImageIds())))
-                ).toList();
-
-            return categoryMapper.categoryToResponseDTO(category, items);
-        });
+        return categories.map(category -> toResponseDTO(category, images));
     }
 
     @Override
@@ -56,19 +51,33 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
     public Optional<CategoryResponseDTO> findOne(String id) {
         Optional<ProductCategory> categoryOptional = repository.findById(id);
 
-        return categoryOptional.map(category -> {
-            List<ProductItemDTO> items = category.getProducts().stream()
-                .map(product -> new ProductItemDTO(
-                    product.getId(),
-                    product.getProductName(),
-                    product.getPrice(),
-                    // main() = la imagen 1, o null si no hay. get(0) devolvía
-                    // cualquiera y reventaba con productos sin fotos.
-                    ImageNames.main(mediaApi.findAll(product.getImageIds()))))
-                .toList();
+        return categoryOptional.map(category -> toResponseDTO(category, imagesOf(List.of(category))));
+    }
 
-            return categoryMapper.categoryToResponseDTO(category, items);
-        });
+    private CategoryResponseDTO toResponseDTO(ProductCategory category, Map<String, StoredImage> images) {
+        List<ProductItemDTO> items = category.getProducts().stream()
+            .map(product -> new ProductItemDTO(
+                product.getId(),
+                product.getProductName(),
+                product.getPrice(),
+                ImageNames.main(product.getImageIds().stream()
+                    .map(images::get)
+                    .filter(Objects::nonNull)
+                    .toList())))
+            .toList();
+
+        return categoryMapper.categoryToResponseDTO(category, items);
+    }
+
+    private Map<String, StoredImage> imagesOf(List<ProductCategory> categories) {
+        List<String> ids = categories.stream()
+            .flatMap(category -> category.getProducts().stream())
+            .flatMap(product -> product.getImageIds().stream())
+            .distinct()
+            .toList();
+
+        return mediaApi.findAll(ids).stream()
+            .collect(Collectors.toMap(StoredImage::id, Function.identity(), (first, second) -> first));
     }
 
     @Override
