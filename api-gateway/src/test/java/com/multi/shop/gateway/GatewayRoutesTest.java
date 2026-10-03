@@ -30,6 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class GatewayRoutesTest {
 
     private static final MockWebServer MONOLITH = new MockWebServer();
+    private static final MockWebServer CATALOG = new MockWebServer();
 
     @Autowired
     private WebTestClient client;
@@ -37,31 +38,74 @@ class GatewayRoutesTest {
     @DynamicPropertySource
     static void monolith(DynamicPropertyRegistry registry) throws IOException {
         MONOLITH.start();
+        CATALOG.start();
         registry.add("MONOLITH_URL", () -> "http://localhost:" + MONOLITH.getPort());
+        registry.add("CATALOG_URL", () -> "http://localhost:" + CATALOG.getPort());
     }
 
     @AfterAll
     static void stop() throws IOException {
         MONOLITH.shutdown();
+        CATALOG.shutdown();
     }
 
     @BeforeEach
     void drainRequests() throws InterruptedException {
         while (MONOLITH.takeRequest(10, TimeUnit.MILLISECONDS) != null) {
         }
+        while (CATALOG.takeRequest(10, TimeUnit.MILLISECONDS) != null) {
+        }
     }
 
     @Test
-    void sendsStoreRoutesToTheMonolithAndReturnsItsAnswer() throws InterruptedException {
-        MONOLITH.enqueue(new MockResponse().setResponseCode(200)
-            .setHeader("Content-Type", "application/json").setBody("{\"content\":[]}"));
+    void sendsCatalogRoutesToTheCatalogService() throws InterruptedException {
+        int monolithBefore = MONOLITH.getRequestCount();
+        for (int i = 0; i < 6; i++)
+            CATALOG.enqueue(new MockResponse().setResponseCode(200)
+                .setHeader("Content-Type", "application/json").setBody("{\"content\":[]}"));
 
         client.get().uri("/app/products?page=1&sort=productName").exchange()
             .expectStatus().isOk()
             .expectBody().json("{\"content\":[]}");
+        client.get().uri("/app/products/search?query=camisa").exchange().expectStatus().isOk();
+        client.get().uri("/app/categories").exchange().expectStatus().isOk();
+        client.put().uri("/app/categories/abc").exchange().expectStatus().isOk();
+        client.get().uri("/app/variants").exchange().expectStatus().isOk();
+        client.delete().uri("/app/variants/abc").exchange().expectStatus().isOk();
 
-        RecordedRequest request = MONOLITH.takeRequest(1, TimeUnit.SECONDS);
-        assertThat(request.getPath()).isEqualTo("/app/products?page=1&sort=productName");
+        assertThat(CATALOG.takeRequest(1, TimeUnit.SECONDS).getPath()).isEqualTo("/app/products?page=1&sort=productName");
+        assertThat(CATALOG.takeRequest(1, TimeUnit.SECONDS).getPath()).isEqualTo("/app/products/search?query=camisa");
+        assertThat(CATALOG.takeRequest(1, TimeUnit.SECONDS).getPath()).isEqualTo("/app/categories");
+        assertThat(CATALOG.takeRequest(1, TimeUnit.SECONDS).getPath()).isEqualTo("/app/categories/abc");
+        assertThat(CATALOG.takeRequest(1, TimeUnit.SECONDS).getPath()).isEqualTo("/app/variants");
+        assertThat(CATALOG.takeRequest(1, TimeUnit.SECONDS).getPath()).isEqualTo("/app/variants/abc");
+        assertThat(MONOLITH.getRequestCount()).isEqualTo(monolithBefore);
+    }
+
+    @Test
+    void sendsTheRestOfTheStoreToTheMonolith() throws InterruptedException {
+        int catalogBefore = CATALOG.getRequestCount();
+        for (int i = 0; i < 3; i++)
+            MONOLITH.enqueue(new MockResponse().setResponseCode(200).setBody("{}"));
+
+        client.get().uri("/app/quantity").exchange().expectStatus().isOk();
+        client.post().uri("/app/payments/create-transaction").exchange().expectStatus().isOk();
+        client.get().uri("/app/productos-viejos").exchange().expectStatus().isOk();
+
+        assertThat(MONOLITH.takeRequest(1, TimeUnit.SECONDS).getPath()).isEqualTo("/app/quantity");
+        assertThat(MONOLITH.takeRequest(1, TimeUnit.SECONDS).getPath()).isEqualTo("/app/payments/create-transaction");
+        assertThat(MONOLITH.takeRequest(1, TimeUnit.SECONDS).getPath()).isEqualTo("/app/productos-viejos");
+        assertThat(CATALOG.getRequestCount()).isEqualTo(catalogBefore);
+    }
+
+    @Test
+    void doesNotPublishTheInternalCatalogRoutes() {
+        int catalogBefore = CATALOG.getRequestCount();
+
+        client.get().uri("/internal/products/abc").exchange().expectStatus().isNotFound();
+        client.get().uri("/internal/stats").exchange().expectStatus().isNotFound();
+
+        assertThat(CATALOG.getRequestCount()).isEqualTo(catalogBefore);
     }
 
     @Test
@@ -140,13 +184,13 @@ class GatewayRoutesTest {
             }
         }).contentType(MediaType.IMAGE_PNG);
         body.part("productName", "Camisa");
-        MONOLITH.enqueue(new MockResponse().setResponseCode(200).setBody("{}"));
+        CATALOG.enqueue(new MockResponse().setResponseCode(200).setBody("{}"));
 
         client.post().uri("/app/products")
             .body(BodyInserters.fromMultipartData(body.build()))
             .exchange().expectStatus().isOk();
 
-        RecordedRequest request = MONOLITH.takeRequest(5, TimeUnit.SECONDS);
+        RecordedRequest request = CATALOG.takeRequest(5, TimeUnit.SECONDS);
         assertThat(request.getHeader("Content-Type")).startsWith("multipart/form-data");
         assertThat(request.getBodySize()).isGreaterThan(photo.length);
     }
@@ -167,7 +211,7 @@ class GatewayRoutesTest {
 
     @Test
     void rejectsOtherWebsites() {
-        int before = MONOLITH.getRequestCount();
+        int before = CATALOG.getRequestCount();
         client.method(HttpMethod.OPTIONS).uri("/app/products")
             .header("Origin", "https://otro-sitio.com")
             .header("Access-Control-Request-Method", "GET")
@@ -179,12 +223,12 @@ class GatewayRoutesTest {
             .exchange()
             .expectStatus().isForbidden();
 
-        assertThat(MONOLITH.getRequestCount()).isEqualTo(before);
+        assertThat(CATALOG.getRequestCount()).isEqualTo(before);
     }
 
     @Test
     void addsTheCorsHeaderOnceAndDoesNotForwardTheOrigin() throws InterruptedException {
-        MONOLITH.enqueue(new MockResponse().setResponseCode(200).setBody("{}"));
+        CATALOG.enqueue(new MockResponse().setResponseCode(200).setBody("{}"));
 
         client.get().uri("/app/products")
             .header("Origin", "http://localhost:5173")
@@ -193,7 +237,7 @@ class GatewayRoutesTest {
             .expectHeader().values("Access-Control-Allow-Origin",
                 values -> assertThat(values).containsExactly("http://localhost:5173"));
 
-        assertThat(MONOLITH.takeRequest(1, TimeUnit.SECONDS).getHeader("Origin")).isNull();
+        assertThat(CATALOG.takeRequest(1, TimeUnit.SECONDS).getHeader("Origin")).isNull();
     }
 
     @Test

@@ -1,0 +1,56 @@
+package com.multi.shop.catalog.dtos;
+
+import java.util.List;
+
+import com.multi.shop.catalog.common.validation.IfExists;
+import com.multi.shop.catalog.common.validation.ImageFormat;
+import com.multi.shop.catalog.validation.ExistingCategories;
+import jakarta.validation.Valid;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.multi.shop.catalog.media.StoredImage;
+import com.multi.shop.catalog.entities.ProductCategory;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import org.springframework.web.multipart.MultipartFile;
+
+public record ProductDTO(
+        @NotBlank(message = "{NotBlank.validation.text}")
+        @IfExists(message = "{IfExists.validation}", entity = "Product", field = "productName")
+        String productName,
+
+        @NotBlank(message = "{NotBlank.validation.text}")
+        @Size(max = 400, message = "{Size.product.description}")
+        String description,
+
+        @NotNull(message = "{NotBlank.validation.text}")
+        Long price,
+
+        @JsonIgnoreProperties("id")
+        List<StoredImage> productImages,
+
+        @JsonIgnoreProperties({"id", "products"})
+        List<ProductCategory> categories,
+
+        @Valid
+        List<VariantDTO> variants,
+
+        @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+        List<String> variantsToRemove,
+
+        @ImageFormat(maxSize = 3 * 1024 * 1024)
+        @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+        List<MultipartFile> images,
+
+        @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+        List<String> imagesToRemove,
+
+        @ExistingCategories(message = "{IfExists.category.name}")
+        @NotEmpty(message = "{NotEmpty.validation.list}")
+        @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+        List<String> categoriesList
+) {
+}

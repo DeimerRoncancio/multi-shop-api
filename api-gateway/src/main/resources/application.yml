@@ -21,6 +21,10 @@ spring:
           default-filters:
             - RemoveRequestHeader=Origin
           routes:
+            - id: catalog
+              uri: ${CATALOG_URL:http://localhost:8083}
+              predicates:
+                - Path=/app/products, /app/products/**, /app/categories, /app/categories/**, /app/variants, /app/variants/**
             - id: monolith
               uri: ${MONOLITH_URL:http://localhost:8081}
               predicates:

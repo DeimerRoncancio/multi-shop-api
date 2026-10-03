@@ -29,16 +29,10 @@ class FrontendRoutesIntegrationTest extends IntegrationTestBase {
     private ObjectMapper mapper;
 
     @Test
-    void catalogIsPublic() throws Exception {
-        mvc.perform(get("/app/products")).andExpect(status().isOk());
-        mvc.perform(get("/app/categories")).andExpect(status().isOk());
-    }
-
-    @Test
     void apiDocsArePublished() throws Exception {
         mvc.perform(get("/v3/api-docs"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.paths['/app/products']").exists());
+            .andExpect(jsonPath("$.paths['/app/users/register']").exists());
     }
 
     @Test

@@ -48,41 +48,9 @@ class ApiContractIntegrationTest extends IntegrationTestBase {
     @Test
     void storeResponsesKeepTheirShape() throws Exception {
         String adminToken = registerAdmin();
-
-        expect("category-created", send(post("/app/categories")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("{\"categoryName\":\"Contrato Ropa\"}"), adminToken).andExpect(status().isCreated()));
-
-        JsonNode created = expect("product-created", send(multipart("/app/products")
-            .file(png("images", "trasera.png"))
-            .file(png("images", "frontal.png"))
-            .param("productName", "Camisa Contrato")
-            .param("description", "Camisa de algodón")
-            .param("price", "50000")
-            .param("categoriesList", "Contrato Ropa"), adminToken).andExpect(status().isOk()));
-        assertThat(created.get("productImages")).hasSize(2);
-
-        String productId = jdbc.queryForObject(
-            "SELECT id FROM products WHERE product_name = 'Camisa Contrato'", String.class);
-
-        expect("product-list", send(get("/app/products?sort=productName"), null).andExpect(status().isOk()));
-        expect("product-detail", send(get("/app/products/" + productId), null).andExpect(status().isOk()));
-        expect("category-list", send(get("/app/categories"), null).andExpect(status().isOk()));
-        expect("product-search", send(get("/app/products/search?query=contrato"), null).andExpect(status().isOk()));
-
-        expect("product-updated", send(multipart("/app/products/" + productId)
-            .file(png("images", "lateral.png"))
-            .param("productName", "Camisa Contrato")
-            .param("description", "Camisa de algodón")
-            .param("price", "55000")
-            .param("categoriesList", "Contrato Ropa")
-            .param("imagesToRemove", "foto-2")
-            .with(request -> {
-                request.setMethod("PUT");
-                return request;
-            }), adminToken).andExpect(status().isCreated()));
-        assertThat(MEDIA.deletedImageIds()).contains("foto-2");
-        assertThat(imageNamesOf(productId)).containsExactlyInAnyOrder("camisa-contrato-1.png", "camisa-contrato-2.png");
+        String productId = CATALOG.addProduct("Camisa Contrato", "Camisa de algodón", 55000L).id();
+        CATALOG.setCategories(1);
+        MEDIA.skipUploads(3);
 
         String userToken = registerUser("Bruno", "bruno.contrato@example.com", "3009990001");
         JsonNode me = expect("user-me", send(get("/app/users/me").header("Token", userToken), userToken)
@@ -138,77 +106,69 @@ class ApiContractIntegrationTest extends IntegrationTestBase {
         assertThat(jdbc.queryForObject("SELECT total_price FROM transactions WHERE id = ?", Long.class, userTransaction))
             .isEqualTo(165000L);
 
-        jdbc.update("UPDATE products SET price = 99000 WHERE id = ?", productId);
+        CATALOG.changePrice(productId, 99000L);
         JsonNode frozen = mapper.readTree(send(get("/app/payments/checkout/" + userTransaction)
             .header("X-Checkout-Access-Token", userAccessToken), null)
             .andExpect(status().isOk()).andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8));
         assertThat(frozen.get("totalPrice").asLong()).isEqualTo(165000L);
         assertThat(frozen.get("items").get(0).get("price").asLong()).isEqualTo(55000L);
         assertThat(frozen.get("items").get(0).get("productName").asText()).isEqualTo("Camisa Contrato");
-        jdbc.update("UPDATE products SET price = 55000 WHERE id = ?", productId);
+        CATALOG.changePrice(productId, 55000L);
 
         JsonNode quantity = mapper.readTree(send(get("/app/quantity"), adminToken).andExpect(status().isOk())
             .andReturn().getResponse().getContentAsString());
         assertThat(quantity.fieldNames()).toIterable().containsExactlyInAnyOrder("users", "products", "categories");
-        assertThat(quantity.get("products").asLong()).isEqualTo(
-            jdbc.queryForObject("SELECT COUNT(*) FROM products", Long.class));
+        assertThat(quantity.get("products").asLong()).isEqualTo(1L);
+        assertThat(quantity.get("categories").asLong()).isEqualTo(1L);
 
-        send(multipart("/app/products")
-            .file(png("images", "unica.png"))
-            .param("productName", "Gorra Contrato")
-            .param("description", "Gorra")
-            .param("price", "20000")
-            .param("categoriesList", "Contrato Ropa"), adminToken).andExpect(status().isOk());
-        String capId = jdbc.queryForObject(
-            "SELECT id FROM products WHERE product_name = 'Gorra Contrato'", String.class);
-        int imagesBefore = MEDIA.images().size();
-
-        send(delete("/app/products/" + capId), adminToken).andExpect(status().isOk());
-        assertThat(MEDIA.deletedImageIds()).contains("foto-7");
-        assertThat(MEDIA.images()).hasSize(imagesBefore - 1);
-
+        MEDIA.skipUploads(1);
         String carlaToken = registerUser("Carla", "carla.contrato@example.com", "3009990002");
         String carlaId = jdbc.queryForObject(
             "SELECT id FROM users WHERE email = 'carla.contrato@example.com'", String.class);
         send(delete("/app/users/" + carlaId), carlaToken).andExpect(status().isOk());
-        assertThat(MEDIA.deletedImageIds()).contains("foto-8");
 
         assertThat(MEDIA.images()).extracting(FakeMediaService.Image::status).containsOnly("CONFIRMED");
-        assertThat(MEDIA.deletedImageIds()).containsExactly("foto-2", "foto-5", "foto-7", "foto-8");
+        assertThat(MEDIA.deletedImageIds()).containsExactly("foto-5", "foto-8");
+    }
+
+    @Test
+    void purchasesNeedTheCatalogService() throws Exception {
+        String productId = CATALOG.addProduct("Gorra Contrato", "Gorra", 20000L).id();
+
+        send(post("/app/payments/create-transaction")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"productItems\":[{\"id\":\"no-existe\",\"quantity\":1}]}"), null)
+            .andExpect(status().isBadRequest());
+
+        CATALOG.setDown(true);
+        send(post("/app/payments/create-transaction")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"productItems\":[{\"id\":\"" + productId + "\",\"quantity\":1}]}"), null)
+            .andExpect(status().isBadGateway());
+        CATALOG.setDown(false);
+
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM product_items WHERE product_id = ?", Long.class, productId))
+            .isZero();
     }
 
     @Test
     void keepsNothingHalfSavedWhenTheMediaServiceFails() throws Exception {
-        String adminToken = registerAdmin("Fallos", "admin.fallos@example.com", "3009990003");
-        send(post("/app/categories").contentType(MediaType.APPLICATION_JSON)
-            .content("{\"categoryName\":\"Contrato Fallos\"}"), adminToken).andExpect(status().isCreated());
-        int imagesBefore = MEDIA.images().size();
-
         MEDIA.setRefuseConfirm(true);
-        send(multipart("/app/products")
-            .file(png("images", "foto.png"))
-            .param("productName", "Producto Sin Confirmar")
-            .param("description", "No se guarda")
-            .param("price", "1000")
-            .param("categoriesList", "Contrato Fallos"), adminToken).andExpect(status().isBadGateway());
+        mvc.perform(multipart("/app/users/register")
+                .file(png("profileImage", "perfil.png"))
+                .param("name", "Fallos")
+                .param("lastnames", "Contrato")
+                .param("email", "fallos.contrato@example.com")
+                .param("phoneNumber", "3009990003")
+                .param("password", "ClaveSegura123")
+                .param("admin", "false"))
+            .andExpect(status().isBadGateway());
         MEDIA.setRefuseConfirm(false);
 
         assertThat(jdbc.queryForObject(
-            "SELECT COUNT(*) FROM products WHERE product_name = 'Producto Sin Confirmar'", Long.class)).isZero();
-        assertThat(MEDIA.images()).hasSize(imagesBefore);
+            "SELECT COUNT(*) FROM users WHERE email = 'fallos.contrato@example.com'", Long.class)).isZero();
+        assertThat(MEDIA.images()).isEmpty();
         assertThat(MEDIA.deletedImageIds()).hasSize(1);
-
-        MEDIA.setDown(true);
-        send(multipart("/app/products")
-            .file(png("images", "foto.png"))
-            .param("productName", "Producto Sin Media")
-            .param("description", "No se guarda")
-            .param("price", "1000")
-            .param("categoriesList", "Contrato Fallos"), adminToken).andExpect(status().isBadGateway());
-        MEDIA.setDown(false);
-
-        assertThat(jdbc.queryForObject(
-            "SELECT COUNT(*) FROM products WHERE product_name = 'Producto Sin Media'", Long.class)).isZero();
     }
 
     private String registerAdmin() throws Exception {
@@ -272,14 +232,6 @@ class ApiContractIntegrationTest extends IntegrationTestBase {
         return json.replaceAll(UUID, "<uuid>")
             .replaceAll("\"checkoutAccessToken\":\"[^\"]+\"", "\"checkoutAccessToken\":\"<token>\"");
     }
-
-    private java.util.List<String> imageNamesOf(String productId) {
-        return jdbc.queryForList("SELECT id_image FROM images_to_products WHERE id_product = ?", String.class, productId)
-            .stream()
-            .map(id -> MEDIA.image(id).orElseThrow().name())
-            .toList();
-    }
-
     private static String customer(String names, String email) {
         return """
             {"userNames":"%s","userEmail":"%s","userPhone":"3001112233",

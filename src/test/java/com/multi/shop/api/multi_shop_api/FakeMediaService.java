@@ -59,6 +59,10 @@ public class FakeMediaService extends Dispatcher {
         refuseConfirm = false;
     }
 
+    public synchronized void skipUploads(int count) {
+        uploads += count;
+    }
+
     public synchronized void setDown(boolean down) {
         this.down = down;
     }

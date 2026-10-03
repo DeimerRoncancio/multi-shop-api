@@ -30,19 +30,23 @@ public abstract class IntegrationTestBase {
     static final MySQLContainer<?> MYSQL = new MySQLContainer<>("mysql:8.0");
 
     protected static final FakeMediaService MEDIA = new FakeMediaService();
+    protected static final FakeCatalogService CATALOG = new FakeCatalogService();
 
     static {
         MYSQL.start();
         MEDIA.start();
+        CATALOG.start();
     }
 
     @DynamicPropertySource
     static void mediaService(DynamicPropertyRegistry registry) {
         registry.add("media.service.url", MEDIA::url);
+        registry.add("catalog.service.url", CATALOG::url);
     }
 
     @BeforeEach
     void resetMedia() {
         MEDIA.reset();
+        CATALOG.reset();
     }
 }

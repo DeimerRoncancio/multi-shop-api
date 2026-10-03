@@ -12,6 +12,7 @@ import java.util.List;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 @AnalyzeClasses(packages = ModuleBoundariesTest.ROOT, importOptions = ImportOption.DoNotIncludeTests.class)
@@ -54,6 +55,12 @@ class ModuleBoundariesTest {
     static final ArchRule cloudinaryLivesInTheMediaService = noClasses()
         .should().dependOnClassesThat().resideInAPackage("com.cloudinary..")
         .because("only media-service talks to Cloudinary");
+
+    @ArchTest
+    static final ArchRule extractedModulesOnlyKeepTheirClient = classes()
+        .that().resideInAnyPackage(ROOT + ".catalog..", ROOT + ".media..")
+        .should().resideInAnyPackage(ROOT + ".*.api..", ROOT + ".*.client..")
+        .because("catalog and media live in their own services; the monolith only keeps how to call them");
 
     private static ArchRule module(String name, String... allowedApis) {
         List<String> allowed = List.of(allowedApis);

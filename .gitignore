@@ -37,3 +37,4 @@ build/
 .codegraph/
 api-gateway/target/
 media-service/target/
+catalog-service/target/
