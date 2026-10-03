@@ -22,7 +22,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      media:
+      identity:
         condition: service_started
       catalog:
         condition: service_started
@@ -37,8 +37,10 @@ services:
       STRIPE_SUCCESS_URL: ${STRIPE_SUCCESS_URL:-http://localhost:5173/cart/success}
       STRIPE_CANCEL_URL: ${STRIPE_CANCEL_URL:-http://localhost:5173/cart/cancel}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:5174}
-      MEDIA_SERVICE_URL: http://media:8082
+      IDENTITY_SERVICE_URL: http://identity:8084
       CATALOG_SERVICE_URL: http://catalog:8083
+      JWT_PRIVATE_KEY: ""
+      JWT_SECRET: ""
       CLOUDINARY_CLOUD_NAME: ""
       CLOUDINARY_API_KEY: ""
       CLOUDINARY_API_SECRET: ""
@@ -52,9 +54,11 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    env_file: .env
     environment:
       PORT: 8082
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
       DATABASE_URL: jdbc:mysql://db:3306/multishop_media
       DATABASE_USERNAME: media
       DATABASE_PASSWORD: media
@@ -76,10 +80,31 @@ services:
       DATABASE_USERNAME: catalog
       DATABASE_PASSWORD: catalog
       DDL_AUTO: update
-      JWT_SECRET: ${JWT_SECRET}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
       MEDIA_SERVICE_URL: http://media:8082
     ports:
       - "127.0.0.1:8083:8083"
+
+  identity:
+    build:
+      context: .
+      dockerfile: identity-service/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+      media:
+        condition: service_started
+    environment:
+      PORT: 8084
+      DATABASE_URL: jdbc:mysql://db:3306/multishop_identity
+      DATABASE_USERNAME: identity
+      DATABASE_PASSWORD: identity
+      DDL_AUTO: update
+      JWT_PRIVATE_KEY: ${JWT_PRIVATE_KEY}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
+      MEDIA_SERVICE_URL: http://media:8082
+    ports:
+      - "127.0.0.1:8084:8084"
 
   gateway:
     build:
@@ -88,10 +113,12 @@ services:
     depends_on:
       - api
       - catalog
+      - identity
     environment:
       PORT: 8080
       MONOLITH_URL: http://api:8081
       CATALOG_URL: http://catalog:8083
+      IDENTITY_URL: http://identity:8084
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:5174}
     ports:
       - "8080:8080"

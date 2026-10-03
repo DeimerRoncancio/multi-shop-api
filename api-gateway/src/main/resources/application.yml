@@ -21,6 +21,10 @@ spring:
           default-filters:
             - RemoveRequestHeader=Origin
           routes:
+            - id: identity
+              uri: ${IDENTITY_URL:http://localhost:8084}
+              predicates:
+                - Path=/login, /app/users, /app/users/**, /app/roles, /app/roles/**
             - id: catalog
               uri: ${CATALOG_URL:http://localhost:8083}
               predicates:

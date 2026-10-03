@@ -19,16 +19,13 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 class ModuleBoundariesTest {
 
     static final String ROOT = "com.multi.shop.api.multi_shop_api";
-    private static final List<String> MODULES = List.of("identity", "catalog", "transactions", "media");
+    private static final List<String> MODULES = List.of("identity", "catalog", "transactions");
 
     @ArchTest
-    static final ArchRule mediaUsesNoOtherModule = module("media");
+    static final ArchRule catalogUsesNoOtherModule = module("catalog");
 
     @ArchTest
-    static final ArchRule catalogOnlyUsesMediaApi = module("catalog", "media");
-
-    @ArchTest
-    static final ArchRule identityOnlyUsesMediaApi = module("identity", "media");
+    static final ArchRule identityUsesNoOtherModule = module("identity");
 
     @ArchTest
     static final ArchRule transactionsOnlyUsesCatalogAndIdentityApis = module("transactions", "catalog", "identity");
@@ -52,15 +49,20 @@ class ModuleBoundariesTest {
         .because("an api only shares records and interfaces, never entities or implementations");
 
     @ArchTest
+    static final ArchRule tokensAreOnlyCheckedWithThePublicKey = noClasses()
+        .should().callMethod(io.jsonwebtoken.JwtBuilder.class, "signWith", java.security.Key.class)
+        .because("only identity-service signs tokens");
+
+    @ArchTest
     static final ArchRule cloudinaryLivesInTheMediaService = noClasses()
         .should().dependOnClassesThat().resideInAPackage("com.cloudinary..")
         .because("only media-service talks to Cloudinary");
 
     @ArchTest
     static final ArchRule extractedModulesOnlyKeepTheirClient = classes()
-        .that().resideInAnyPackage(ROOT + ".catalog..", ROOT + ".media..")
+        .that().resideInAnyPackage(ROOT + ".catalog..", ROOT + ".identity..")
         .should().resideInAnyPackage(ROOT + ".*.api..", ROOT + ".*.client..")
-        .because("catalog and media live in their own services; the monolith only keeps how to call them");
+        .because("catalog and identity live in their own services; the monolith only keeps how to call them");
 
     private static ArchRule module(String name, String... allowedApis) {
         List<String> allowed = List.of(allowedApis);

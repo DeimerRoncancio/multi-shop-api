@@ -1,0 +1,84 @@
+package com.multi.shop.identity.auth.controllers;
+
+import java.util.Optional;
+
+import com.multi.shop.identity.auth.dtos.RegisterUserDTO;
+import com.multi.shop.identity.auth.mappers.AuthMapper;
+import com.multi.shop.identity.common.exceptions.NotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import com.multi.shop.identity.users.entities.User;
+import com.multi.shop.identity.users.dtos.UserResponseDTO;
+import com.multi.shop.identity.users.repositories.UserRepository;
+import com.multi.shop.identity.users.services.UserService;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import jakarta.validation.Valid;
+
+import static com.multi.shop.identity.security.JwtConfig.*;
+
+@RestController
+@RequestMapping("/app/users")
+public class AuthController {
+    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
+    private final UserService service;
+    private final UserRepository repository;
+    private final AuthMapper authMapper;
+
+    public AuthController(UserService service, UserRepository repository, AuthMapper authMapper) {
+        this.service = service;
+        this.repository = repository;
+        this.authMapper = authMapper;
+    }
+
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<RegisterUserDTO> create(@Valid @ModelAttribute RegisterUserDTO user) {
+        RegisterUserDTO newUser = service.save(user);
+        return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<RegisterUserDTO> register(@Valid @ModelAttribute RegisterUserDTO user) {
+        RegisterUserDTO newUser = authMapper.requestDTOtoNotAdmin(user, false);
+        return create(newUser);
+    }
+
+    @GetMapping("/me")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ResponseEntity<UserResponseDTO> getUser(@RequestHeader("Token") String token) {
+        String identifier;
+
+        try {
+            Claims claims = Jwts.parser().verifyWith(PUBLIC_KEY).build().parseSignedClaims(token).getPayload();
+            identifier = claims.getSubject();
+        } catch(JwtException e) {
+            log.warn("Invalid JWT token: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        }
+
+        Optional<User> optionalUser = repository.findByIdentity(identifier);
+
+        return optionalUser
+            .map(authMapper::userToUserResponse)
+            .map(ResponseEntity::ok)
+            .orElseThrow(() -> new NotFoundException("User Not found"));
+    }
+
+    @GetMapping("/token-validation")
+    public ResponseEntity<Void> tokenValidation(@RequestHeader("Token") String token) {
+        try {
+            Jwts.parser().verifyWith(PUBLIC_KEY).build().parseSignedClaims(token).getPayload();
+            return ResponseEntity.ok().build();
+        } catch(JwtException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+}

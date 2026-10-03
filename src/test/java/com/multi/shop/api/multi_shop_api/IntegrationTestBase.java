@@ -13,8 +13,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
     "server.port=0",
     "spring.application.name=multishop-test",
     "spring.jpa.hibernate.ddl-auto=create-drop",
-    "spring.sql.init.mode=always",
-    "spring.jpa.defer-datasource-initialization=true",
     "stripe.key.secret=sk_test_falsa",
     "stripe.key.public=pk_test_falsa",
     "stripe.success.url=http://localhost:5173/cart/success",
@@ -29,24 +27,24 @@ public abstract class IntegrationTestBase {
     @ServiceConnection
     static final MySQLContainer<?> MYSQL = new MySQLContainer<>("mysql:8.0");
 
-    protected static final FakeMediaService MEDIA = new FakeMediaService();
     protected static final FakeCatalogService CATALOG = new FakeCatalogService();
+    protected static final FakeIdentityService IDENTITY = new FakeIdentityService();
 
     static {
         MYSQL.start();
-        MEDIA.start();
         CATALOG.start();
+        IDENTITY.start();
     }
 
     @DynamicPropertySource
-    static void mediaService(DynamicPropertyRegistry registry) {
-        registry.add("media.service.url", MEDIA::url);
+    static void services(DynamicPropertyRegistry registry) {
         registry.add("catalog.service.url", CATALOG::url);
+        registry.add("identity.service.url", IDENTITY::url);
     }
 
     @BeforeEach
-    void resetMedia() {
-        MEDIA.reset();
+    void resetServices() {
         CATALOG.reset();
+        IDENTITY.reset();
     }
 }

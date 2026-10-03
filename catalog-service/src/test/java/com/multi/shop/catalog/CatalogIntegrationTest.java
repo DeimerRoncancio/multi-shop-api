@@ -2,7 +2,6 @@ package com.multi.shop.catalog;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.multi.shop.catalog.security.JwtConfig;
 import io.jsonwebtoken.Jwts;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,6 +25,11 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.GeneralSecurityException;
+import java.security.KeyFactory;
+import java.security.PrivateKey;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 
@@ -49,6 +53,7 @@ class CatalogIntegrationTest {
     private static final String UUID = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
     private static final String ADMIN = "[{\"authority\":\"ROLE_ADMIN\"},{\"authority\":\"ROLE_USER\"}]";
     private static final String USER = "[{\"authority\":\"ROLE_USER\"}]";
+    private static final PrivateKey TEST_PRIVATE_KEY = testPrivateKey();
 
     private static final byte[] PNG = {
         (byte) 0x89, 'P', 'N', 'G', '\r', '\n', 0x1a, '\n', 0, 0, 0, 0x0d, 'I', 'H', 'D', 'R',
@@ -227,13 +232,22 @@ class CatalogIntegrationTest {
             .param("categoriesList", "Contrato Fallos");
     }
 
+    private static PrivateKey testPrivateKey() {
+        try {
+            byte[] der = Base64.getDecoder().decode(System.getenv("JWT_TEST_PRIVATE_KEY"));
+            return KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(der));
+        } catch (GeneralSecurityException exception) {
+            throw new IllegalStateException(exception);
+        }
+    }
+
     private static String token(String subject, String authorities) {
         return Jwts.builder()
             .subject(subject)
             .claim("authorities", authorities)
             .expiration(new Date(System.currentTimeMillis() + 3600000))
             .issuedAt(new Date())
-            .signWith(JwtConfig.SECRET_KEY)
+            .signWith(TEST_PRIVATE_KEY)
             .compact();
     }
 

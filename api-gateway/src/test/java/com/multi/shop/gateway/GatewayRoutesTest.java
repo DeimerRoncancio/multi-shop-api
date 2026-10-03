@@ -31,6 +31,7 @@ class GatewayRoutesTest {
 
     private static final MockWebServer MONOLITH = new MockWebServer();
     private static final MockWebServer CATALOG = new MockWebServer();
+    private static final MockWebServer IDENTITY = new MockWebServer();
 
     @Autowired
     private WebTestClient client;
@@ -39,6 +40,8 @@ class GatewayRoutesTest {
     static void monolith(DynamicPropertyRegistry registry) throws IOException {
         MONOLITH.start();
         CATALOG.start();
+        IDENTITY.start();
+        registry.add("IDENTITY_URL", () -> "http://localhost:" + IDENTITY.getPort());
         registry.add("MONOLITH_URL", () -> "http://localhost:" + MONOLITH.getPort());
         registry.add("CATALOG_URL", () -> "http://localhost:" + CATALOG.getPort());
     }
@@ -47,6 +50,7 @@ class GatewayRoutesTest {
     static void stop() throws IOException {
         MONOLITH.shutdown();
         CATALOG.shutdown();
+        IDENTITY.shutdown();
     }
 
     @BeforeEach
@@ -54,6 +58,8 @@ class GatewayRoutesTest {
         while (MONOLITH.takeRequest(10, TimeUnit.MILLISECONDS) != null) {
         }
         while (CATALOG.takeRequest(10, TimeUnit.MILLISECONDS) != null) {
+        }
+        while (IDENTITY.takeRequest(10, TimeUnit.MILLISECONDS) != null) {
         }
     }
 
@@ -85,6 +91,7 @@ class GatewayRoutesTest {
     @Test
     void sendsTheRestOfTheStoreToTheMonolith() throws InterruptedException {
         int catalogBefore = CATALOG.getRequestCount();
+        int identityBefore = IDENTITY.getRequestCount();
         for (int i = 0; i < 3; i++)
             MONOLITH.enqueue(new MockResponse().setResponseCode(200).setBody("{}"));
 
@@ -96,6 +103,7 @@ class GatewayRoutesTest {
         assertThat(MONOLITH.takeRequest(1, TimeUnit.SECONDS).getPath()).isEqualTo("/app/payments/create-transaction");
         assertThat(MONOLITH.takeRequest(1, TimeUnit.SECONDS).getPath()).isEqualTo("/app/productos-viejos");
         assertThat(CATALOG.getRequestCount()).isEqualTo(catalogBefore);
+        assertThat(IDENTITY.getRequestCount()).isEqualTo(identityBefore);
     }
 
     @Test
@@ -104,28 +112,46 @@ class GatewayRoutesTest {
 
         client.get().uri("/internal/products/abc").exchange().expectStatus().isNotFound();
         client.get().uri("/internal/stats").exchange().expectStatus().isNotFound();
+        client.get().uri("/internal/accounts?email=a@b.com").exchange().expectStatus().isNotFound();
 
         assertThat(CATALOG.getRequestCount()).isEqualTo(catalogBefore);
     }
 
     @Test
-    void sendsLoginAndApiDocsToTheMonolith() throws InterruptedException {
-        MONOLITH.enqueue(new MockResponse().setResponseCode(200).setBody("{\"token\":\"t\"}"));
-        MONOLITH.enqueue(new MockResponse().setResponseCode(200).setBody("{}"));
+    void sendsLoginUsersAndRolesToTheIdentityService() throws InterruptedException {
+        int monolithBefore = MONOLITH.getRequestCount();
+        for (int i = 0; i < 5; i++)
+            IDENTITY.enqueue(new MockResponse().setResponseCode(200).setBody("{\"token\":\"t\"}"));
 
         client.post().uri("/login").contentType(MediaType.APPLICATION_JSON)
             .bodyValue("{\"identifier\":\"a@b.com\",\"password\":\"x\"}")
             .exchange().expectStatus().isOk();
+        client.get().uri("/app/users").exchange().expectStatus().isOk();
+        client.post().uri("/app/users/register").exchange().expectStatus().isOk();
+        client.put().uri("/app/users/update/password/abc").exchange().expectStatus().isOk();
+        client.get().uri("/app/roles").exchange().expectStatus().isOk();
+
+        assertThat(IDENTITY.takeRequest(1, TimeUnit.SECONDS).getPath()).isEqualTo("/login");
+        assertThat(IDENTITY.takeRequest(1, TimeUnit.SECONDS).getPath()).isEqualTo("/app/users");
+        assertThat(IDENTITY.takeRequest(1, TimeUnit.SECONDS).getPath()).isEqualTo("/app/users/register");
+        assertThat(IDENTITY.takeRequest(1, TimeUnit.SECONDS).getPath()).isEqualTo("/app/users/update/password/abc");
+        assertThat(IDENTITY.takeRequest(1, TimeUnit.SECONDS).getPath()).isEqualTo("/app/roles");
+        assertThat(MONOLITH.getRequestCount()).isEqualTo(monolithBefore);
+    }
+
+    @Test
+    void sendsApiDocsToTheMonolith() throws InterruptedException {
+        MONOLITH.enqueue(new MockResponse().setResponseCode(200).setBody("{}"));
+
         client.get().uri("/v3/api-docs").exchange().expectStatus().isOk();
 
-        assertThat(MONOLITH.takeRequest(1, TimeUnit.SECONDS).getPath()).isEqualTo("/login");
         assertThat(MONOLITH.takeRequest(1, TimeUnit.SECONDS).getPath()).isEqualTo("/v3/api-docs");
     }
 
     @Test
-    void keepsTheMonolithStatusCodes() {
-        MONOLITH.enqueue(new MockResponse().setResponseCode(403));
-        MONOLITH.enqueue(new MockResponse().setResponseCode(401).setBody("{\"message\":\"no\"}"));
+    void keepsTheServicesStatusCodes() {
+        IDENTITY.enqueue(new MockResponse().setResponseCode(403));
+        IDENTITY.enqueue(new MockResponse().setResponseCode(401).setBody("{\"message\":\"no\"}"));
 
         client.get().uri("/app/users").exchange().expectStatus().isForbidden();
         client.post().uri("/login").contentType(MediaType.APPLICATION_JSON).bodyValue("{}")
@@ -142,7 +168,7 @@ class GatewayRoutesTest {
 
     @Test
     void passesTheSessionAndCheckoutHeadersUntouched() throws InterruptedException {
-        MONOLITH.enqueue(new MockResponse().setResponseCode(200).setBody("{}"));
+        IDENTITY.enqueue(new MockResponse().setResponseCode(200).setBody("{}"));
 
         client.get().uri("/app/users/me")
             .header("Authorization", "Bearer abc.def.ghi")
@@ -150,7 +176,7 @@ class GatewayRoutesTest {
             .header("X-Checkout-Access-Token", "acceso-123")
             .exchange().expectStatus().isOk();
 
-        RecordedRequest request = MONOLITH.takeRequest(1, TimeUnit.SECONDS);
+        RecordedRequest request = IDENTITY.takeRequest(1, TimeUnit.SECONDS);
         assertThat(request.getHeader("Authorization")).isEqualTo("Bearer abc.def.ghi");
         assertThat(request.getHeader("Token")).isEqualTo("abc.def.ghi");
         assertThat(request.getHeader("X-Checkout-Access-Token")).isEqualTo("acceso-123");

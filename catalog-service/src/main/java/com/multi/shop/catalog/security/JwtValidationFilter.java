@@ -44,7 +44,7 @@ public class JwtValidationFilter extends OncePerRequestFilter {
         }
 
         try {
-            Claims claims = Jwts.parser().verifyWith(SECRET_KEY).build().parseSignedClaims(token).getPayload();
+            Claims claims = Jwts.parser().verifyWith(PUBLIC_KEY).build().parseSignedClaims(token).getPayload();
             Object claimAuthorities = claims.get("authorities");
             String username = claims.getSubject();
 
