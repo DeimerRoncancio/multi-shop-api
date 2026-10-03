@@ -4,6 +4,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import okhttp3.mockwebserver.Dispatcher;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
+import okhttp3.mockwebserver.RecordedRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
@@ -61,15 +65,33 @@ class IdentityIntegrationTest {
     static final MySQLContainer<?> MYSQL = new MySQLContainer<>("mysql:8.0");
 
     static final FakeMediaService MEDIA = new FakeMediaService();
+    static final MockWebServer CATALOG = new MockWebServer();
+    static volatile boolean catalogDown;
 
     static {
         MYSQL.start();
         MEDIA.start();
+        CATALOG.setDispatcher(new Dispatcher() {
+            @Override
+            public MockResponse dispatch(RecordedRequest request) {
+                if (catalogDown) return new MockResponse().setResponseCode(503);
+                if (!"/internal/stats".equals(request.getPath())) return new MockResponse().setResponseCode(404);
+                return new MockResponse()
+                    .setHeader("Content-Type", "application/json")
+                    .setBody("{\"products\":15,\"categories\":6}");
+            }
+        });
+        try {
+            CATALOG.start();
+        } catch (java.io.IOException exception) {
+            throw new IllegalStateException(exception);
+        }
     }
 
     @DynamicPropertySource
     static void mediaService(DynamicPropertyRegistry registry) {
         registry.add("media.service.url", MEDIA::url);
+        registry.add("catalog.service.url", () -> "http://localhost:" + CATALOG.getPort());
     }
 
     @Autowired
@@ -129,6 +151,30 @@ class IdentityIntegrationTest {
 
         assertThat(MEDIA.images()).extracting(FakeMediaService.Image::status).containsOnly("CONFIRMED");
         assertThat(MEDIA.deletedImageIds()).containsExactly("foto-5", "foto-8");
+    }
+
+    @Test
+    void quantityJoinsUsersAndTheCatalog() throws Exception {
+        String adminToken = registerAdmin("Cuenta", "admin.cuentas@example.com", "3009990020");
+        registerUser("Mora", "mora.cuentas@example.com", "3009990021");
+        String userToken = login("mora.cuentas@example.com");
+        long users = jdbc.queryForObject("SELECT COUNT(*) FROM users", Long.class);
+
+        send(get("/app/quantity"), adminToken)
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.users").value(users))
+            .andExpect(jsonPath("$.products").value(15))
+            .andExpect(jsonPath("$.categories").value(6));
+
+        mvc.perform(get("/app/quantity")).andExpect(status().isForbidden());
+        send(get("/app/quantity"), userToken).andExpect(status().isForbidden());
+
+        catalogDown = true;
+        try {
+            send(get("/app/quantity"), adminToken).andExpect(status().isBadGateway());
+        } finally {
+            catalogDown = false;
+        }
     }
 
     @Test
@@ -225,11 +271,15 @@ class IdentityIntegrationTest {
     }
 
     private String registerAdmin() throws Exception {
-        registerUser("Admin", "admin.contrato@example.com", "3009990000");
-        String id = jdbc.queryForObject("SELECT id FROM users WHERE email = 'admin.contrato@example.com'", String.class);
+        return registerAdmin("Admin", "admin.contrato@example.com", "3009990000");
+    }
+
+    private String registerAdmin(String name, String email, String phone) throws Exception {
+        registerUser(name, email, phone);
+        String id = jdbc.queryForObject("SELECT id FROM users WHERE email = ?", String.class, email);
         jdbc.update("UPDATE users SET admin = true WHERE id = ?", id);
         jdbc.update("INSERT INTO roles_to_users (id_user, id_role) VALUES (?, 'rol-admin')", id);
-        return login("admin.contrato@example.com");
+        return login(email);
     }
 
     private String registerUser(String name, String email, String phone) throws Exception {

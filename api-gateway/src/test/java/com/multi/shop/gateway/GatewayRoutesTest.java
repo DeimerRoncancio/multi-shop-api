@@ -29,7 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 )
 class GatewayRoutesTest {
 
-    private static final MockWebServer MONOLITH = new MockWebServer();
+    private static final MockWebServer TRANSACTIONS = new MockWebServer();
     private static final MockWebServer CATALOG = new MockWebServer();
     private static final MockWebServer IDENTITY = new MockWebServer();
 
@@ -37,25 +37,25 @@ class GatewayRoutesTest {
     private WebTestClient client;
 
     @DynamicPropertySource
-    static void monolith(DynamicPropertyRegistry registry) throws IOException {
-        MONOLITH.start();
+    static void services(DynamicPropertyRegistry registry) throws IOException {
+        TRANSACTIONS.start();
         CATALOG.start();
         IDENTITY.start();
         registry.add("IDENTITY_URL", () -> "http://localhost:" + IDENTITY.getPort());
-        registry.add("MONOLITH_URL", () -> "http://localhost:" + MONOLITH.getPort());
+        registry.add("TRANSACTIONS_URL", () -> "http://localhost:" + TRANSACTIONS.getPort());
         registry.add("CATALOG_URL", () -> "http://localhost:" + CATALOG.getPort());
     }
 
     @AfterAll
     static void stop() throws IOException {
-        MONOLITH.shutdown();
+        TRANSACTIONS.shutdown();
         CATALOG.shutdown();
         IDENTITY.shutdown();
     }
 
     @BeforeEach
     void drainRequests() throws InterruptedException {
-        while (MONOLITH.takeRequest(10, TimeUnit.MILLISECONDS) != null) {
+        while (TRANSACTIONS.takeRequest(10, TimeUnit.MILLISECONDS) != null) {
         }
         while (CATALOG.takeRequest(10, TimeUnit.MILLISECONDS) != null) {
         }
@@ -65,7 +65,7 @@ class GatewayRoutesTest {
 
     @Test
     void sendsCatalogRoutesToTheCatalogService() throws InterruptedException {
-        int monolithBefore = MONOLITH.getRequestCount();
+        int transactionsBefore = TRANSACTIONS.getRequestCount();
         for (int i = 0; i < 6; i++)
             CATALOG.enqueue(new MockResponse().setResponseCode(200)
                 .setHeader("Content-Type", "application/json").setBody("{\"content\":[]}"));
@@ -85,25 +85,44 @@ class GatewayRoutesTest {
         assertThat(CATALOG.takeRequest(1, TimeUnit.SECONDS).getPath()).isEqualTo("/app/categories/abc");
         assertThat(CATALOG.takeRequest(1, TimeUnit.SECONDS).getPath()).isEqualTo("/app/variants");
         assertThat(CATALOG.takeRequest(1, TimeUnit.SECONDS).getPath()).isEqualTo("/app/variants/abc");
-        assertThat(MONOLITH.getRequestCount()).isEqualTo(monolithBefore);
+        assertThat(TRANSACTIONS.getRequestCount()).isEqualTo(transactionsBefore);
     }
 
     @Test
-    void sendsTheRestOfTheStoreToTheMonolith() throws InterruptedException {
+    void sendsPaymentsToTheTransactionsService() throws InterruptedException {
         int catalogBefore = CATALOG.getRequestCount();
         int identityBefore = IDENTITY.getRequestCount();
         for (int i = 0; i < 3; i++)
-            MONOLITH.enqueue(new MockResponse().setResponseCode(200).setBody("{}"));
+            TRANSACTIONS.enqueue(new MockResponse().setResponseCode(200).setBody("{}"));
 
-        client.get().uri("/app/quantity").exchange().expectStatus().isOk();
         client.post().uri("/app/payments/create-transaction").exchange().expectStatus().isOk();
-        client.get().uri("/app/productos-viejos").exchange().expectStatus().isOk();
+        client.get().uri("/app/payments/checkout/abc").exchange().expectStatus().isOk();
+        client.get().uri("/app/payments/saved-addresses").exchange().expectStatus().isOk();
 
-        assertThat(MONOLITH.takeRequest(1, TimeUnit.SECONDS).getPath()).isEqualTo("/app/quantity");
-        assertThat(MONOLITH.takeRequest(1, TimeUnit.SECONDS).getPath()).isEqualTo("/app/payments/create-transaction");
-        assertThat(MONOLITH.takeRequest(1, TimeUnit.SECONDS).getPath()).isEqualTo("/app/productos-viejos");
+        assertThat(TRANSACTIONS.takeRequest(1, TimeUnit.SECONDS).getPath()).isEqualTo("/app/payments/create-transaction");
+        assertThat(TRANSACTIONS.takeRequest(1, TimeUnit.SECONDS).getPath()).isEqualTo("/app/payments/checkout/abc");
+        assertThat(TRANSACTIONS.takeRequest(1, TimeUnit.SECONDS).getPath()).isEqualTo("/app/payments/saved-addresses");
         assertThat(CATALOG.getRequestCount()).isEqualTo(catalogBefore);
         assertThat(IDENTITY.getRequestCount()).isEqualTo(identityBefore);
+    }
+
+    @Test
+    void sendsQuantityToTheIdentityService() throws InterruptedException {
+        IDENTITY.enqueue(new MockResponse().setResponseCode(200).setBody("{\"users\":1}"));
+
+        client.get().uri("/app/quantity").exchange().expectStatus().isOk();
+
+        assertThat(IDENTITY.takeRequest(1, TimeUnit.SECONDS).getPath()).isEqualTo("/app/quantity");
+    }
+
+    @Test
+    void doesNotForwardUnknownRoutes() {
+        int before = TRANSACTIONS.getRequestCount() + CATALOG.getRequestCount() + IDENTITY.getRequestCount();
+
+        client.get().uri("/app/productos-viejos").exchange().expectStatus().isNotFound();
+        client.get().uri("/app/otra-cosa").exchange().expectStatus().isNotFound();
+
+        assertThat(TRANSACTIONS.getRequestCount() + CATALOG.getRequestCount() + IDENTITY.getRequestCount()).isEqualTo(before);
     }
 
     @Test
@@ -119,7 +138,7 @@ class GatewayRoutesTest {
 
     @Test
     void sendsLoginUsersAndRolesToTheIdentityService() throws InterruptedException {
-        int monolithBefore = MONOLITH.getRequestCount();
+        int transactionsBefore = TRANSACTIONS.getRequestCount();
         for (int i = 0; i < 5; i++)
             IDENTITY.enqueue(new MockResponse().setResponseCode(200).setBody("{\"token\":\"t\"}"));
 
@@ -136,16 +155,16 @@ class GatewayRoutesTest {
         assertThat(IDENTITY.takeRequest(1, TimeUnit.SECONDS).getPath()).isEqualTo("/app/users/register");
         assertThat(IDENTITY.takeRequest(1, TimeUnit.SECONDS).getPath()).isEqualTo("/app/users/update/password/abc");
         assertThat(IDENTITY.takeRequest(1, TimeUnit.SECONDS).getPath()).isEqualTo("/app/roles");
-        assertThat(MONOLITH.getRequestCount()).isEqualTo(monolithBefore);
+        assertThat(TRANSACTIONS.getRequestCount()).isEqualTo(transactionsBefore);
     }
 
     @Test
-    void sendsApiDocsToTheMonolith() throws InterruptedException {
-        MONOLITH.enqueue(new MockResponse().setResponseCode(200).setBody("{}"));
+    void sendsApiDocsToTheTransactionsService() throws InterruptedException {
+        TRANSACTIONS.enqueue(new MockResponse().setResponseCode(200).setBody("{}"));
 
         client.get().uri("/v3/api-docs").exchange().expectStatus().isOk();
 
-        assertThat(MONOLITH.takeRequest(1, TimeUnit.SECONDS).getPath()).isEqualTo("/v3/api-docs");
+        assertThat(TRANSACTIONS.takeRequest(1, TimeUnit.SECONDS).getPath()).isEqualTo("/v3/api-docs");
     }
 
     @Test
@@ -160,10 +179,10 @@ class GatewayRoutesTest {
 
     @Test
     void doesNotAnswerRoutesOutsideTheApi() {
-        int before = MONOLITH.getRequestCount();
+        int before = TRANSACTIONS.getRequestCount();
         client.get().uri("/actuator/env").exchange().expectStatus().isNotFound();
         client.get().uri("/otra-cosa").exchange().expectStatus().isNotFound();
-        assertThat(MONOLITH.getRequestCount()).isEqualTo(before);
+        assertThat(TRANSACTIONS.getRequestCount()).isEqualTo(before);
     }
 
     @Test
@@ -185,7 +204,7 @@ class GatewayRoutesTest {
     @Test
     void passesTheStripeWebhookBodyByteForByte() throws InterruptedException {
         String payload = "{\n  \"id\": \"evt_1\",  \"type\" : \"checkout.session.completed\" ,\"data\":{\"object\":{\"amount_total\":4700000}}}\n";
-        MONOLITH.enqueue(new MockResponse().setResponseCode(200).setBody("Success"));
+        TRANSACTIONS.enqueue(new MockResponse().setResponseCode(200).setBody("Success"));
 
         client.post().uri("/app/payments/webhook")
             .header("Stripe-Signature", "t=1,v1=firma")
@@ -193,7 +212,7 @@ class GatewayRoutesTest {
             .bodyValue(payload)
             .exchange().expectStatus().isOk();
 
-        RecordedRequest request = MONOLITH.takeRequest(1, TimeUnit.SECONDS);
+        RecordedRequest request = TRANSACTIONS.takeRequest(1, TimeUnit.SECONDS);
         assertThat(request.getHeader("Stripe-Signature")).isEqualTo("t=1,v1=firma");
         assertThat(request.getBody().readString(StandardCharsets.UTF_8)).isEqualTo(payload);
     }
@@ -223,7 +242,7 @@ class GatewayRoutesTest {
 
     @Test
     void answersTheBrowserCorsCheckForTheStore() {
-        int before = MONOLITH.getRequestCount();
+        int before = TRANSACTIONS.getRequestCount();
         client.method(HttpMethod.OPTIONS).uri("/app/payments/create-transaction")
             .header("Origin", "http://localhost:5173")
             .header("Access-Control-Request-Method", "POST")
@@ -232,7 +251,7 @@ class GatewayRoutesTest {
             .expectStatus().isOk()
             .expectHeader().valueEquals("Access-Control-Allow-Origin", "http://localhost:5173");
 
-        assertThat(MONOLITH.getRequestCount()).isEqualTo(before);
+        assertThat(TRANSACTIONS.getRequestCount()).isEqualTo(before);
     }
 
     @Test

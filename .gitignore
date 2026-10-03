@@ -29,6 +29,7 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 /target/
+transactions-service/target/
 
 ### VS Code ###
 .vscode/

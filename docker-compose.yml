@@ -17,8 +17,10 @@ services:
       timeout: 5s
       retries: 20
 
-  api:
-    build: .
+  transactions:
+    build:
+      context: .
+      dockerfile: transactions-service/Dockerfile
     depends_on:
       db:
         condition: service_healthy
@@ -26,26 +28,23 @@ services:
         condition: service_started
       catalog:
         condition: service_started
-    env_file: .env
     environment:
-      PORT: 8081
-      DATABASE_NAME: multishop
-      DATABASE_URL: jdbc:mysql://db:3306/multishop
-      DATABASE_USERNAME: multishop
-      DATABASE_PASSWORD: multishop
+      PORT: 8085
+      DATABASE_URL: jdbc:mysql://db:3306/multishop_transactions
+      DATABASE_USERNAME: transactions
+      DATABASE_PASSWORD: transactions
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_PUBLIC_KEY: ${STRIPE_PUBLIC_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
       STRIPE_SUCCESS_URL: ${STRIPE_SUCCESS_URL:-http://localhost:5173/cart/success}
       STRIPE_CANCEL_URL: ${STRIPE_CANCEL_URL:-http://localhost:5173/cart/cancel}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:5174}
       IDENTITY_SERVICE_URL: http://identity:8084
       CATALOG_SERVICE_URL: http://catalog:8083
-      JWT_PRIVATE_KEY: ""
-      JWT_SECRET: ""
-      CLOUDINARY_CLOUD_NAME: ""
-      CLOUDINARY_API_KEY: ""
-      CLOUDINARY_API_SECRET: ""
     expose:
-      - "8081"
+      - "8085"
 
   media:
     build:
@@ -103,6 +102,7 @@ services:
       JWT_PRIVATE_KEY: ${JWT_PRIVATE_KEY}
       JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
       MEDIA_SERVICE_URL: http://media:8082
+      CATALOG_SERVICE_URL: http://catalog:8083
     ports:
       - "127.0.0.1:8084:8084"
 
@@ -111,12 +111,12 @@ services:
       context: .
       dockerfile: api-gateway/Dockerfile
     depends_on:
-      - api
+      - transactions
       - catalog
       - identity
     environment:
       PORT: 8080
-      MONOLITH_URL: http://api:8081
+      TRANSACTIONS_URL: http://transactions:8085
       CATALOG_URL: http://catalog:8083
       IDENTITY_URL: http://identity:8084
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:5174}
