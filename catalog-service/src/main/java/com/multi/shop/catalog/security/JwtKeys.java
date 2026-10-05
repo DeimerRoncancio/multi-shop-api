@@ -9,8 +9,9 @@ import java.util.Base64;
 
 public final class JwtKeys {
     private static final String HOW_TO_GENERATE =
-        "Generate a pair with: openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -outform DER -out private.der"
-            + " && openssl pkey -inform DER -in private.der -pubout -outform DER -out public.der, then save both in Base64";
+        "Generate a pair with: openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out private.pem"
+            + " && openssl pkcs8 -topk8 -nocrypt -in private.pem -outform DER | base64 -w0 (JWT_PRIVATE_KEY)"
+            + " && openssl pkey -in private.pem -pubout -outform DER | base64 -w0 (JWT_PUBLIC_KEY)";
 
     private JwtKeys() {}
 
