@@ -40,6 +40,8 @@ public class ImageFormatValidation implements ConstraintValidator<ImageFormat, O
         }
 
         MultipartFile file = (MultipartFile) target;
+        if (file.isEmpty()) return true;
+
         boolean sizeValid = file.getSize() > maxSize;
 
         if (sizeValid) {

@@ -6,7 +6,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.multi.shop.identity.common.validation.IfExists;
 import com.multi.shop.identity.common.validation.ImageFormat;
-import com.multi.shop.identity.common.validation.NotEmptyFile;
 import com.multi.shop.identity.media.StoredImage;
 import com.multi.shop.identity.users.entities.Role;
 import com.multi.shop.identity.auth.validation.SizeConstraint;
@@ -26,7 +25,6 @@ public record RegisterUserDTO(
     String lastnames,
 
     @Transient
-    @NotEmptyFile
     @ImageFormat(maxSize = 1024 * 1024)
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     MultipartFile profileImage,
@@ -49,6 +47,6 @@ public record RegisterUserDTO(
     List<Role> roles,
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    boolean admin
+    Boolean admin
 ) {
 }

@@ -231,6 +231,70 @@ class IdentityIntegrationTest {
     }
 
     @Test
+    void registersExactlyWhatTheStoreSends() throws Exception {
+        mvc.perform(multipart("/app/users/register")
+                .file(new MockMultipartFile("profileImage", "emptyFile", "text/plain", new byte[0]))
+                .param("name", "Tienda")
+                .param("lastnames", "Sin Foto")
+                .param("email", "tienda.sinfoto@example.com")
+                .param("password", "ClaveSegura123"))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.imageUser").doesNotExist());
+
+        mvc.perform(multipart("/app/users/register")
+                .param("name", "Tienda")
+                .param("email", "tienda.nada@example.com")
+                .param("password", "ClaveSegura123"))
+            .andExpect(status().isCreated());
+
+        assertThat(jdbc.queryForObject(
+            "SELECT COUNT(*) FROM users WHERE email IN ('tienda.sinfoto@example.com', 'tienda.nada@example.com') AND profile_image IS NULL AND phone_number IS NULL",
+            Long.class)).isEqualTo(2L);
+        assertThat(MEDIA.images()).isEmpty();
+        assertThat(login("tienda.sinfoto@example.com")).isNotBlank();
+    }
+
+    @Test
+    void registeringNeverCreatesAnAdmin() throws Exception {
+        mvc.perform(multipart("/app/users/register")
+                .param("name", "Intruso")
+                .param("email", "intruso@example.com")
+                .param("password", "ClaveSegura123")
+                .param("admin", "true"))
+            .andExpect(status().isCreated());
+
+        assertThat(jdbc.queryForObject(
+            "SELECT admin FROM users WHERE email = 'intruso@example.com'", Boolean.class)).isFalse();
+        send(get("/app/users"), login("intruso@example.com")).andExpect(status().isForbidden());
+    }
+
+    @Test
+    void stillRejectsARepeatedPhoneOrAFileThatIsNotAnImage() throws Exception {
+        mvc.perform(multipart("/app/users/register")
+                .param("name", "Primera")
+                .param("email", "telefono.uno@example.com")
+                .param("phoneNumber", "3009990099")
+                .param("password", "ClaveSegura123"))
+            .andExpect(status().isCreated());
+
+        mvc.perform(multipart("/app/users/register")
+                .param("name", "Segunda")
+                .param("email", "telefono.dos@example.com")
+                .param("phoneNumber", "3009990099")
+                .param("password", "ClaveSegura123"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.phoneNumber").exists());
+
+        mvc.perform(multipart("/app/users/register")
+                .file(new MockMultipartFile("profileImage", "notas.txt", "text/plain", "hola".getBytes()))
+                .param("name", "Tercera")
+                .param("email", "archivo.texto@example.com")
+                .param("password", "ClaveSegura123"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.profileImage").exists());
+    }
+
+    @Test
     void wrongPasswordIsRejected() throws Exception {
         mvc.perform(post("/login")
                 .contentType(MediaType.APPLICATION_JSON)

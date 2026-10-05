@@ -30,6 +30,8 @@ public class IfExistsValidation implements ConstraintValidator<IfExists, Object>
 
     @Override
     public boolean isValid(Object target, ConstraintValidatorContext context) {
+        if (target == null) return true;
+
         String value = (target instanceof Long number)
             ? number.toString()
             : target.toString();
