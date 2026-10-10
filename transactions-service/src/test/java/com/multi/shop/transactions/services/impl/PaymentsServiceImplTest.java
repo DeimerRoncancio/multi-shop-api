@@ -19,6 +19,7 @@ import com.multi.shop.transactions.mappers.CustomerMapperImpl;
 import com.multi.shop.transactions.mappers.TransactionMapperImpl;
 import com.multi.shop.transactions.repositories.PaymentsRepository;
 import com.multi.shop.transactions.security.CheckoutAccessToken;
+import com.multi.shop.transactions.services.StripeCheckoutService;
 import com.multi.shop.transactions.catalog.CatalogApi;
 import com.multi.shop.transactions.catalog.CatalogProduct;
 import com.multi.shop.transactions.identity.IdentityApi;
@@ -53,6 +54,8 @@ class PaymentsServiceImplTest {
     private CatalogApi catalogApi;
     @Mock
     private IdentityApi identityApi;
+    @Mock
+    private StripeCheckoutService stripeCheckoutService;
 
     private PaymentsServiceImpl service;
 
@@ -62,7 +65,7 @@ class PaymentsServiceImplTest {
             new CustomerMapperImpl(), new TransactionMapperImpl(),
             new CustomerSummaryMapper(identityApi)
         );
-        service = new PaymentsServiceImpl(repository, catalogApi, new CheckoutAccessToken(), checkoutMapper);
+        service = new PaymentsServiceImpl(repository, catalogApi, new CheckoutAccessToken(), checkoutMapper, stripeCheckoutService);
     }
 
     @Test
@@ -161,6 +164,18 @@ class PaymentsServiceImplTest {
 
         assertThat(summary.customer()).isNull();
         assertThat(summary.addresses()).isEmpty();
+    }
+
+    @Test
+    void checksThePaymentWithStripeBeforeReturningTheSummary() {
+        Transaction transaction = new Transaction();
+        transaction.setId("transaction-id");
+        authorizeCheckout(transaction);
+        when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
+
+        service.getCheckoutSummary("transaction-id", CHECKOUT_ACCESS_TOKEN);
+
+        verify(stripeCheckoutService).syncWithStripe(transaction);
     }
 
     @Test

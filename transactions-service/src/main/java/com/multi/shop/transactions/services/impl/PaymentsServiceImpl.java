@@ -10,6 +10,7 @@ import com.multi.shop.transactions.mappers.CheckoutMapper;
 import com.multi.shop.transactions.repositories.PaymentsRepository;
 import com.multi.shop.transactions.security.CheckoutAccessToken;
 import com.multi.shop.transactions.services.PaymentService;
+import com.multi.shop.transactions.services.StripeCheckoutService;
 import com.multi.shop.transactions.catalog.CatalogApi;
 import com.multi.shop.transactions.catalog.CatalogProduct;
 import org.springframework.http.HttpStatus;
@@ -27,20 +28,25 @@ public class PaymentsServiceImpl implements PaymentService {
     private final CatalogApi catalogApi;
     private final CheckoutAccessToken checkoutAccessToken;
     private final CheckoutMapper checkoutMapper;
+    private final StripeCheckoutService stripeCheckoutService;
 
-    public PaymentsServiceImpl(PaymentsRepository repository, CatalogApi catalogApi, CheckoutAccessToken checkoutAccessToken, CheckoutMapper checkoutMapper) {
+    public PaymentsServiceImpl(PaymentsRepository repository, CatalogApi catalogApi, CheckoutAccessToken checkoutAccessToken, CheckoutMapper checkoutMapper, StripeCheckoutService stripeCheckoutService) {
         this.repository = repository;
         this.catalogApi = catalogApi;
         this.checkoutAccessToken = checkoutAccessToken;
         this.checkoutMapper = checkoutMapper;
+        this.stripeCheckoutService = stripeCheckoutService;
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public Optional<CheckoutSummaryDTO> getCheckoutSummary(String transactionId, String accessToken) {
         return repository.findById(transactionId)
             .filter(transaction -> checkoutAccessToken.grants(transaction, accessToken))
-            .map(checkoutMapper::toCheckoutSummaryDTO);
+            .map(transaction -> {
+                stripeCheckoutService.syncWithStripe(transaction);
+                return checkoutMapper.toCheckoutSummaryDTO(transaction);
+            });
     }
 
     @Override

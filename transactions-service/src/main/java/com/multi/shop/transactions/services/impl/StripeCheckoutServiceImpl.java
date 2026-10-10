@@ -14,18 +14,23 @@ import com.stripe.exception.StripeException;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
 import jakarta.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 @Service
 public class StripeCheckoutServiceImpl implements StripeCheckoutService {
+    private static final Logger log = LoggerFactory.getLogger(StripeCheckoutServiceImpl.class);
+
     private final PaymentsRepository repository;
     private final CheckoutAccessToken checkoutAccessToken;
     private final CatalogApi catalogApi;
@@ -77,15 +82,40 @@ public class StripeCheckoutServiceImpl implements StripeCheckoutService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public boolean cancelPaymentSession(String transactionId, String accessToken) throws StripeException {
         Optional<Transaction> transactionOp = repository.findById(transactionId)
             .filter(transaction -> checkoutAccessToken.grants(transaction, accessToken));
 
         if (transactionOp.isEmpty()) return false;
 
-        expireOpenSession(transactionOp.get());
+        Transaction transaction = transactionOp.get();
+        expireOpenSession(transaction);
+        syncWithStripe(transaction);
         return true;
+    }
+
+    @Override
+    public void syncWithStripe(Transaction transaction) {
+        if (transaction.getStatus() != TransactionStatus.PROCESSING || transaction.getStripeSessionId() == null) return;
+
+        try {
+            Session session = Session.retrieve(transaction.getStripeSessionId());
+
+            if ("paid".equals(session.getPaymentStatus()) && isExpectedAmount(session, transaction)) {
+                transaction.setStatus(TransactionStatus.APPROVED);
+                transaction.setTransactionDate(Instant.now());
+            } else if ("expired".equals(session.getStatus())) {
+                transaction.setStatus(TransactionStatus.REJECTED);
+                transaction.setTransactionDate(Instant.now());
+            }
+        } catch (StripeException exception) {
+            log.warn("Could not check Stripe session {}: {}", transaction.getStripeSessionId(), exception.getMessage());
+        }
+    }
+
+    private boolean isExpectedAmount(Session session, Transaction transaction) {
+        return session.getAmountTotal() != null && session.getAmountTotal() == transaction.payableAmountInCents();
     }
 
     private void expireOpenSession(Transaction transaction) throws StripeException {

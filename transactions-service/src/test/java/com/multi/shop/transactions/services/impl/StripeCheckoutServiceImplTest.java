@@ -7,6 +7,7 @@ import com.multi.shop.transactions.repositories.PaymentsRepository;
 import com.multi.shop.transactions.security.CheckoutAccessToken;
 import com.multi.shop.transactions.catalog.CatalogApi;
 import com.multi.shop.transactions.catalog.CatalogProduct;
+import com.stripe.exception.ApiConnectionException;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
 import java.util.HashMap;
@@ -93,6 +94,25 @@ class StripeCheckoutServiceImplTest {
         assertThat(cancelled).isTrue();
         verify(session).expire();
         assertThat(transaction.getStatus()).isEqualTo(TransactionStatus.PENDING);
+    }
+
+    @Test
+    void rejectsTheProcessingTransactionWhenItsSessionIsCancelled() throws Exception {
+        Transaction transaction = processingTransaction();
+        when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
+        Session openSession = stripeSession("cs_current", "open");
+        Session expiredSession = stripeSession("cs_current", "expired");
+        when(expiredSession.getPaymentStatus()).thenReturn("unpaid");
+
+        try (MockedStatic<Session> stripe = mockStatic(Session.class)) {
+            stripe.when(() -> Session.retrieve("cs_current")).thenReturn(openSession, expiredSession);
+
+            service.cancelPaymentSession("transaction-id", CHECKOUT_ACCESS_TOKEN);
+        }
+
+        verify(openSession).expire();
+        assertThat(transaction.getStatus()).isEqualTo(TransactionStatus.REJECTED);
+        assertThat(transaction.getTransactionDate()).isNotNull();
     }
 
     @Test
@@ -200,6 +220,103 @@ class StripeCheckoutServiceImplTest {
                 .isInstanceOf(ResponseStatusException.class);
             stripe.verifyNoInteractions();
         }
+    }
+
+    @Test
+    void approvesAProcessingTransactionThatStripeReportsAsPaid() {
+        Transaction transaction = processingTransaction();
+        Session session = stripeSession("cs_current", "complete");
+        when(session.getPaymentStatus()).thenReturn("paid");
+        when(session.getAmountTotal()).thenReturn(3_800_000L);
+
+        try (MockedStatic<Session> stripe = mockStatic(Session.class)) {
+            stripe.when(() -> Session.retrieve("cs_current")).thenReturn(session);
+
+            service.syncWithStripe(transaction);
+        }
+
+        assertThat(transaction.getStatus()).isEqualTo(TransactionStatus.APPROVED);
+        assertThat(transaction.getTransactionDate()).isNotNull();
+    }
+
+    @Test
+    void keepsProcessingWhenThePaidAmountDoesNotMatch() {
+        Transaction transaction = processingTransaction();
+        Session session = stripeSession("cs_current", "complete");
+        when(session.getPaymentStatus()).thenReturn("paid");
+        when(session.getAmountTotal()).thenReturn(100L);
+
+        try (MockedStatic<Session> stripe = mockStatic(Session.class)) {
+            stripe.when(() -> Session.retrieve("cs_current")).thenReturn(session);
+
+            service.syncWithStripe(transaction);
+        }
+
+        assertThat(transaction.getStatus()).isEqualTo(TransactionStatus.PROCESSING);
+    }
+
+    @Test
+    void rejectsAProcessingTransactionWhoseSessionExpired() {
+        Transaction transaction = processingTransaction();
+        Session session = stripeSession("cs_current", "expired");
+        when(session.getPaymentStatus()).thenReturn("unpaid");
+
+        try (MockedStatic<Session> stripe = mockStatic(Session.class)) {
+            stripe.when(() -> Session.retrieve("cs_current")).thenReturn(session);
+
+            service.syncWithStripe(transaction);
+        }
+
+        assertThat(transaction.getStatus()).isEqualTo(TransactionStatus.REJECTED);
+    }
+
+    @Test
+    void keepsProcessingWhileTheSessionIsOpenAndUnpaid() {
+        Transaction transaction = processingTransaction();
+        Session session = stripeSession("cs_current", "open");
+        when(session.getPaymentStatus()).thenReturn("unpaid");
+
+        try (MockedStatic<Session> stripe = mockStatic(Session.class)) {
+            stripe.when(() -> Session.retrieve("cs_current")).thenReturn(session);
+
+            service.syncWithStripe(transaction);
+        }
+
+        assertThat(transaction.getStatus()).isEqualTo(TransactionStatus.PROCESSING);
+    }
+
+    @Test
+    void keepsProcessingWhenStripeCannotBeReached() {
+        Transaction transaction = processingTransaction();
+
+        try (MockedStatic<Session> stripe = mockStatic(Session.class)) {
+            stripe.when(() -> Session.retrieve("cs_current")).thenThrow(new ApiConnectionException("down"));
+
+            service.syncWithStripe(transaction);
+        }
+
+        assertThat(transaction.getStatus()).isEqualTo(TransactionStatus.PROCESSING);
+    }
+
+    @Test
+    void doesNotAskStripeAboutTransactionsThatAreNotProcessing() {
+        Transaction transaction = payableTransaction();
+        transaction.setStripeSessionId("cs_current");
+
+        try (MockedStatic<Session> stripe = mockStatic(Session.class)) {
+            service.syncWithStripe(transaction);
+
+            stripe.verifyNoInteractions();
+        }
+
+        assertThat(transaction.getStatus()).isEqualTo(TransactionStatus.PENDING);
+    }
+
+    private Transaction processingTransaction() {
+        Transaction transaction = payableTransaction();
+        transaction.setStripeSessionId("cs_current");
+        transaction.setStatus(TransactionStatus.PROCESSING);
+        return transaction;
     }
 
     private Transaction payableTransaction() {
