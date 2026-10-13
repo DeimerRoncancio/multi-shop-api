@@ -5,12 +5,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.multi.shop.catalog.common.exceptions.NotFoundException;
 import com.multi.shop.catalog.dtos.ProductDTO;
 import com.multi.shop.catalog.dtos.ProductResponseDTO;
+import com.multi.shop.catalog.dtos.ProductSuggestionsDTO;
 import jakarta.validation.Valid;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.SortDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -78,6 +80,16 @@ public class ProductController {
     @PageableDefault Pageable pageable, @RequestParam(value = "query", required = false) String query,
     @RequestParam(value = "categories", required = false) List<String> categories) {
         return service.search(query, categories, pageable);
+    }
+
+    @GetMapping("/suggestions")
+    public ProductSuggestionsDTO suggestions(
+    @RequestParam(value = "categories", required = false) List<String> categories,
+    @RequestParam(value = "exclude", required = false) List<String> exclude,
+    @RequestParam(value = "size", defaultValue = "12") int size,
+    @RequestParam(value = "min", required = false) Integer min,
+    @SortDefault(sort = "productName") Sort sort) {
+        return service.suggestions(categories, exclude, size, min, sort);
     }
 
     @GetMapping("/latest-products")

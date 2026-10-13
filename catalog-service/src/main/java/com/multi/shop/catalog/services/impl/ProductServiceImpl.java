@@ -5,6 +5,7 @@ import com.multi.shop.catalog.media.MediaApi;
 import com.multi.shop.catalog.media.StoredImage;
 import com.multi.shop.catalog.dtos.ProductDTO;
 import com.multi.shop.catalog.dtos.ProductResponseDTO;
+import com.multi.shop.catalog.dtos.ProductSuggestionsDTO;
 import com.multi.shop.catalog.dtos.VariantDTO;
 import com.multi.shop.catalog.entities.Variant;
 import com.multi.shop.catalog.mappers.VariantMapper;
@@ -14,7 +15,9 @@ import com.multi.shop.catalog.services.VariantService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -129,6 +132,26 @@ public class ProductServiceImpl implements ProductService {
         Map<String, StoredImage> images = imagesOf(products.getContent());
 
         return products.map(product -> toResponseDTO(product, images));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ProductSuggestionsDTO suggestions(List<String> categories, List<String> exclude, int size, Integer min, Sort sort) {
+        List<String> known = new ArrayList<>(exclude == null ? List.of() : exclude);
+
+        List<Product> products = new ArrayList<>();
+        if (categories != null && !categories.isEmpty())
+            products.addAll(repository.findByCategoriesExcluding(categories, known, PageRequest.of(0, size, sort)));
+
+        boolean filled = products.size() < Math.min(min == null ? size : min, size);
+        if (filled) {
+            products.forEach(product -> known.add(product.getId()));
+            products.addAll(repository.findExcluding(known, PageRequest.of(0, size - products.size(), sort)));
+        }
+
+        Map<String, StoredImage> images = imagesOf(products);
+        return new ProductSuggestionsDTO(
+            products.stream().map(product -> toResponseDTO(product, images)).toList(), filled);
     }
 
     @Override
