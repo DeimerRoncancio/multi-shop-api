@@ -20,4 +20,13 @@ public interface ProductCategoryRepository extends JpaRepository<ProductCategory
         ORDER BY c.id
     """)
     List<CategoryStats> findStats();
+
+    @Query("""
+        SELECT c.id AS id, c.categoryName AS categoryName, COUNT(p) AS productCount, MIN(p.price) AS fromPrice
+        FROM ProductCategory c
+        JOIN c.products p
+        GROUP BY c.id, c.categoryName
+        ORDER BY COUNT(p) DESC, c.categoryName
+    """)
+    List<CategoryStats> findStatsByProductCount();
 }

@@ -3,6 +3,8 @@ package com.multi.shop.catalog.services.impl;
 import com.multi.shop.catalog.services.ImageNames;
 import com.multi.shop.catalog.media.MediaApi;
 import com.multi.shop.catalog.media.StoredImage;
+import com.multi.shop.catalog.dtos.HomeDTO;
+import com.multi.shop.catalog.dtos.HomeSectionDTO;
 import com.multi.shop.catalog.dtos.ProductDTO;
 import com.multi.shop.catalog.dtos.ProductResponseDTO;
 import com.multi.shop.catalog.dtos.ProductSuggestionsDTO;
@@ -24,6 +26,8 @@ import org.springframework.web.multipart.MultipartFile;
 import com.multi.shop.catalog.entities.Product;
 import com.multi.shop.catalog.entities.ProductCategory;
 import com.multi.shop.catalog.mappers.ProductMapper;
+import com.multi.shop.catalog.repositories.CategoryStats;
+import com.multi.shop.catalog.repositories.ProductCategoryRepository;
 import com.multi.shop.catalog.repositories.ProductRepository;
 
 import org.slf4j.Logger;
@@ -38,14 +42,18 @@ import java.util.stream.Collectors;
 @Service
 public class ProductServiceImpl implements ProductService {
     private static final Logger log = LoggerFactory.getLogger(ProductServiceImpl.class);
+    private static final int SECTION_SIZE = 12;
+    private static final int TOP_SIZE = 4;
     private final ProductRepository repository;
+    private final ProductCategoryRepository categoryRepository;
     private final ProductCategoryService categoryService;
     private final MediaApi mediaApi;
     private final ProductMapper productMapper;
     private final VariantMapper variantMapper;
 
-    public ProductServiceImpl(ProductRepository repository, ProductCategoryService categoryService, MediaApi mediaApi, ProductMapper productMapper, VariantMapper variantMapper) {
+    public ProductServiceImpl(ProductRepository repository, ProductCategoryRepository categoryRepository, ProductCategoryService categoryService, MediaApi mediaApi, ProductMapper productMapper, VariantMapper variantMapper) {
         this.repository = repository;
+        this.categoryRepository = categoryRepository;
         this.categoryService = categoryService;
         this.mediaApi = mediaApi;
         this.productMapper = productMapper;
@@ -156,6 +164,32 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
+    public HomeDTO home() {
+        List<CategoryStats> stats = categoryRepository.findStatsByProductCount();
+        List<List<Product>> sections = stats.stream()
+            .map(category -> repository.findByCategoriesId(
+                category.getId(), PageRequest.of(0, SECTION_SIZE, Sort.by("productName"))))
+            .toList();
+        List<Product> top = repository.findAll(PageRequest.of(0, TOP_SIZE, Sort.by("price").descending())).getContent();
+        List<Product> budget = repository.findAll(PageRequest.of(0, SECTION_SIZE, Sort.by("price"))).getContent();
+
+        List<Product> all = new ArrayList<>(top);
+        all.addAll(budget);
+        sections.forEach(all::addAll);
+        Map<String, StoredImage> images = imagesOf(all);
+
+        List<HomeSectionDTO> sectionDTOs = new ArrayList<>();
+        for (int index = 0; index < stats.size(); index++) {
+            CategoryStats category = stats.get(index);
+            sectionDTOs.add(new HomeSectionDTO(
+                category.getCategoryName(), category.getProductCount(), toResponseDTOs(sections.get(index), images)));
+        }
+
+        return new HomeDTO(sectionDTOs, toResponseDTOs(top, images), toResponseDTOs(budget, images));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<ProductResponseDTO> latestProducts() {
         List<Product> products = repository.findTop5ByOrderByCreatedAtDesc();
         Map<String, StoredImage> images = imagesOf(products);
@@ -171,6 +205,10 @@ public class ProductServiceImpl implements ProductService {
 
         return productMapper.productToResponseDTO(
             product, variantMapper.toVariantDTOs(product.getVariants()), productImages);
+    }
+
+    private List<ProductResponseDTO> toResponseDTOs(List<Product> products, Map<String, StoredImage> images) {
+        return products.stream().map(product -> toResponseDTO(product, images)).toList();
     }
 
     private Map<String, StoredImage> imagesOf(List<Product> products) {

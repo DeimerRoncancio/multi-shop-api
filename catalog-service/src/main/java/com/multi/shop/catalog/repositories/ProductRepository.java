@@ -37,6 +37,8 @@ public interface ProductRepository extends JpaRepository<Product, String> {
 
     List<Product> findTop4ByCategoriesIdOrderByIdAsc(String categoryId);
 
+    List<Product> findByCategoriesId(String categoryId, Pageable pageable);
+
     @Query("SELECT COUNT(DISTINCT p) FROM Product p JOIN p.variants v")
     long countProductsWithVariants();
 }

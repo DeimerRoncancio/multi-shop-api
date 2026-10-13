@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.multi.shop.catalog.dtos.HomeDTO;
 import com.multi.shop.catalog.dtos.ProductDTO;
 import com.multi.shop.catalog.dtos.ProductResponseDTO;
 import com.multi.shop.catalog.dtos.ProductSuggestionsDTO;
@@ -27,6 +28,8 @@ public interface ProductService {
     Page<ProductResponseDTO> search(String query, List<String> category, Pageable pageable);
 
     ProductSuggestionsDTO suggestions(List<String> categories, List<String> exclude, int size, Integer min, Sort sort);
+
+    HomeDTO home();
 
     Long productsSize();
 

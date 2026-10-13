@@ -3,6 +3,7 @@ package com.multi.shop.catalog.controllers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.multi.shop.catalog.common.exceptions.NotFoundException;
+import com.multi.shop.catalog.dtos.HomeDTO;
 import com.multi.shop.catalog.dtos.ProductDTO;
 import com.multi.shop.catalog.dtos.ProductResponseDTO;
 import com.multi.shop.catalog.dtos.ProductSuggestionsDTO;
@@ -80,6 +81,11 @@ public class ProductController {
     @PageableDefault Pageable pageable, @RequestParam(value = "query", required = false) String query,
     @RequestParam(value = "categories", required = false) List<String> categories) {
         return service.search(query, categories, pageable);
+    }
+
+    @GetMapping("/home")
+    public HomeDTO home() {
+        return service.home();
     }
 
     @GetMapping("/suggestions")
