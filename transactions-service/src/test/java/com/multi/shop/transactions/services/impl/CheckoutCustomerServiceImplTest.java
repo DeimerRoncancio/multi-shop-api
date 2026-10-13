@@ -129,6 +129,45 @@ class CheckoutCustomerServiceImplTest {
     }
 
     @Test
+    void deletesTheGuestThatATransactionLeavesWithoutOrders() {
+        Customer previous = guestCustomer("previous-id");
+        Transaction transaction = authorizedTransaction();
+        transaction.setCustomer(previous);
+        when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
+        when(repository.save(transaction)).thenReturn(transaction);
+        when(customersRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(repository.existsByCustomer(previous)).thenReturn(false);
+
+        service.addUserToTransaction(guestDto(), "transaction-id", CHECKOUT_ACCESS_TOKEN, null);
+
+        assertThat(transaction.getCustomer()).isNotSameAs(previous);
+        verify(customersRepository).delete(previous);
+    }
+
+    @Test
+    void keepsAGuestThatStillHasOrders() {
+        Customer guest = guestCustomer("guest-id");
+        when(repository.existsByCustomer(guest)).thenReturn(true);
+
+        service.deleteUnusedGuest(guest);
+
+        verify(customersRepository, never()).delete(any());
+    }
+
+    @Test
+    void neverDeletesARegisteredCustomer() {
+        Customer registered = new Customer();
+        registered.setId("registered-id");
+        registered.setUserEmail("registered@example.com");
+
+        service.deleteUnusedGuest(registered);
+        service.deleteUnusedGuest(null);
+
+        verify(customersRepository, never()).delete(any());
+        verify(repository, never()).existsByCustomer(any());
+    }
+
+    @Test
     void createsANewGuestInsteadOfChangingAnExistingOne() {
         Transaction transaction = authorizedTransaction();
         Customer previous = new Customer();
@@ -294,6 +333,13 @@ class CheckoutCustomerServiceImplTest {
         Transaction transaction = new Transaction();
         transaction.setCheckoutAccessTokenDigest(new CheckoutAccessToken().digest(CHECKOUT_ACCESS_TOKEN));
         return transaction;
+    }
+
+    private Customer guestCustomer(String id) {
+        Customer customer = new Customer();
+        customer.setId(id);
+        customer.setGuest(new Guest("guest-of-" + id, "Old Guest", "old@example.com", "3000000000"));
+        return customer;
     }
 
     private Account registeredAccount() {

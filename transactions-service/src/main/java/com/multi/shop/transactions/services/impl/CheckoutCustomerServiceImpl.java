@@ -57,13 +57,16 @@ public class CheckoutCustomerServiceImpl implements CheckoutCustomerService {
 
                 ShippingAddress shippingAddress = transactionMapper.toShippingAddress(dto.userAddress());
                 transaction.setShippingAddress(shippingAddress);
+                Customer previous = transaction.getCustomer();
 
                 Customer customer = identityApi.findByIdentity(userIdentity)
                     .map(account -> saveAddress(customerOf(account), dto.userAddress()))
                     .orElseGet(() -> guestCustomerOf(dto));
 
                 transaction.setCustomer(customer);
-                return repository.save(transaction);
+                Transaction saved = repository.save(transaction);
+                deleteUnusedGuest(previous);
+                return saved;
             });
     }
 
@@ -74,6 +77,13 @@ public class CheckoutCustomerServiceImpl implements CheckoutCustomerService {
             .flatMap(account -> customersRepository.findByUserEmail(account.email()))
             .map(customerMapper::toCustomerAddressDTOs)
             .orElse(List.of());
+    }
+
+    @Override
+    @Transactional
+    public void deleteUnusedGuest(Customer customer) {
+        if (customer == null || customer.getGuest() == null || repository.existsByCustomer(customer)) return;
+        customersRepository.delete(customer);
     }
 
     private Customer customerOf(Account account) {

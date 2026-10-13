@@ -19,6 +19,7 @@ import com.multi.shop.transactions.mappers.CustomerMapperImpl;
 import com.multi.shop.transactions.mappers.TransactionMapperImpl;
 import com.multi.shop.transactions.repositories.PaymentsRepository;
 import com.multi.shop.transactions.security.CheckoutAccessToken;
+import com.multi.shop.transactions.services.CheckoutCustomerService;
 import com.multi.shop.transactions.services.StripeCheckoutService;
 import com.multi.shop.transactions.catalog.CatalogApi;
 import com.multi.shop.transactions.catalog.CatalogProduct;
@@ -56,6 +57,8 @@ class PaymentsServiceImplTest {
     private IdentityApi identityApi;
     @Mock
     private StripeCheckoutService stripeCheckoutService;
+    @Mock
+    private CheckoutCustomerService checkoutCustomerService;
 
     private PaymentsServiceImpl service;
 
@@ -65,7 +68,7 @@ class PaymentsServiceImplTest {
             new CustomerMapperImpl(), new TransactionMapperImpl(),
             new CustomerSummaryMapper(identityApi)
         );
-        service = new PaymentsServiceImpl(repository, catalogApi, new CheckoutAccessToken(), checkoutMapper, stripeCheckoutService);
+        service = new PaymentsServiceImpl(repository, catalogApi, new CheckoutAccessToken(), checkoutMapper, stripeCheckoutService, checkoutCustomerService);
     }
 
     @Test
@@ -342,6 +345,20 @@ class PaymentsServiceImplTest {
 
         assertThat(service.deleteTransaction("transaction-id", CHECKOUT_ACCESS_TOKEN)).contains(transaction);
         verify(repository).delete(transaction);
+    }
+
+    @Test
+    void cleansTheGuestOfADeletedTransaction() {
+        Customer customer = new Customer();
+        Transaction transaction = new Transaction();
+        transaction.setStatus(TransactionStatus.PENDING);
+        transaction.setCustomer(customer);
+        authorizeCheckout(transaction);
+        when(repository.findById("transaction-id")).thenReturn(Optional.of(transaction));
+
+        service.deleteTransaction("transaction-id", CHECKOUT_ACCESS_TOKEN);
+
+        verify(checkoutCustomerService).deleteUnusedGuest(customer);
     }
 
     @Test

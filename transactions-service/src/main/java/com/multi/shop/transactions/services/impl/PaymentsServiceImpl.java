@@ -9,6 +9,7 @@ import com.multi.shop.transactions.enums.TransactionStatus;
 import com.multi.shop.transactions.mappers.CheckoutMapper;
 import com.multi.shop.transactions.repositories.PaymentsRepository;
 import com.multi.shop.transactions.security.CheckoutAccessToken;
+import com.multi.shop.transactions.services.CheckoutCustomerService;
 import com.multi.shop.transactions.services.PaymentService;
 import com.multi.shop.transactions.services.StripeCheckoutService;
 import com.multi.shop.transactions.catalog.CatalogApi;
@@ -29,13 +30,15 @@ public class PaymentsServiceImpl implements PaymentService {
     private final CheckoutAccessToken checkoutAccessToken;
     private final CheckoutMapper checkoutMapper;
     private final StripeCheckoutService stripeCheckoutService;
+    private final CheckoutCustomerService checkoutCustomerService;
 
-    public PaymentsServiceImpl(PaymentsRepository repository, CatalogApi catalogApi, CheckoutAccessToken checkoutAccessToken, CheckoutMapper checkoutMapper, StripeCheckoutService stripeCheckoutService) {
+    public PaymentsServiceImpl(PaymentsRepository repository, CatalogApi catalogApi, CheckoutAccessToken checkoutAccessToken, CheckoutMapper checkoutMapper, StripeCheckoutService stripeCheckoutService, CheckoutCustomerService checkoutCustomerService) {
         this.repository = repository;
         this.catalogApi = catalogApi;
         this.checkoutAccessToken = checkoutAccessToken;
         this.checkoutMapper = checkoutMapper;
         this.stripeCheckoutService = stripeCheckoutService;
+        this.checkoutCustomerService = checkoutCustomerService;
     }
 
     @Override
@@ -104,6 +107,7 @@ public class PaymentsServiceImpl implements PaymentService {
                     throw new ResponseStatusException(HttpStatus.CONFLICT, "Transaction is paid or has a payment in course");
 
                 repository.delete(transaction);
+                checkoutCustomerService.deleteUnusedGuest(transaction.getCustomer());
                 return transaction;
             });
     }
