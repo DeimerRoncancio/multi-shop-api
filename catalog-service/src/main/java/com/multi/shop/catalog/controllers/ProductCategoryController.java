@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.multi.shop.catalog.entities.ProductCategory;
 import com.multi.shop.catalog.dtos.CategoryResponseDTO;
+import com.multi.shop.catalog.dtos.CategorySummaryDTO;
 import com.multi.shop.catalog.services.ProductCategoryService;
 
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,6 +40,11 @@ public class ProductCategoryController {
     @GetMapping
     public Page<CategoryResponseDTO> viewAll(@PageableDefault Pageable pageable) {
         return service.findAll(pageable);
+    }
+
+    @GetMapping("/summary")
+    public List<CategorySummaryDTO> summary() {
+        return service.findSummaries();
     }
 
     @GetMapping("/{id}")

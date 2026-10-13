@@ -11,4 +11,13 @@ public interface ProductCategoryRepository extends JpaRepository<ProductCategory
 
     @Query("SELECT COUNT(DISTINCT c) FROM ProductCategory c LEFT JOIN c.products p WHERE p IS NULL")
     long countObsoleteCategories();
+
+    @Query("""
+        SELECT c.id AS id, c.categoryName AS categoryName, COUNT(p) AS productCount, MIN(p.price) AS fromPrice
+        FROM ProductCategory c
+        LEFT JOIN c.products p
+        GROUP BY c.id, c.categoryName
+        ORDER BY c.id
+    """)
+    List<CategoryStats> findStats();
 }

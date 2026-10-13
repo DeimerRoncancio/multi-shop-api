@@ -23,6 +23,8 @@ public interface ProductRepository extends JpaRepository<Product, String> {
 
     List<Product> findTop5ByOrderByCreatedAtDesc();
 
+    List<Product> findTop4ByCategoriesIdOrderByIdAsc(String categoryId);
+
     @Query("SELECT COUNT(DISTINCT p) FROM Product p JOIN p.variants v")
     long countProductsWithVariants();
 }

@@ -2,6 +2,7 @@ package com.multi.shop.catalog.services.impl;
 
 import com.multi.shop.catalog.dtos.ProductCategoryDTO;
 import com.multi.shop.catalog.dtos.CategoryResponseDTO;
+import com.multi.shop.catalog.dtos.CategorySummaryDTO;
 import com.multi.shop.catalog.services.ImageNames;
 import com.multi.shop.catalog.media.MediaApi;
 import com.multi.shop.catalog.media.StoredImage;
@@ -11,9 +12,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.multi.shop.catalog.entities.Product;
 import com.multi.shop.catalog.entities.ProductCategory;
 import com.multi.shop.catalog.mappers.ProductCategoryMapper;
+import com.multi.shop.catalog.repositories.CategoryStats;
 import com.multi.shop.catalog.repositories.ProductCategoryRepository;
+import com.multi.shop.catalog.repositories.ProductRepository;
 
 import org.springframework.stereotype.Service;
 
@@ -28,11 +32,13 @@ import java.util.stream.Collectors;
 @Service
 public class ProductCategoryServiceImpl implements ProductCategoryService {
     private final ProductCategoryRepository repository;
+    private final ProductRepository productRepository;
     private final ProductCategoryMapper categoryMapper;
     private final MediaApi mediaApi;
 
-    public ProductCategoryServiceImpl(ProductCategoryRepository repository, ProductCategoryMapper categoryMapper, MediaApi mediaApi) {
+    public ProductCategoryServiceImpl(ProductCategoryRepository repository, ProductRepository productRepository, ProductCategoryMapper categoryMapper, MediaApi mediaApi) {
         this.repository = repository;
+        this.productRepository = productRepository;
         this.categoryMapper = categoryMapper;
         this.mediaApi = mediaApi;
     }
@@ -54,8 +60,32 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
         return categoryOptional.map(category -> toResponseDTO(category, imagesOf(List.of(category))));
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<CategorySummaryDTO> findSummaries() {
+        List<CategoryStats> stats = repository.findStats();
+        Map<String, List<Product>> previews = stats.stream().collect(Collectors.toMap(
+            CategoryStats::getId,
+            category -> productRepository.findTop4ByCategoriesIdOrderByIdAsc(category.getId())));
+
+        Map<String, StoredImage> images = imagesOfProducts(previews.values().stream().flatMap(List::stream).toList());
+
+        return stats.stream()
+            .map(category -> new CategorySummaryDTO(
+                category.getId(),
+                category.getCategoryName(),
+                category.getProductCount(),
+                category.getFromPrice(),
+                toItemDTOs(previews.get(category.getId()), images)))
+            .toList();
+    }
+
     private CategoryResponseDTO toResponseDTO(ProductCategory category, Map<String, StoredImage> images) {
-        List<ProductItemDTO> items = category.getProducts().stream()
+        return categoryMapper.categoryToResponseDTO(category, toItemDTOs(category.getProducts(), images));
+    }
+
+    private List<ProductItemDTO> toItemDTOs(List<Product> products, Map<String, StoredImage> images) {
+        return products.stream()
             .map(product -> new ProductItemDTO(
                 product.getId(),
                 product.getProductName(),
@@ -65,13 +95,16 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
                     .filter(Objects::nonNull)
                     .toList())))
             .toList();
-
-        return categoryMapper.categoryToResponseDTO(category, items);
     }
 
     private Map<String, StoredImage> imagesOf(List<ProductCategory> categories) {
-        List<String> ids = categories.stream()
+        return imagesOfProducts(categories.stream()
             .flatMap(category -> category.getProducts().stream())
+            .toList());
+    }
+
+    private Map<String, StoredImage> imagesOfProducts(List<Product> products) {
+        List<String> ids = products.stream()
             .flatMap(product -> product.getImageIds().stream())
             .distinct()
             .toList();

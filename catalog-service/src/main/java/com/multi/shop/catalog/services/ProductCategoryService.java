@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import com.multi.shop.catalog.dtos.ProductCategoryDTO;
 import com.multi.shop.catalog.dtos.CategoryResponseDTO;
+import com.multi.shop.catalog.dtos.CategorySummaryDTO;
 import com.multi.shop.catalog.entities.ProductCategory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,6 +15,7 @@ public interface ProductCategoryService {
     Page<CategoryResponseDTO> findAll(Pageable pageable);
 
     Optional<CategoryResponseDTO> findOne(String id);
+    List<CategorySummaryDTO> findSummaries();
 
     ProductCategoryDTO save(ProductCategoryDTO categoty);
 
