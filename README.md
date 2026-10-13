@@ -96,7 +96,7 @@ El `whsec_…` que muestra al arrancar debe coincidir con `STRIPE_WEBHOOK_SECRET
 | Carpeta | Cuándo se usa |
 |---|---|
 | `init/` | La ejecuta MySQL sola la primera vez que arranca con el volumen vacío: crea las bases, sus usuarios y los roles `ROLE_USER` y `ROLE_ADMIN` |
-| `migrations/` | Solo para una base que ya tiene datos del monolito anterior. Se ejecutan a mano y en orden, del `001` al `005` |
+| `migrations/` | Solo para una base que ya tiene datos del monolito anterior. Se ejecutan a mano y en orden, del `001` al `006` |
 
 ## Documentación de la API
 
