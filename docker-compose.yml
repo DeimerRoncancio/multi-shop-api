@@ -2,7 +2,6 @@ services:
   db:
     image: mysql:8.0
     environment:
-      MYSQL_DATABASE: multishop
       MYSQL_USER: multishop
       MYSQL_PASSWORD: multishop
       MYSQL_ROOT_PASSWORD: root
