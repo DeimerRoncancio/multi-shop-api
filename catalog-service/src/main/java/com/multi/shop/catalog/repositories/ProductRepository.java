@@ -11,13 +11,16 @@ import java.util.Optional;
 
 public interface ProductRepository extends JpaRepository<Product, String> {
     @Query("""
-        SELECT DISTINCT p
+        SELECT p
         FROM Product p
-        JOIN p.categories c
         WHERE (?1 IS NULL
             OR LOWER(p.productName) LIKE LOWER(CONCAT('%', ?1, '%'))
-            OR LOWER(c.categoryName) LIKE LOWER(CONCAT('%', ?1, '%')))
-        AND (?2 IS NULL OR c.categoryName IN ?2)
+            OR EXISTS (
+                SELECT 1 FROM Product p1 JOIN p1.categories c1
+                WHERE p1 = p AND LOWER(c1.categoryName) LIKE LOWER(CONCAT('%', ?1, '%'))))
+        AND (?2 IS NULL OR EXISTS (
+            SELECT 1 FROM Product p2 JOIN p2.categories c2
+            WHERE p2 = p AND c2.categoryName IN ?2))
     """)
     Page<Product> findByProductNameOrCategories(String query, List<String> categories, Pageable pageable);
 

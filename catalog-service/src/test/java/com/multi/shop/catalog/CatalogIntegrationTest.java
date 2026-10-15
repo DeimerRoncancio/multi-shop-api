@@ -160,6 +160,38 @@ class CatalogIntegrationTest {
     }
 
     @Test
+    void searchChecksTextAndCategoriesSeparately() throws Exception {
+        String adminToken = token("admin@example.com", ADMIN);
+        for (String category : List.of("Busqueda Ropa", "Busqueda Deportes"))
+            send(post("/app/categories").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"categoryName\":\"" + category + "\"}"), adminToken).andExpect(status().isCreated());
+
+        send(multipart("/app/products")
+            .file(png("images", "camisa.png"))
+            .param("productName", "Camisa Busqueda")
+            .param("description", "Ropa y deporte")
+            .param("price", "90000")
+            .param("categoriesList", "Busqueda Ropa", "Busqueda Deportes"), adminToken).andExpect(status().isOk());
+        send(multipart("/app/products")
+            .file(png("images", "balon.png"))
+            .param("productName", "Balon Busqueda")
+            .param("description", "Solo deporte")
+            .param("price", "40000")
+            .param("categoriesList", "Busqueda Deportes"), adminToken).andExpect(status().isOk());
+
+        mvc.perform(get("/app/products/search")
+                .param("query", "busqueda deportes")
+                .param("categories", "Busqueda Ropa"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.totalElements").value(1))
+            .andExpect(jsonPath("$.content[0].productName").value("Camisa Busqueda"));
+
+        mvc.perform(get("/app/products/search").param("query", "busqueda"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.totalElements").value(2));
+    }
+
+    @Test
     void onlyAdminsChangeTheCatalog() throws Exception {
         String body = "{\"categoryName\":\"Contrato Permisos\"}";
 
