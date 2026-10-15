@@ -44,6 +44,7 @@ public class ProductServiceImpl implements ProductService {
     private static final Logger log = LoggerFactory.getLogger(ProductServiceImpl.class);
     private static final int SECTION_SIZE = 12;
     private static final int TOP_SIZE = 4;
+    private static final int MAX_IDS = 100;
     private final ProductRepository repository;
     private final ProductCategoryRepository categoryRepository;
     private final ProductCategoryService categoryService;
@@ -186,6 +187,16 @@ public class ProductServiceImpl implements ProductService {
         }
 
         return new HomeDTO(sectionDTOs, toResponseDTOs(top, images), toResponseDTOs(budget, images));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProductResponseDTO> findByIds(List<String> ids) {
+        if (ids == null || ids.isEmpty()) return List.of();
+
+        List<String> unique = ids.stream().filter(Objects::nonNull).distinct().limit(MAX_IDS).toList();
+        List<Product> products = repository.findAllById(unique);
+        return toResponseDTOs(products, imagesOf(products));
     }
 
     @Override

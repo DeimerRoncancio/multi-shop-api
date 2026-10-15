@@ -83,6 +83,11 @@ public class ProductController {
         return service.search(query, categories, pageable);
     }
 
+    @GetMapping("/by-ids")
+    public List<ProductResponseDTO> findByIds(@RequestParam(value = "ids", required = false) List<String> ids) {
+        return service.findByIds(ids);
+    }
+
     @GetMapping("/home")
     public HomeDTO home() {
         return service.home();

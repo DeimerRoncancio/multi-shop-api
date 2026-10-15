@@ -31,6 +31,8 @@ public interface ProductService {
 
     HomeDTO home();
 
+    List<ProductResponseDTO> findByIds(List<String> ids);
+
     Long productsSize();
 
     List<ProductResponseDTO> latestProducts();
