@@ -189,6 +189,51 @@ class CatalogIntegrationTest {
         mvc.perform(get("/app/products/search").param("query", "busqueda"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.totalElements").value(2));
+
+        removeFromCatalog(adminToken, "% Busqueda", List.of("Busqueda Ropa", "Busqueda Deportes"));
+    }
+
+    @Test
+    void searchFiltersByPriceRange() throws Exception {
+        String adminToken = token("admin@example.com", ADMIN);
+        send(post("/app/categories").contentType(MediaType.APPLICATION_JSON)
+            .content("{\"categoryName\":\"Precio Hogar\"}"), adminToken).andExpect(status().isCreated());
+
+        for (String[] product : List.of(
+            new String[] {"Vaso Precio", "10000"},
+            new String[] {"Silla Precio", "50000"},
+            new String[] {"Mesa Precio", "120000"}))
+            send(multipart("/app/products")
+                .file(png("images", "foto.png"))
+                .param("productName", product[0])
+                .param("description", "Para la casa")
+                .param("price", product[1])
+                .param("categoriesList", "Precio Hogar"), adminToken).andExpect(status().isOk());
+
+        mvc.perform(get("/app/products/search")
+                .param("query", "precio")
+                .param("minPrice", "20000")
+                .param("maxPrice", "120000")
+                .param("sort", "price,asc"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.totalElements").value(2))
+            .andExpect(jsonPath("$.content[0].productName").value("Silla Precio"))
+            .andExpect(jsonPath("$.content[1].productName").value("Mesa Precio"));
+
+        mvc.perform(get("/app/products/search").param("query", "precio").param("maxPrice", "50000"))
+            .andExpect(jsonPath("$.totalElements").value(2));
+
+        mvc.perform(get("/app/products/search").param("query", "precio").param("minPrice", "50001"))
+            .andExpect(jsonPath("$.totalElements").value(1))
+            .andExpect(jsonPath("$.content[0].productName").value("Mesa Precio"));
+
+        mvc.perform(get("/app/products/search")
+                .param("query", "precio")
+                .param("minPrice", "120000")
+                .param("maxPrice", "20000"))
+            .andExpect(jsonPath("$.totalElements").value(2));
+
+        removeFromCatalog(adminToken, "% Precio", List.of("Precio Hogar"));
     }
 
     @Test
@@ -253,6 +298,17 @@ class CatalogIntegrationTest {
 
         assertThat(jdbc.queryForObject(
             "SELECT COUNT(*) FROM products WHERE product_name LIKE 'Producto Sin %'", Long.class)).isZero();
+    }
+
+    private void removeFromCatalog(String adminToken, String products, List<String> categories) throws Exception {
+        for (String id : jdbc.queryForList("SELECT id FROM products WHERE product_name LIKE ?", String.class, products))
+            send(delete("/app/products/" + id), adminToken).andExpect(status().isOk());
+
+        for (String category : categories) {
+            String id = jdbc.queryForObject(
+                "SELECT id FROM prod_categories WHERE category_name = ?", String.class, category);
+            send(delete("/app/categories/" + id), adminToken).andExpect(status().isOk());
+        }
     }
 
     private MockHttpServletRequestBuilder productWithPhoto(String name) {

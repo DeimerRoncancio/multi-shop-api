@@ -25,7 +25,7 @@ public interface ProductService {
 
     Optional<Product> delete(String id);
 
-    Page<ProductResponseDTO> search(String query, List<String> category, Pageable pageable);
+    Page<ProductResponseDTO> search(String query, List<String> category, Long minPrice, Long maxPrice, Pageable pageable);
 
     ProductSuggestionsDTO suggestions(List<String> categories, List<String> exclude, int size, Integer min, Sort sort);
 

@@ -21,8 +21,11 @@ public interface ProductRepository extends JpaRepository<Product, String> {
         AND (?2 IS NULL OR EXISTS (
             SELECT 1 FROM Product p2 JOIN p2.categories c2
             WHERE p2 = p AND c2.categoryName IN ?2))
+        AND (?3 IS NULL OR p.price >= ?3)
+        AND (?4 IS NULL OR p.price <= ?4)
     """)
-    Page<Product> findByProductNameOrCategories(String query, List<String> categories, Pageable pageable);
+    Page<Product> findByProductNameOrCategories(
+        String query, List<String> categories, Long minPrice, Long maxPrice, Pageable pageable);
 
     @Query("""
         SELECT DISTINCT p

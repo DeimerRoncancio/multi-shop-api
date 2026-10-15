@@ -136,8 +136,11 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    public Page<ProductResponseDTO> search(String query, List<String> categories, Pageable pageable) {
-        Page<Product> products = repository.findByProductNameOrCategories(query, categories, pageable);
+    public Page<ProductResponseDTO> search(String query, List<String> categories, Long minPrice, Long maxPrice,
+    Pageable pageable) {
+        boolean reversed = minPrice != null && maxPrice != null && minPrice > maxPrice;
+        Page<Product> products = repository.findByProductNameOrCategories(query, categories,
+            reversed ? maxPrice : minPrice, reversed ? minPrice : maxPrice, pageable);
         Map<String, StoredImage> images = imagesOf(products.getContent());
 
         return products.map(product -> toResponseDTO(product, images));
