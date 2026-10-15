@@ -45,6 +45,7 @@ public class ProductServiceImpl implements ProductService {
     private static final int SECTION_SIZE = 12;
     private static final int TOP_SIZE = 4;
     private static final int MAX_IDS = 100;
+    private static final Set<String> SEARCH_SORTS = Set.of("price", "productName", "createdAt");
     private final ProductRepository repository;
     private final ProductCategoryRepository categoryRepository;
     private final ProductCategoryService categoryService;
@@ -140,10 +141,17 @@ public class ProductServiceImpl implements ProductService {
     Pageable pageable) {
         boolean reversed = minPrice != null && maxPrice != null && minPrice > maxPrice;
         Page<Product> products = repository.findByProductNameOrCategories(query, categories,
-            reversed ? maxPrice : minPrice, reversed ? minPrice : maxPrice, pageable);
+            reversed ? maxPrice : minPrice, reversed ? minPrice : maxPrice, searchPage(pageable));
         Map<String, StoredImage> images = imagesOf(products.getContent());
 
         return products.map(product -> toResponseDTO(product, images));
+    }
+
+    private Pageable searchPage(Pageable pageable) {
+        Sort sort = Sort.by(pageable.getSort().filter(order -> SEARCH_SORTS.contains(order.getProperty())).toList());
+        if (sort.isSorted()) sort = sort.and(Sort.by("id"));
+
+        return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
     }
 
     @Override
