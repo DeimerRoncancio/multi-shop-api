@@ -8,6 +8,7 @@ import com.multi.shop.catalog.dtos.HomeDTO;
 import com.multi.shop.catalog.dtos.ProductDTO;
 import com.multi.shop.catalog.dtos.ProductResponseDTO;
 import com.multi.shop.catalog.dtos.ProductSuggestionsDTO;
+import com.multi.shop.catalog.dtos.SearchFacetsDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -26,6 +27,8 @@ public interface ProductService {
     Optional<Product> delete(String id);
 
     Page<ProductResponseDTO> search(String query, List<String> category, Long minPrice, Long maxPrice, Pageable pageable);
+
+    SearchFacetsDTO searchFacets(String query, List<String> categories, Long minPrice, Long maxPrice);
 
     ProductSuggestionsDTO suggestions(List<String> categories, List<String> exclude, int size, Integer min, Sort sort);
 

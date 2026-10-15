@@ -237,6 +237,53 @@ class CatalogIntegrationTest {
     }
 
     @Test
+    void facetsCountCategoriesAndPriceRangeWithoutLimitingThemselves() throws Exception {
+        String adminToken = token("admin@example.com", ADMIN);
+        for (String category : List.of("Faceta Ropa", "Faceta Hogar"))
+            send(post("/app/categories").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"categoryName\":\"" + category + "\"}"), adminToken).andExpect(status().isCreated());
+
+        for (String[] product : List.of(
+            new String[] {"Gorro Faceta", "10000", "Faceta Ropa"},
+            new String[] {"Camisa Faceta", "30000", "Faceta Ropa"},
+            new String[] {"Lampara Faceta", "80000", "Faceta Hogar"}))
+            send(multipart("/app/products")
+                .file(png("images", "foto.png"))
+                .param("productName", product[0])
+                .param("description", "Faceta")
+                .param("price", product[1])
+                .param("categoriesList", product[2]), adminToken).andExpect(status().isOk());
+
+        mvc.perform(get("/app/products/search/facets").param("query", "faceta"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.minPrice").value(10000))
+            .andExpect(jsonPath("$.maxPrice").value(80000))
+            .andExpect(jsonPath("$.categories.length()").value(2))
+            .andExpect(jsonPath("$.categories[0].categoryName").value("Faceta Ropa"))
+            .andExpect(jsonPath("$.categories[0].productCount").value(2))
+            .andExpect(jsonPath("$.categories[1].categoryName").value("Faceta Hogar"))
+            .andExpect(jsonPath("$.categories[1].productCount").value(1));
+
+        mvc.perform(get("/app/products/search/facets").param("query", "faceta").param("categories", "Faceta Hogar"))
+            .andExpect(jsonPath("$.minPrice").value(80000))
+            .andExpect(jsonPath("$.maxPrice").value(80000))
+            .andExpect(jsonPath("$.categories.length()").value(2));
+
+        mvc.perform(get("/app/products/search/facets").param("query", "faceta").param("maxPrice", "20000"))
+            .andExpect(jsonPath("$.minPrice").value(10000))
+            .andExpect(jsonPath("$.maxPrice").value(80000))
+            .andExpect(jsonPath("$.categories.length()").value(1))
+            .andExpect(jsonPath("$.categories[0].productCount").value(1));
+
+        mvc.perform(get("/app/products/search/facets").param("query", "no existe nada"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.minPrice").isEmpty())
+            .andExpect(jsonPath("$.categories.length()").value(0));
+
+        removeFromCatalog(adminToken, "% Faceta", List.of("Faceta Ropa", "Faceta Hogar"));
+    }
+
+    @Test
     void onlyAdminsChangeTheCatalog() throws Exception {
         String body = "{\"categoryName\":\"Contrato Permisos\"}";
 

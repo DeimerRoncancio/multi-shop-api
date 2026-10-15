@@ -28,6 +28,36 @@ public interface ProductRepository extends JpaRepository<Product, String> {
         String query, List<String> categories, Long minPrice, Long maxPrice, Pageable pageable);
 
     @Query("""
+        SELECT c.categoryName AS categoryName, COUNT(p) AS productCount
+        FROM Product p
+        JOIN p.categories c
+        WHERE (?1 IS NULL
+            OR LOWER(p.productName) LIKE LOWER(CONCAT('%', ?1, '%'))
+            OR EXISTS (
+                SELECT 1 FROM Product p1 JOIN p1.categories c1
+                WHERE p1 = p AND LOWER(c1.categoryName) LIKE LOWER(CONCAT('%', ?1, '%'))))
+        AND (?2 IS NULL OR p.price >= ?2)
+        AND (?3 IS NULL OR p.price <= ?3)
+        GROUP BY c.categoryName
+        ORDER BY COUNT(p) DESC, c.categoryName
+    """)
+    List<SearchCategoryCount> countCategoriesForSearch(String query, Long minPrice, Long maxPrice);
+
+    @Query("""
+        SELECT MIN(p.price) AS minPrice, MAX(p.price) AS maxPrice
+        FROM Product p
+        WHERE (?1 IS NULL
+            OR LOWER(p.productName) LIKE LOWER(CONCAT('%', ?1, '%'))
+            OR EXISTS (
+                SELECT 1 FROM Product p1 JOIN p1.categories c1
+                WHERE p1 = p AND LOWER(c1.categoryName) LIKE LOWER(CONCAT('%', ?1, '%'))))
+        AND (?2 IS NULL OR EXISTS (
+            SELECT 1 FROM Product p2 JOIN p2.categories c2
+            WHERE p2 = p AND c2.categoryName IN ?2))
+    """)
+    SearchPriceRange findPriceRangeForSearch(String query, List<String> categories);
+
+    @Query("""
         SELECT DISTINCT p
         FROM Product p
         JOIN p.categories c

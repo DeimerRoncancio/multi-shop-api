@@ -3,11 +3,13 @@ package com.multi.shop.catalog.services.impl;
 import com.multi.shop.catalog.services.ImageNames;
 import com.multi.shop.catalog.media.MediaApi;
 import com.multi.shop.catalog.media.StoredImage;
+import com.multi.shop.catalog.dtos.CategoryCountDTO;
 import com.multi.shop.catalog.dtos.HomeDTO;
 import com.multi.shop.catalog.dtos.HomeSectionDTO;
 import com.multi.shop.catalog.dtos.ProductDTO;
 import com.multi.shop.catalog.dtos.ProductResponseDTO;
 import com.multi.shop.catalog.dtos.ProductSuggestionsDTO;
+import com.multi.shop.catalog.dtos.SearchFacetsDTO;
 import com.multi.shop.catalog.dtos.VariantDTO;
 import com.multi.shop.catalog.entities.Variant;
 import com.multi.shop.catalog.mappers.VariantMapper;
@@ -29,6 +31,7 @@ import com.multi.shop.catalog.mappers.ProductMapper;
 import com.multi.shop.catalog.repositories.CategoryStats;
 import com.multi.shop.catalog.repositories.ProductCategoryRepository;
 import com.multi.shop.catalog.repositories.ProductRepository;
+import com.multi.shop.catalog.repositories.SearchPriceRange;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -145,6 +148,20 @@ public class ProductServiceImpl implements ProductService {
         Map<String, StoredImage> images = imagesOf(products.getContent());
 
         return products.map(product -> toResponseDTO(product, images));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public SearchFacetsDTO searchFacets(String query, List<String> categories, Long minPrice, Long maxPrice) {
+        boolean reversed = minPrice != null && maxPrice != null && minPrice > maxPrice;
+        List<CategoryCountDTO> counts = repository
+            .countCategoriesForSearch(query, reversed ? maxPrice : minPrice, reversed ? minPrice : maxPrice)
+            .stream()
+            .map(count -> new CategoryCountDTO(count.getCategoryName(), count.getProductCount()))
+            .toList();
+        SearchPriceRange range = repository.findPriceRangeForSearch(query, categories);
+
+        return new SearchFacetsDTO(range.getMinPrice(), range.getMaxPrice(), counts);
     }
 
     private Pageable searchPage(Pageable pageable) {

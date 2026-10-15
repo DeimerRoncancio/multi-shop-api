@@ -7,6 +7,7 @@ import com.multi.shop.catalog.dtos.HomeDTO;
 import com.multi.shop.catalog.dtos.ProductDTO;
 import com.multi.shop.catalog.dtos.ProductResponseDTO;
 import com.multi.shop.catalog.dtos.ProductSuggestionsDTO;
+import com.multi.shop.catalog.dtos.SearchFacetsDTO;
 import jakarta.validation.Valid;
 
 import org.springframework.data.domain.Page;
@@ -83,6 +84,15 @@ public class ProductController {
     @RequestParam(value = "minPrice", required = false) Long minPrice,
     @RequestParam(value = "maxPrice", required = false) Long maxPrice) {
         return service.search(query, categories, minPrice, maxPrice, pageable);
+    }
+
+    @GetMapping("/search/facets")
+    public SearchFacetsDTO searchFacets(
+    @RequestParam(value = "query", required = false) String query,
+    @RequestParam(value = "categories", required = false) List<String> categories,
+    @RequestParam(value = "minPrice", required = false) Long minPrice,
+    @RequestParam(value = "maxPrice", required = false) Long maxPrice) {
+        return service.searchFacets(query, categories, minPrice, maxPrice);
     }
 
     @GetMapping("/by-ids")
