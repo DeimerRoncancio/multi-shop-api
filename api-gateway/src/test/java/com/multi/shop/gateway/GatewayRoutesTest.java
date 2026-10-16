@@ -107,6 +107,19 @@ class GatewayRoutesTest {
     }
 
     @Test
+    void sendsGuestAvatarsToTheTransactionsService() throws InterruptedException {
+        int catalogBefore = CATALOG.getRequestCount();
+        int identityBefore = IDENTITY.getRequestCount();
+        TRANSACTIONS.enqueue(new MockResponse().setResponseCode(200).setBody("{}"));
+
+        client.get().uri("/app/guests/avatar?email=ana@correo.com").exchange().expectStatus().isOk();
+
+        assertThat(TRANSACTIONS.takeRequest(1, TimeUnit.SECONDS).getPath()).isEqualTo("/app/guests/avatar?email=ana@correo.com");
+        assertThat(CATALOG.getRequestCount()).isEqualTo(catalogBefore);
+        assertThat(IDENTITY.getRequestCount()).isEqualTo(identityBefore);
+    }
+
+    @Test
     void sendsQuantityToTheIdentityService() throws InterruptedException {
         IDENTITY.enqueue(new MockResponse().setResponseCode(200).setBody("{\"users\":1}"));
 

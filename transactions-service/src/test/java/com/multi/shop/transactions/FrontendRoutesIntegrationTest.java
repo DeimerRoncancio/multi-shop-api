@@ -10,6 +10,7 @@ import java.util.Base64;
 import java.util.Date;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -24,6 +25,18 @@ class FrontendRoutesIntegrationTest extends IntegrationTestBase {
         mvc.perform(get("/v3/api-docs"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.paths['/app/payments/create-transaction']").exists());
+    }
+
+    @Test
+    void guestAvatarsArePublic() throws Exception {
+        mvc.perform(put("/app/guests/avatar")
+                .contentType("application/json")
+                .content("{\"email\":\"Ana@Correo.com\",\"avatar\":4}"))
+            .andExpect(status().isOk());
+
+        mvc.perform(get("/app/guests/avatar").param("email", "ana@correo.com"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.avatar").value(4));
     }
 
     @Test
