@@ -39,6 +39,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -151,6 +152,38 @@ class IdentityIntegrationTest {
 
         assertThat(MEDIA.images()).extracting(FakeMediaService.Image::status).containsOnly("CONFIRMED");
         assertThat(MEDIA.deletedImageIds()).containsExactly("foto-5", "foto-8");
+    }
+
+    @Test
+    void choosingAnAvatarRemovesTheProfilePhoto() throws Exception {
+        String liaToken = registerUser("Lia", "lia.avatar@example.com", "3009990031");
+        String teoToken = registerUser("Teo", "teo.avatar@example.com", "3009990032");
+        JsonNode lia = mapper.readTree(send(get("/app/users/me").header("Token", liaToken), liaToken)
+            .andReturn().getResponse().getContentAsString());
+        String liaId = lia.get("id").asText();
+        String photoId = lia.get("imageUser").get("imageId").asText();
+
+        send(put("/app/users/update/avatar/" + liaId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"avatar\":3}"), teoToken)
+            .andExpect(status().isForbidden());
+
+        send(put("/app/users/update/avatar/" + liaId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"avatar\":9}"), liaToken)
+            .andExpect(status().isBadRequest());
+
+        send(put("/app/users/update/avatar/" + liaId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"avatar\":3}"), liaToken)
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.avatar").value(3));
+
+        assertThat(MEDIA.deletedImageIds()).containsExactly(photoId);
+        send(get("/app/users/me").header("Token", liaToken), liaToken)
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.avatar").value(3))
+            .andExpect(jsonPath("$.imageUser").doesNotExist());
     }
 
     @Test

@@ -6,6 +6,7 @@ import com.multi.shop.identity.common.exceptions.NotFoundException;
 import com.multi.shop.identity.common.exceptions.PasswordMatchException;
 import com.multi.shop.identity.media.MediaApi;
 import com.multi.shop.identity.media.StoredImage;
+import com.multi.shop.identity.users.dtos.AvatarDTO;
 import com.multi.shop.identity.users.dtos.PasswordDTO;
 import com.multi.shop.identity.users.dtos.UserDTO;
 import com.multi.shop.identity.users.dtos.UserResponseDTO;
@@ -147,6 +148,21 @@ public class UserServiceImpl implements UserService {
 
         repository.save(user);
         return image;
+    }
+
+    @Override
+    @Transactional
+    public AvatarDTO updateAvatar(String id, int avatar) {
+        User user = repository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
+
+        if (user.getProfileImageId() != null) {
+            deleteProfileImage(user);
+            user.setProfileImageId(null);
+        }
+        user.setAvatar(avatar);
+
+        repository.save(user);
+        return new AvatarDTO(avatar);
     }
 
     @Override

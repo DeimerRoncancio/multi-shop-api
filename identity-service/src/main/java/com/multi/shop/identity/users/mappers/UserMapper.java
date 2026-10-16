@@ -14,6 +14,7 @@ public interface UserMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "enabled", ignore = true)
     @Mapping(target = "profileImageId", ignore = true)
+    @Mapping(target = "avatar", ignore = true)
     User registerDTOtoUser(RegisterUserDTO dto);
 
     @Mapping(target = "id", ignore = true)
@@ -21,6 +22,7 @@ public interface UserMapper {
     @Mapping(target = "enabled", ignore = true)
     @Mapping(target = "profileImageId", ignore = true)
     @Mapping(target = "password", ignore = true)
+    @Mapping(target = "avatar", ignore = true)
     void toUpdateUser(UserDTO dto, @MappingTarget User user);
 
     @Mapping(target = "admin", expression = "java(isAdmin)")

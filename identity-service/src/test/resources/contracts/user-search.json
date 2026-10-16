@@ -7,6 +7,7 @@
       "imageUrl" : "http://res.cloudinary.com/prueba/image/upload/foto-6.png",
       "imageId" : "foto-6"
     },
+    "avatar" : null,
     "secondName" : null,
     "lastnames" : "Contrato",
     "phoneNumber" : 3009990001,

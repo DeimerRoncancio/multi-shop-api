@@ -30,6 +30,9 @@ public class User {
 
     @Column(name = "profile_image")
     private String profileImageId;
+
+    @Column(name = "avatar")
+    private Integer avatar;
     private String secondName;
     private String lastnames;
 
@@ -85,6 +88,14 @@ public class User {
 
     public void setProfileImageId(String profileImageId) {
         this.profileImageId = profileImageId;
+    }
+
+    public Integer getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(Integer avatar) {
+        this.avatar = avatar;
     }
 
     public String getSecondName() {

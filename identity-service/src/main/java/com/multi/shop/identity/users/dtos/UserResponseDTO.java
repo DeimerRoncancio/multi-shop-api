@@ -9,6 +9,7 @@ public record UserResponseDTO(
 
     @JsonIgnoreProperties("id")
     StoredImage imageUser,
+    Integer avatar,
     String secondName,
     String lastnames,
     Long phoneNumber,

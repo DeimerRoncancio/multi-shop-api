@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.multi.shop.identity.users.dtos.AvatarDTO;
 import com.multi.shop.identity.users.dtos.PasswordDTO;
 import com.multi.shop.identity.users.dtos.UserDTO;
 import com.multi.shop.identity.users.dtos.UserResponseDTO;
@@ -31,6 +32,8 @@ public interface UserService {
     Optional<User> updatePassword(String id, PasswordDTO passwordInfo);
 
     StoredImage updateProfileImage(String id, MultipartFile file);
+
+    AvatarDTO updateAvatar(String id, int avatar);
 
     Optional<User> delete(String id);
 

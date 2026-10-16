@@ -2,6 +2,7 @@ package com.multi.shop.identity.users.controllers;
 
 import com.multi.shop.identity.common.exceptions.NotFoundException;
 import com.multi.shop.identity.media.StoredImage;
+import com.multi.shop.identity.users.dtos.AvatarDTO;
 import com.multi.shop.identity.users.dtos.PasswordDTO;
 import com.multi.shop.identity.users.dtos.UserDTO;
 import com.multi.shop.identity.users.dtos.UserResponseDTO;
@@ -87,6 +88,12 @@ public class UserController {
     public ResponseEntity<StoredImage> updateProfileImage(@PathVariable String id, @RequestPart MultipartFile file) {
         StoredImage image = service.updateProfileImage(id, file);
         return ResponseEntity.status(HttpStatus.CREATED).body(image);
+    }
+
+    @PutMapping("/update/avatar/{id}")
+    @PreAuthorize("hasRole('ADMIN') or @authz.isSelf(#id, authentication)")
+    public AvatarDTO updateAvatar(@PathVariable String id, @Valid @RequestBody AvatarDTO avatar) {
+        return service.updateAvatar(id, avatar.avatar());
     }
 
     @DeleteMapping("/{id}")

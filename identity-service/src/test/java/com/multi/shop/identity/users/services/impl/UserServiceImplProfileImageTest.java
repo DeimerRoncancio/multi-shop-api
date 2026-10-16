@@ -2,6 +2,7 @@ package com.multi.shop.identity.users.services.impl;
 
 import com.multi.shop.identity.media.MediaApi;
 import com.multi.shop.identity.media.StoredImage;
+import com.multi.shop.identity.users.entities.User;
 import com.multi.shop.identity.users.mappers.UserMapper;
 import com.multi.shop.identity.users.mappers.UserMapperImpl;
 import com.multi.shop.identity.users.repositories.RoleRepository;
@@ -17,6 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -42,6 +44,31 @@ class UserServiceImplProfileImageTest {
 
     @InjectMocks
     private UserServiceImpl service;
+
+    @Test
+    void choosingAnAvatarDeletesTheProfilePhoto() {
+        User user = new User();
+        user.setProfileImageId("foto-1");
+        when(repository.findById("id")).thenReturn(Optional.of(user));
+
+        assertThat(service.updateAvatar("id", 4).avatar()).isEqualTo(4);
+
+        verify(mediaApi).deleteAfterCommit("foto-1");
+        verify(repository).save(user);
+        assertThat(user.getProfileImageId()).isNull();
+        assertThat(user.getAvatar()).isEqualTo(4);
+    }
+
+    @Test
+    void choosingAnAvatarWithoutPhotoDeletesNothing() {
+        User user = new User();
+        when(repository.findById("id")).thenReturn(Optional.of(user));
+
+        service.updateAvatar("id", 2);
+
+        verify(mediaApi, never()).deleteAfterCommit(any());
+        assertThat(user.getAvatar()).isEqualTo(2);
+    }
 
     @Test
     void doesNotUploadAnythingWithoutAFile() {
