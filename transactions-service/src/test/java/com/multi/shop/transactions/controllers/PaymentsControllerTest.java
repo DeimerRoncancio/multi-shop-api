@@ -8,6 +8,7 @@ import com.multi.shop.transactions.dtos.CustomerSummaryDTO;
 import com.multi.shop.transactions.enums.TransactionStatus;
 import com.multi.shop.transactions.services.CheckoutCustomerService;
 import com.multi.shop.transactions.services.PaymentService;
+import com.multi.shop.transactions.services.PurchaseService;
 import com.multi.shop.transactions.services.StripeCheckoutService;
 import com.multi.shop.transactions.services.StripeWebhookService;
 import org.junit.jupiter.api.BeforeEach;
@@ -64,7 +65,8 @@ class PaymentsControllerTest {
                 service,
                 customerService,
                 stripeCheckoutService,
-                mock(StripeWebhookService.class)
+                mock(StripeWebhookService.class),
+                mock(PurchaseService.class)
             ))
             .setControllerAdvice(new ControllerAdvice())
             .build();

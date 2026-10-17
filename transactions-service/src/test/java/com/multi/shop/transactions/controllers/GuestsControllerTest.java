@@ -3,6 +3,7 @@ package com.multi.shop.transactions.controllers;
 import com.multi.shop.transactions.common.ControllerAdvice;
 import com.multi.shop.transactions.dtos.GuestAvatarDTO;
 import com.multi.shop.transactions.services.GuestAvatarService;
+import com.multi.shop.transactions.services.PurchaseService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -27,7 +28,7 @@ class GuestsControllerTest {
     void setUp() {
         avatarService = mock(GuestAvatarService.class);
         mockMvc = MockMvcBuilders
-            .standaloneSetup(new GuestsController(avatarService))
+            .standaloneSetup(new GuestsController(avatarService, mock(PurchaseService.class)))
             .setControllerAdvice(new ControllerAdvice())
             .build();
     }

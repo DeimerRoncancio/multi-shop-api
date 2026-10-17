@@ -32,6 +32,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.DELETE, "/app/payments/{id}").permitAll()
                 .requestMatchers(HttpMethod.GET, "/app/guests/avatar").permitAll()
                 .requestMatchers(HttpMethod.PUT, "/app/guests/avatar").permitAll()
+                .requestMatchers(HttpMethod.GET, "/app/guests/purchases").permitAll()
                 .anyRequest().authenticated())
             .addFilterBefore(new JwtValidationFilter(), UsernamePasswordAuthenticationFilter.class)
             .csrf(AbstractHttpConfigurer::disable)

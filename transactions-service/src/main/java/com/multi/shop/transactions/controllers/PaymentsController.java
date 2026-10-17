@@ -5,6 +5,7 @@ import com.multi.shop.transactions.entities.Customer;
 import com.multi.shop.transactions.entities.Transaction;
 import com.multi.shop.transactions.services.CheckoutCustomerService;
 import com.multi.shop.transactions.services.PaymentService;
+import com.multi.shop.transactions.services.PurchaseService;
 import com.multi.shop.transactions.services.StripeCheckoutService;
 import com.multi.shop.transactions.services.StripeWebhookService;
 import com.stripe.exception.SignatureVerificationException;
@@ -25,6 +26,7 @@ public class PaymentsController {
     private final CheckoutCustomerService customerService;
     private final StripeCheckoutService stripeCheckoutService;
     private final StripeWebhookService stripeWebhookService;
+    private final PurchaseService purchaseService;
 
     @Value("${stripe.webhook.secret}")
     private String webhookSecret;
@@ -33,12 +35,19 @@ public class PaymentsController {
         PaymentService service,
         CheckoutCustomerService customerService,
         StripeCheckoutService stripeCheckoutService,
-        StripeWebhookService stripeWebhookService
+        StripeWebhookService stripeWebhookService,
+        PurchaseService purchaseService
     ) {
         this.service = service;
         this.customerService = customerService;
         this.stripeCheckoutService = stripeCheckoutService;
         this.stripeWebhookService = stripeWebhookService;
+        this.purchaseService = purchaseService;
+    }
+
+    @GetMapping("/purchases")
+    public List<PurchaseDTO> getPurchases(Principal principal) {
+        return purchaseService.getUserPurchases(principal.getName());
     }
 
     @GetMapping("/saved-addresses")
