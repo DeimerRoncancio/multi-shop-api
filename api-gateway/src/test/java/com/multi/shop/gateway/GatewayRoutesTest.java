@@ -120,6 +120,22 @@ class GatewayRoutesTest {
     }
 
     @Test
+    void sendsAddressesToTheTransactionsService() throws InterruptedException {
+        int catalogBefore = CATALOG.getRequestCount();
+        int identityBefore = IDENTITY.getRequestCount();
+        TRANSACTIONS.enqueue(new MockResponse().setResponseCode(200).setBody("[]"));
+        TRANSACTIONS.enqueue(new MockResponse().setResponseCode(204));
+
+        client.get().uri("/app/addresses").exchange().expectStatus().isOk();
+        client.delete().uri("/app/addresses/abc").exchange().expectStatus().isNoContent();
+
+        assertThat(TRANSACTIONS.takeRequest(1, TimeUnit.SECONDS).getPath()).isEqualTo("/app/addresses");
+        assertThat(TRANSACTIONS.takeRequest(1, TimeUnit.SECONDS).getPath()).isEqualTo("/app/addresses/abc");
+        assertThat(CATALOG.getRequestCount()).isEqualTo(catalogBefore);
+        assertThat(IDENTITY.getRequestCount()).isEqualTo(identityBefore);
+    }
+
+    @Test
     void sendsQuantityToTheIdentityService() throws InterruptedException {
         IDENTITY.enqueue(new MockResponse().setResponseCode(200).setBody("{\"users\":1}"));
 

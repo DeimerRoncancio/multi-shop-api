@@ -1,6 +1,7 @@
 package com.multi.shop.transactions.mappers;
 
 import com.multi.shop.transactions.dtos.CustomerAddressDTO;
+import com.multi.shop.transactions.dtos.SavedAddressDTO;
 import com.multi.shop.transactions.entities.Address;
 import com.multi.shop.transactions.entities.Customer;
 import org.mapstruct.Mapper;
@@ -16,4 +17,8 @@ public interface CustomerMapper {
     }
 
     List<CustomerAddressDTO> toCustomerAddressDTOs(List<Address> addresses);
+
+    SavedAddressDTO toSavedAddressDTO(Address address);
+
+    List<SavedAddressDTO> toSavedAddressDTOs(List<Address> addresses);
 }
